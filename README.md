@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 StimulationB15
 Description
 
@@ -68,3 +69,7 @@ Please read CONTRIBUTING.md for details on how to contribute to this project.
 License
 
 This project is licensed under the MIT License. See the LICENSE.md file for details.
+=======
+# stimulationb15
+ICMS GUI
+>>>>>>> origin/main
