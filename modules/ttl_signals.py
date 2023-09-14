@@ -1,28 +1,6 @@
-"""
-import parallel
-
-# Find the first parallel port (usually "/dev/parport0")
-port = parallel.Parallel()
-
-# Check if the port is open and available
-if port.isPrinterBusy():
-    print("Parallel port is busy.")
-else:
-    # Define the data to send (8 bits)
-    data_to_send = 0b10101010
-
-    # Send data to the data port
-    port.setData(data_to_send)
-
-    # Close the parallel port
-    port.close()
-"""
-
-# ttl_signals.py
-
-from time import sleep
-import random
 from expyriment.io import ParallelPort
+import random
+from time import sleep
 
 # Initialize the Parallel Port; replace '/dev/parport0' with the actual device path on your machine
 pp = ParallelPort('/dev/parport0')
@@ -38,30 +16,17 @@ def send_ttl_signal(signal_code):
     sleep(0.002)  # 2ms pulse
     pp.set_data(0)  # Reset to 0
 
-def initiate_trial():
-    intertrial_time = generate_pseudo_random_time()
-    holding_time = 1.0  # in seconds
-
-    # Start of Trial
-    send_ttl_signal(255)  # You can adjust this code as needed
-
-    # Holding Time
-    sleep(holding_time)
-
-    # Inter-trial Time
-    sleep(intertrial_time)
-
-    # End of Trial
-    send_ttl_signal(0)  # You can adjust this code as needed
-
-    return intertrial_time
-
 if __name__ == "__main__":
-    # Test code for the ttl_signals.py module
-    random.seed(None)  # Seed with current system time for more randomness
+    try:
+        # Define the data value (0-255), pulse duration (in milliseconds), and number of pulses
+        data_value = 0xFF  # 0xFF represents all bits high (binary 11111111)
+        pulse_duration_ms = 500  # 500 milliseconds (0.5 seconds)
+        pulse_count = 5  # Number of pulses to send
 
-    print("Starting test trials...")
-    for i in range(3):
-        intertrial_time = initiate_trial()
-        print(f"Trial {i+1} completed with intertrial time: {intertrial_time} seconds")
-    print("All test trials completed.")
+        # Send the specified number of pulses
+        for _ in range(pulse_count):
+            send_ttl_signal(data_value)
+            sleep(pulse_duration_ms / 1000.0)
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")

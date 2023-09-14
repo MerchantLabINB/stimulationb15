@@ -3,7 +3,12 @@ from modules import ttl_signals, camera_control, led_pattern, data_logging
 from time import sleep
 import random
 
-def main(frame_rate):
+#Open Configuration File
+
+# Open Gui Interface
+
+
+def main():
     # Initialization code here
 
     for i in range(7):  # 7 Trials
