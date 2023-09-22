@@ -1,17 +1,33 @@
 import threading
-from modules import ttl_signals, camera_control, led_pattern, data_logging
+from modules import camera_control, led_pattern, data_logging, ttl_signals
 from time import sleep
 import random
-
-#Open Configuration File
-
-# Open Gui Interface
-
+import numpy as np
+import configparser  # Add this import for handling INI files
+import subprocess
+# Function to load configuration from an INI file
+def load_config():
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')  # Specify the path to your INI file
+    return config
 
 def main():
+    config = load_config()  # Load configuration from the INI file
+
+    # Call the GUI interface script using subprocess
+    # subprocess.Popen(["python", "gui_interface_script.py"])
+
+    def randperm(n):
+        return np.random.permutation(n) + 1
+
+    # Example usage:
+    n = int(config['Experiment']['num_trials'])  # Read the number of trials from the INI file
+    permutation = randperm(n)
+    print(permutation)
+
     # Initialization code here
 
-    for i in range(7):  # 7 Trials
+    for i in range(n):  # n Trials
         # Random Wait
         wait_time = random.uniform(4, 8)
         sleep(wait_time)
@@ -41,3 +57,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

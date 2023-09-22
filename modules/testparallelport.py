@@ -9,10 +9,12 @@ import os
 parallel_port = os.open("/dev/parport0", os.O_WRONLY)
 
 # Send a byte of data (e.g., 0xFF) to the parallel port
-os.write(parallel_port, b'\xFF')
+os.read(parallel_port,255)
 
 # Close the parallel port
 os.close(parallel_port)
+"""
+
 from expyriment import io
 
 pports = [io.ParallelPort('/dev/' + pp)
@@ -25,6 +27,7 @@ while True:
       print(state)
       prev_state = state
 
+"""
 import sys
 
 # Print sys.path before appending
@@ -40,13 +43,16 @@ print("PATHHH",sys.path)
 
 from expyriment import io
 print("Expyriment imported successfully.")
-"""
-import parallel.parallelutil
+import parallel
 
 # Open the parallel port as a serial port
 port = parallel.Parallel()
 # Send data to the parallel port (use binary data)
 port.write('255')
 
-# Close the port when done
+# Close the port when do
 port.close()
+"""
+
+"""from psychopy import parallel
+port = parallel.ParallelPort(address=u'0xB010')"""
