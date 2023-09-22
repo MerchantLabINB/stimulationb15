@@ -29,5 +29,3 @@ if __name__ == "__main__":
     output = run_c_program_with_value(value_to_pass)
     if output is not None:
         print("Output:", output)
-
-

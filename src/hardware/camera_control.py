@@ -20,6 +20,7 @@ def init_cameras():
     # Get all attached devices
     try:
         devices = tlFactory.EnumerateDevices()
+        print("Cámaras inicializadas")
     except Exception as e:
         print(f"Failed to enumerate devices: {e}")
         exit()
@@ -48,18 +49,19 @@ def init_cameras():
 
 
 
-def grab_and_write_frames(camera, converter, video_writer):
+def grab_and_write_frames(camera, converter, video_writer, show_video=True):
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
     if grabResult.GrabSucceeded():
         img = converter.Convert(grabResult).GetArray()
         video_writer.write(img)
-        cv2.imshow(f'Camera {camera}', img)
+        if show_video:
+            cv2.imshow(f'Camera {camera}', img)
     grabResult.Release()
+
 
 def start_record(camera1, camera2, save_dir, subject_id, stimulation_pattern,frame_rate = 120):
     # Initialize video writer using the mp4v codec
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-
 
     # Define the subject, stimulation pattern, and get the current time for naming the output video files
 
@@ -81,11 +83,13 @@ def start_record(camera1, camera2, save_dir, subject_id, stimulation_pattern,fra
     camera2.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
     # Loop to keep grabbing frames as long as both cameras are active
+    print("Se crearon los videowriters y los grabbers")
     while camera1.IsGrabbing() and camera2.IsGrabbing():
-        grab_and_write_frames(camera1, converter, video_writer1)
-        grab_and_write_frames(camera2, converter, video_writer2)
+        grab_and_write_frames(camera1, converter, video_writer1,show_video=False)
+        grab_and_write_frames(camera2, converter, video_writer2,show_video=False)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            print("Se presionó q dentro de")
             break
 
     return video_writer1, video_writer2
