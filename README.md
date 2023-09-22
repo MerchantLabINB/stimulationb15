@@ -1,75 +1,63 @@
-<<<<<<< HEAD
-StimulationB15
-Description
+# StimulationB15
 
-StimulationB15 is a project aimed at controlling multiple hardware devices such as cameras and LEDs for the purpose of scientific experimentation. It provides capabilities for signal synchronization, camera control, LED pattern generation, data logging, and a graphical user interface for easier operation.
-Features
+## Description
 
-    Camera Control: For capturing video or images from multiple synchronized cameras.
-    TTL Signals: To synchronize different hardware components.
-    LED Patterns: For generating custom LED sequences.
-    GUI Interface: For easy control and configuration of experiments.
-    Data Logging: To save and manage experimental data.
+StimulationB15 is a project designed for the precise control of multiple hardware devices, such as cameras and LEDs, for scientific experimentation. It provides a wide range of features including signal synchronization, camera control, LED pattern generation, data logging, and a user-friendly graphical interface for streamlined operation.
 
-File Structure
+## Features
 
-plaintext
+- **Camera Control:** Capture video or images from multiple synchronized cameras.
+- **TTL Signals:** Synchronize different hardware components with precision.
+- **LED Patterns:** Generate custom LED sequences for experiments.
+- **GUI Interface:** Easily control and configure experiments through a graphical user interface.
+- **Data Logging:** Save and manage experimental data efficiently.
+
+## File Structure
 
 stimulationB15/
 │
 ├── master_script.py
 │
 ├── modules/
-│   ├── ttl_signals.py
-│   ├── camera_control.py
-│   ├── led_pattern.py
-│   ├── gui_interface.py
-│   └── data_logging.py
+│ ├── ttl_signals.py
+│ ├── camera_control.py
+│ ├── led_pattern.py
+│ ├── gui_interface.py
+│ └── data_logging.py
 │
 ├── utils/
-│   └── utility_functions.py
+│ └── utility_functions.py
 │
 ├── data/
 │
 └── README.md
 
-Getting Started
-Prerequisites
+## Getting Started
 
-    Python 3.x
-    OpenCV
-    Pypylon
-    (Any other libraries or software)
+### Prerequisites
 
-Installation
+- Python 3.x
+- OpenCV
+- Pypylon
+- (Any other libraries or software required for your specific setup)
 
-    Clone the repository
+### Installation
 
-bash
+1. Clone the repository:
 
+```bash
 git clone https://github.com/yourusername/stimulationB15.git
-
-    Install required packages
-
-bash
 
 pip install -r requirements.txt
 
-Usage
+### Usage
 
-Run master_script.py to start the program.
-
-bash
+To start the program, run:
 
 python master_script.py
-
 Contributing
 
-Please read CONTRIBUTING.md for details on how to contribute to this project.
+Please refer to CONTRIBUTING.md for information on how to contribute to this project.
 License
 
 This project is licensed under the MIT License. See the LICENSE.md file for details.
-=======
-# stimulationb15
-ICMS GUI
->>>>>>> origin/main
