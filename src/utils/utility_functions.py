@@ -1,5 +1,6 @@
 import os
 import subprocess
+import configparser
 
 def run_c_program_with_value(value):
     # Get the directory of the current script
@@ -22,6 +23,35 @@ def run_c_program_with_value(value):
 
     # Return the output of your C program
     return stdout
+# src/utils/utility_functions.py
+
+
+
+def load_configuration(config, pattern_time_var, intertrial_time_var):
+    try:
+        config.read('config/config.ini')
+        # Populate the configuration settings here as needed
+        pattern_time_var.set(config['GUI']['PatternTime'])
+        intertrial_time_var.set(config['GUI']['IntertrialTime'])
+
+        print("Load configuration done")
+    except FileNotFoundError:
+        print("No se encontró el archivo de configuración.")
+        pass
+
+# Function to save configuration
+def save_configuration(config, pattern_time, intertrial_time, holding_time, frame_rate, evocated_time, recording_duration):
+    config['GUI'] = {
+        'PatternTime': pattern_time,
+        'IntertrialTime': intertrial_time,
+        'HoldingTime': holding_time,
+        'FrameRate': frame_rate,
+        'EvocatedTime': evocated_time,
+        'RecordDuration': recording_duration
+    }
+    with open('config/config.ini', 'w') as configfile:
+        config.write(configfile)
+        print("Se sobreescribió config.ini con éxito")
 
 # Example usage:
 if __name__ == "__main__":
