@@ -20,6 +20,10 @@ camera_controller = None
 root = tk.Tk()
 root.title("GUI Interface")
 
+ttk.Style().configure("TButton", font=("TkDefaultFont", 16))  # Increase button text size
+ttk.Style().configure("TLabel", font=("TkDefaultFont", 16))   # Increase label text size
+ttk.Style().configure("TEntry", font=("TkDefaultFont", 16))   # Increase entry text size
+
 # Define global variables (StringVar variables and config)
 frame_rate_var = tk.StringVar(value="120")
 holding_time_var = tk.StringVar(value="1.0")

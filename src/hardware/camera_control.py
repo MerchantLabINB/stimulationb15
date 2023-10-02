@@ -4,6 +4,7 @@ import time
 import os
 import random
 import datetime
+import numpy as np
 
 class CameraControl:
     def __init__(self):
@@ -49,13 +50,18 @@ class CameraControl:
                 img1 = self.converter1.Convert(grabResult1).GetArray()
                 img2 = self.converter2.Convert(grabResult2).GetArray()
                 
+                # Resize the frames for live display (adjust dimensions as needed)
+                img1_resized = cv2.resize(img1, (640, 480))
+                img2_resized = cv2.resize(img2, (640, 480))
+                
+                # Display the resized frames for live viewing
+                if show_video:
+                    cv2.imshow('Cameras 1 & 2', np.hstack((img1_resized, img2_resized)))
+
+                # Save the original frames to videos
                 self.video_writer1.write(img1)
                 self.video_writer2.write(img2)
-                
-                if show_video:
-                    cv2.imshow('Camera 1', img1)
-                    cv2.imshow('Camera 2', img2)
-                    
+
             grabResult1.Release()
             grabResult2.Release()
         except Exception as e:
@@ -75,6 +81,11 @@ class CameraControl:
             file_name1 = os.path.join(save_dir, f'{subject_id}_{stimulation_pattern}_{current_time}_cam1.avi')
             file_name2 = os.path.join(save_dir, f'{subject_id}_{stimulation_pattern}_{current_time}_cam2.avi')
 
+            # Calculate the number of frames required based on the desired recording duration
+            num_frames = int(frame_rate * recording_duration)
+            print("Se grabará a",frame_rate,"frames por segundo")
+            print("Se grabarán un total de",num_frames,"frames")
+
             self.video_writer1 = cv2.VideoWriter(file_name1, fourcc, frame_rate, (1920, 1200))
             self.video_writer2 = cv2.VideoWriter(file_name2, fourcc, frame_rate, (1920, 1200))
 
@@ -91,15 +102,24 @@ class CameraControl:
 
             print("Video writers and grabbers are initialized")
 
-            start_time = datetime.datetime.now()
+            frame_count = 0  # Counter for the captured frames
+            start_time = time.time()  # Record the start time
 
             while (self.camera1.IsGrabbing() and self.camera2.IsGrabbing() and
-                (datetime.datetime.now() - start_time).total_seconds() < recording_duration):
+                    frame_count < num_frames):
                 self.grab_and_write_frames(show_video=True)
+                frame_count += 1  # Increment the frame count
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     print("Pressed 'q' within start_record loop")
                     break
+
+                # Check if the recording duration has elapsed
+                elapsed_time = time.time() - start_time
+                if elapsed_time >= recording_duration:
+                    break
+
+            print("Frame count after the loop: ", frame_count)
         except Exception as e:
             print(f"Error while starting recording: {e}")
 
@@ -118,6 +138,38 @@ class CameraControl:
         except Exception as e:
             print(f"Error while stopping recording: {e}")
 
+    def check_frame_rate_for_cameras(self):
+        try:
+            if not self.camera1 or not self.camera2:
+                print("Cameras are not initialized.")
+                return
+
+            # Open the cameras for configuration
+            self.camera1.Open()
+            self.camera2.Open()
+
+            # Access the camera's NodeMap for settings
+            node_map1 = self.camera1.GetNodeMap()
+            node_map2 = self.camera2.GetNodeMap()
+
+            # Query the Acquisition Frame Rate
+            acquisition_frame_rate1 = node_map1.GetNode("AcquisitionFrameRate")
+            acquisition_frame_rate2 = node_map2.GetNode("AcquisitionFrameRate")
+
+            # Get the current frame rates
+            current_frame_rate1 = acquisition_frame_rate1.GetValue()
+            current_frame_rate2 = acquisition_frame_rate2.GetValue()
+
+            print(f"Camera 1 Frame Rate: {current_frame_rate1} FPS")
+            print(f"Camera 2 Frame Rate: {current_frame_rate2} FPS")
+
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            # Close the cameras
+            self.camera1.Close()
+            self.camera2.Close()
+    
 
 if __name__ == "__main__":
     save_dir = '/home/brunobustos96/Documents/stimulationB15/data/'
@@ -130,21 +182,24 @@ if __name__ == "__main__":
     # Initialize the cameras
     if camera_controller.init_cameras():
         try:
+            # camera_controller.check_frame_rate_for_cameras()
             for _ in range(3):  # Repeat the functioning 7 times
                 # Start recording for each trial with different parameters
                 recording_duration = 3  # seconds (trial duration)
 
-                camera_controller.start_record(save_dir, subject_id, stimulation_pattern,recording_duration)                
+                camera_controller.start_record(save_dir, subject_id, stimulation_pattern,recording_duration,frame_rate=100)                
+                #  Close the OpenCV window before stopping recording
+                camera_controller.close_cv2_windows()
 
                 # Stop recording for the current trial
                 camera_controller.stop_record()
 
                 # Add intertrial time here (randomly generated)
-                intertrial_time = random.uniform(1.0, 5.0)  # Adjust the range as needed
+                #intertrial_time = random.uniform(1.0, 5.0)  # Adjust the range as needed
+                intertrial_time = 2
                 time.sleep(intertrial_time)
-                camera_controller.close_cv2_windows()
-            print("Programa ejecutado correctamente")
+            
+            print("Programa ejecutado correctamente\n")
         except KeyboardInterrupt:
             # Exit the loop when the user presses Ctrl+C
             pass
-

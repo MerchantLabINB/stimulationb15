@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   }
 
   int value = atoi(argv[1]);
-  
+  printf("%d\n",value);
   // Request I/O permissions for the parallel port
   if (ioperm(BASE_ADDRESS, 3, 1) == -1) {
     perror("Couldn't request I/O permissions");
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   printf("I/O permissions granted.\n");
 
   // Set all pins of the parallel port to high (logic 1)
-  outb(255, BASE_ADDRESS);  // 255 in binary is 11111111, setting all pins to high
+  outb(value, BASE_ADDRESS);  // 255 in binary is 11111111, setting all pins to high
   sleep(1);  // Sleep for 1 second
 
   // Checkpoint 2: Pins set to high
