@@ -185,7 +185,7 @@ if __name__ == "__main__":
             # camera_controller.check_frame_rate_for_cameras()
             for _ in range(3):  # Repeat the functioning 7 times
                 # Start recording for each trial with different parameters
-                recording_duration = 3  # seconds (trial duration)
+                recording_duration = 5  # seconds (trial duration)
 
                 camera_controller.start_record(save_dir, subject_id, stimulation_pattern,recording_duration,frame_rate=100)                
                 #  Close the OpenCV window before stopping recording
