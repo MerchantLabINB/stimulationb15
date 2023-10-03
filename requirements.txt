@@ -1,0 +1,14 @@
+expyriment==0.10.0+118.gdd84dba
+future==0.18.3
+gitdb==4.0.10
+GitPython==3.1.36
+imageio @ file:///home/conda/feedstock_root/build_artifacts/imageio_1686552404404/work
+numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1651020413938/work
+opencv-python==4.8.0.76
+Pillow==9.4.0
+pygame==1.9.6
+PyOpenGL==3.1.7
+pyparallel==0.2.2
+pypylon==2.3.0
+pyserial==3.5
+smmap==5.0.0
