@@ -53,38 +53,7 @@ def save_configuration(config, pattern_time, intertrial_time, holding_time, fram
     with open('config/config.ini', 'w') as configfile:
         config.write(configfile)
         print("Se sobreescribió config.ini con éxito")
-    
-def check_frame_rate_for_cameras():
-    from pypylon import pylon
 
-    try:
-        # Initialize the first camera
-        camera1 = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-        camera1.Open()
-        node_map1 = camera1.GetNodeMap()
-        acquisition_frame_rate1 = node_map1.GetNode("AcquisitionFrameRate")
-        current_frame_rate1 = acquisition_frame_rate1.GetValue()
-
-        # Try to initialize the second camera (if available)
-        try:
-            camera2 = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateDeviceByIndex(1))
-            camera2.Open()
-            node_map2 = camera2.GetNodeMap()
-            acquisition_frame_rate2 = node_map2.GetNode("AcquisitionFrameRate")
-            current_frame_rate2 = acquisition_frame_rate2.GetValue()
-            print(f"Camera 2 Frame Rate: {current_frame_rate2} FPS")
-        except Exception as e:
-            print("Camera 2 not found or could not be initialized.")
-
-        print(f"Camera 1 Frame Rate: {current_frame_rate1} FPS")
-
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        # Close the cameras
-        camera1.Close()
-        if camera2.IsOpen():
-            camera2.Close()
 
 
 
@@ -98,4 +67,4 @@ if __name__ == "__main__":
         print("Output:", output)
 
     # Call the function to check frame rates for both cameras
-    check_frame_rate_for_cameras()
+    #check_frame_rate_for_cameras()
