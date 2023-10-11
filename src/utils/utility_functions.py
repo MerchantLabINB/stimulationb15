@@ -61,10 +61,10 @@ def save_configuration(config, pattern_time, intertrial_time, holding_time, fram
 # Example usage:
 if __name__ == "__main__":
     # Probando el envio de señal TTL
-    value_to_pass = "9"  # Replace with the desired value
+    value_to_pass = "6"  # Replace with the desired value
     output = run_c_program_with_value(value_to_pass)
     if output is not None:
         print("Output:", output)
 
     # Call the function to check frame rates for both cameras
-    #check_frame_rate_for_cameras()
+    #llet21Zacheck_frame_rate_for_cameras()
