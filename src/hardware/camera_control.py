@@ -1,10 +1,22 @@
-from pypylon import pylon
+# camera_control.py
+import sys
+import os
+
+# Append the project's root directory to sys.path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
+import threading
 import cv2
 import time
 import os
 import random
 import datetime
 import numpy as np
+from pypylon import pylon
+from utils.utility_functions import run_c_program_with_value
+
+lock = threading.Lock()
 
 class CameraControl:
     def __init__(self):
@@ -14,78 +26,104 @@ class CameraControl:
         self.video_writer2 = None
         self.converter1 = None
         self.converter2 = None
+        self.stop_event = threading.Event()  # Initialize the stop event
+
+    def send_ttl_signal(self, value_to_pass):
+        try:
+            # Acquire the thread lock before sending TTL signal
+            with lock:
+                # Send TTL signal here
+                output = run_c_program_with_value(value_to_pass)
+                if output is not None:
+                    print("TTL Signal Sent:", output)
+                else:
+                    print("Error sending TTL signal.")
+        except Exception as e:
+            print(f"Error sending TTL signal: {e}")
 
     def init_cameras(self):
+        if self.camera1 is not None or self.camera2 is not None:
+            print("Cámaras ya inicializadas.")
+            return True
         try:
             tlFactory = pylon.TlFactory.GetInstance()
             devices = tlFactory.EnumerateDevices()
-            print("Cámaras inicializadas")
-            
+
             if len(devices) < 2:
                 print("Not enough cameras present.")
                 return False
-            
+
             self.camera1 = pylon.InstantCamera(tlFactory.CreateDevice(devices[0]))
             self.camera2 = pylon.InstantCamera(tlFactory.CreateDevice(devices[1]))
+            
+            # Open the cameras for configuration
+            self.camera1.Open()
+            self.camera2.Open()
+
             print("Cámaras inicializadas")
             return True
         except Exception as e:
             print(f"Failed to initialize cameras: {e}")
             return False
 
+    """
     def grab_and_write_frames(self, show_video=True):
         if not self.camera1 or not self.camera2:
             print("Cameras are not initialized.")
             return
-        
+
+        frame_count = 0  # Initialize frame count here
+
         try:
             if not self.camera1.IsGrabbing() and not self.camera2.IsGrabbing():
                 self.camera1.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
                 self.camera2.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
-            grabResult1 = self.camera1.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-            grabResult2 = self.camera2.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+            while (self.camera1.IsGrabbing() and self.camera2.IsGrabbing()):
+                grabResult1 = self.camera1.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+                grabResult2 = self.camera2.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
 
-            if grabResult1.GrabSucceeded() and grabResult2.GrabSucceeded():
-                img1 = self.converter1.Convert(grabResult1).GetArray()
-                img2 = self.converter2.Convert(grabResult2).GetArray()
-                
-                # Resize the frames for live display (adjust dimensions as needed)
-                img1_resized = cv2.resize(img1, (640, 480))
-                img2_resized = cv2.resize(img2, (640, 480))
-                
-                # Display the resized frames for live viewing
-                if show_video:
-                    cv2.imshow('Cameras 1 & 2', np.hstack((img1_resized, img2_resized)))
+                if grabResult1.GrabSucceeded() and grabResult2.GrabSucceeded():
+                    img1 = self.converter1.Convert(grabResult1).GetArray()
+                    img2 = self.converter2.Convert(grabResult2).GetArray()
+                    
+                    # Resize the frames for live display (adjust dimensions as needed)
+                    img1_resized = cv2.resize(img1, (640, 480))
+                    img2_resized = cv2.resize(img2, (640, 480))
+                    
+                    # Display the resized frames for live viewing
+                    if show_video:
+                        cv2.imshow('Cameras 1 & 2', np.hstack((img1_resized, img2_resized)))
+                        cv2.waitKey(1)  # Update the OpenCV window
 
-                # Save the original frames to videos
-                self.video_writer1.write(img1)
-                self.video_writer2.write(img2)
+                    # Save the original frames to videos
+                    self.video_writer1.write(img1)
+                    self.video_writer2.write(img2)
 
-            grabResult1.Release()
-            grabResult2.Release()
+                    frame_count += 1  # Increment frame count here
+
+                grabResult1.Release()
+                grabResult2.Release()
         except Exception as e:
             print(f"Error while grabbing and writing frames: {e}")
 
-    def start_record(self, save_dir, subject_id, stimulation_pattern, recording_duration, frame_rate=120):
+        return frame_count  # Return the updated frame count
+    """
+    def start_record(self, save_dir, subject_id, stimulation_pattern, recording_duration, frame_rate=30):
         if not self.camera1 or not self.camera2:
             print("Cameras are not initialized.")
             return
 
         try:
-            # Initialize video writers using the mp4v codec
-            fourcc = cv2.VideoWriter_fourcc(*'XVID')  # or 'MJPG' or other codecs
+            # Initialize video writers using the XVID codec
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
             current_time = time.strftime("%Y%m%d-%H%M%S")
 
             file_name1 = os.path.join(save_dir, f'{subject_id}_{stimulation_pattern}_{current_time}_cam1.avi')
             file_name2 = os.path.join(save_dir, f'{subject_id}_{stimulation_pattern}_{current_time}_cam2.avi')
 
-            # Calculate the number of frames required based on the desired recording duration
-            num_frames = int(frame_rate * recording_duration)
-            print("Se grabará a",frame_rate,"frames por segundo")
-            print("Se grabarán un total de",num_frames,"frames")
-
+            # Create VideoWriter objects with only the codec and frame rate
             self.video_writer1 = cv2.VideoWriter(file_name1, fourcc, frame_rate, (1920, 1200))
             self.video_writer2 = cv2.VideoWriter(file_name2, fourcc, frame_rate, (1920, 1200))
 
@@ -97,31 +135,63 @@ class CameraControl:
             self.converter2.OutputPixelFormat = pylon.PixelType_BGR8packed
             self.converter2.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
 
-            self.camera1.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
-            self.camera2.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
+            # Start the grabbing process
+            self.camera1.StartGrabbing(pylon.GrabStrategy_OneByOne)
+            self.camera2.StartGrabbing(pylon.GrabStrategy_OneByOne)
 
             print("Video writers and grabbers are initialized")
 
             frame_count = 0  # Counter for the captured frames
             start_time = time.time()  # Record the start time
+            ttl_signal_sent = False
+            expected_frame_count = int(frame_rate * recording_duration)
 
-            while (self.camera1.IsGrabbing() and self.camera2.IsGrabbing() and
-                    frame_count < num_frames):
-                self.grab_and_write_frames(show_video=True)
-                frame_count += 1  # Increment the frame count
+            while frame_count < expected_frame_count:
+                grabResult1 = self.camera1.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+                grabResult2 = self.camera2.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    print("Pressed 'q' within start_record loop")
-                    break
+                if grabResult1.GrabSucceeded() and grabResult2.GrabSucceeded():
+                    img1 = self.converter1.Convert(grabResult1).GetArray()
+                    img2 = self.converter2.Convert(grabResult2).GetArray()
+
+                    # Rotate the frames as needed
+                    img1_rotated = cv2.rotate(img1, cv2.ROTATE_90_CLOCKWISE)
+                    img2_rotated = cv2.flip(img2, -1) 
+
+                    # Resize the frames for live display (adjust dimensions as needed)
+                    img1_resized = cv2.resize(img1_rotated, (640, 480))
+                    img2_resized = cv2.resize(img2_rotated, (640, 480))
+
+
+                    # Display the resized frames for live viewing
+                    cv2.imshow('Cameras 1 & 2', np.hstack((img1_resized, img2_resized)))
+                    cv2.waitKey(1)  # Update the OpenCV window
+
+                    # Save the original frames to videos
+                    self.video_writer1.write(img1)
+                    self.video_writer2.write(img2)
+
+                    frame_count += 1  # Increment frame count here
+
+                grabResult1.Release()
+                grabResult2.Release()
 
                 # Check if the recording duration has elapsed
                 elapsed_time = time.time() - start_time
-                if elapsed_time >= recording_duration:
-                    break
+                print("ELAPSED TIME:", elapsed_time)
+                if not ttl_signal_sent and elapsed_time >= 1.0:
+                    self.send_ttl_signal("66")  # Replace with the desired TTL value
+                    ttl_signal_sent = True
 
-            print("Frame count after the loop: ", frame_count)
+            self.close_cv2_windows()
+
+            # Stop recording after the loop
+            self.stop_record()
+
+            print("Frame count del ultimo video grabado: ", frame_count)
+
         except Exception as e:
-            print(f"Error while starting recording: {e}")
+            print(f"Error while start_record: {e}")
 
     def close_cv2_windows(self):
         cv2.destroyAllWindows()
@@ -169,30 +239,66 @@ class CameraControl:
             # Close the cameras
             self.camera1.Close()
             self.camera2.Close()
-    
+    def set_frame_rate_for_cameras(self, frame_rate):
+        try:
+            if not self.camera1 or not self.camera2:
+                print("Cameras are not initialized.")
+                return
+
+            # Open the cameras for configuration
+            self.camera1.Open()
+            self.camera2.Open()
+
+            # Access the camera's NodeMap for settings
+            node_map1 = self.camera1.GetNodeMap()
+            node_map2 = self.camera2.GetNodeMap()
+
+            # Query the Acquisition Frame Rate
+            acquisition_frame_rate1 = node_map1.GetNode("AcquisitionFrameRate")
+            acquisition_frame_rate2 = node_map2.GetNode("AcquisitionFrameRate")
+            print("Acquisition frame rate cam 1: ", self.camera1.AcquisitionFrameRate.GetValue())
+            print("Acquisition frame rate cam 2: ", self.camera2.AcquisitionFrameRate.GetValue())
+            # Set the frame rate
+            acquisition_frame_rate1.SetValue(frame_rate)
+            acquisition_frame_rate2.SetValue(frame_rate)
+
+            print(f"Frame rate set to: {frame_rate} FPS")
+
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            # Close the cameras
+            self.camera1.Close()
+            self.camera2.Close()
+
 
 if __name__ == "__main__":
+    print(cv2.cuda.getCudaEnabledDeviceCount())
+
     save_dir = '/home/brunobustos96/Documents/stimulationB15/data/'
     subject_id = 'prueba_script'
     stimulation_pattern = ''
 
     # Create an instance of CameraControl
     camera_controller = CameraControl()
-
+    print("Camera controller defined")
     # Initialize the cameras
     if camera_controller.init_cameras():
         try:
-            # camera_controller.check_frame_rate_for_cameras()
+            camera_controller.check_frame_rate_for_cameras()
+            camera_controller.set_frame_rate_for_cameras(30)
+
+            
             for _ in range(3):  # Repeat the functioning 7 times
                 # Start recording for each trial with different parameters
-                recording_duration = 5  # seconds (trial duration)
+                recording_duration = 4.0  # Total recording duration (1 second for TTL + 3 seconds more)
 
-                camera_controller.start_record(save_dir, subject_id, stimulation_pattern,recording_duration,frame_rate=100)                
+                camera_controller.start_record(save_dir, subject_id, stimulation_pattern,recording_duration,frame_rate=30)                
                 #  Close the OpenCV window before stopping recording
-                camera_controller.close_cv2_windows()
+                #camera_controller.close_cv2_windows()
 
                 # Stop recording for the current trial
-                camera_controller.stop_record()
+                #camera_controller.stop_record()
 
                 # Add intertrial time here (randomly generated)
                 #intertrial_time = random.uniform(1.0, 5.0)  # Adjust the range as needed

@@ -28,17 +28,23 @@ def run_c_program_with_value(value):
 
 
 
-def load_configuration(config, pattern_time_var, intertrial_time_var):
+def load_configuration(config, pattern_time_var, intertrial_time_var, frame_rate_var, holding_time_var, evocated_time_var, recording_duration_var):
     try:
         config.read('config/config.ini')
         # Populate the configuration settings here as needed
-        pattern_time_var.set(config['GUI']['PatternTime'])
-        intertrial_time_var.set(config['GUI']['IntertrialTime'])
+        pattern_time_var.set(config['GUI']['patterntime'])
+        intertrial_time_var.set(config['GUI']['intertrialtime'])
+        frame_rate_var.set(config['GUI']['framerate'])
+        holding_time_var.set(config['GUI']['holdingtime'])
+        evocated_time_var.set(config['GUI']['evocatedtime'])
+        recording_duration_var.set(config['GUI']['recordduration'])
 
         print("Load configuration done")
     except FileNotFoundError:
         print("No se encontró el archivo de configuración.")
         pass
+
+
 
 # Function to save configuration
 def save_configuration(config, pattern_time, intertrial_time, holding_time, frame_rate, evocated_time, recording_duration):
@@ -61,7 +67,7 @@ def save_configuration(config, pattern_time, intertrial_time, holding_time, fram
 # Example usage:
 if __name__ == "__main__":
     # Probando el envio de señal TTL
-    value_to_pass = "6"  # Replace with the desired value
+    value_to_pass = "66"  # Replace with the desired value
     output = run_c_program_with_value(value_to_pass)
     if output is not None:
         print("Output:", output)
