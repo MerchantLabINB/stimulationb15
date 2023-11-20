@@ -16,19 +16,23 @@ StimulationB15 is a project designed for the precise control of multiple hardwar
 
 stimulationB15/
 │
+├── config.json
+│
 ├── master_script.py
 │
 ├── modules/
-│ ├── ttl_signals.py
 │ ├── camera_control.py
+│ ├── data_logging.py
 │ ├── led_pattern.py
 │ ├── gui_interface.py
-│ └── data_logging.py
+│ └── ttl_signals.py
 │
 ├── utils/
-│ └── utility_functions.py
+│ ├── utility_functions.py
 │
 ├── data/
+│
+├── .vscode/
 │
 └── README.md
 
