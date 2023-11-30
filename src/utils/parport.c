@@ -6,47 +6,50 @@
 
 #define BASE_ADDRESS 0x3100
 
-// To compile:  gcc -O parport.c -o parport
-// After compiling, set suid:  chmod +s parport   then, copy to /usr/sbin/
+// To compile: gcc -O parport.c -o parport
+// After compiling, set suid: chmod +s parport then, copy to /usr/sbin/
 
 int main(int argc, char *argv[]) {
- if (argc != 2) {
-    printf("Usage: %s <value>\n", argv[0]);
-    return 1;
-  }
+    // Check for correct number of arguments
+    if (argc != 3) {
+        printf("Usage: %s <value> <duration>\n", argv[0]);
+        return 1;
+    }
 
-  int value = atoi(argv[1]);
-  printf("%d\n",value);
-  // Request I/O permissions for the parallel port
-  if (ioperm(BASE_ADDRESS, 3, 1) == -1) {
-    perror("Couldn't request I/O permissions");
-    exit(1);
-  }
+    // Parse value and duration from arguments
+    int value = atoi(argv[1]);
+    long duration = strtol(argv[2], NULL, 10);
 
-  // Checkpoint 1: Permissions granted
-  printf("I/O permissions granted.\n");
+    printf("Value: %d, Duration: %ld ms\n", value, duration);
 
-  // Set all pins of the parallel port to high (logic 1)
-  outb(value, BASE_ADDRESS);  // 255 in binary is 11111111, setting all pins to high
-  sleep(1);  // Sleep for 1 second
+    // Request I/O permissions for the parallel port
+    if (ioperm(BASE_ADDRESS, 3, 1) == -1) {
+        perror("Couldn't request I/O permissions");
+        exit(1);
+    }
 
-  // Checkpoint 2: Pins set to high
-  printf("All pins set to high.\n");
+    // Checkpoint 1: Permissions granted
+    printf("I/O permissions granted.\n");
 
-  // Set all pins of the parallel port to low (logic 0)
-  outb(0, BASE_ADDRESS);  // 0 in binary is 00000000, setting all pins to low
+    // Set pins of the parallel port according to the given value
+    outb(value, BASE_ADDRESS);
+    printf("Pins set to value: %d.\n", value);
 
-  // Checkpoint 3: Pins set to low
-  printf("All pins set to low.\n");
+    // Sleep for the specified duration
+    usleep(duration * 1000);  // Convert duration from ms to microseconds
 
-  // Release I/O permissions for the parallel port
-  ioperm(BASE_ADDRESS, 3, 0);
+    // Set all pins of the parallel port to low (logic 0)
+    outb(0, BASE_ADDRESS);
 
-  // Checkpoint 4: Permissions released
-  printf("I/O permissions released.\n");
+    // Checkpoint 2: Pins set to low
+    printf("All pins set to low.\n");
 
-  return 0;
+    // Release I/O permissions for the parallel port
+    ioperm(BASE_ADDRESS, 3, 0);
+
+    // Checkpoint 3: Permissions released
+    printf("I/O permissions released.\n");
+
+    return 0;
 }
-
-
 
