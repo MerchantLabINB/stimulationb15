@@ -2,16 +2,20 @@ import os
 import subprocess
 import configparser
 
-def run_c_program_with_value(value):
+def run_c_program(value, duration):
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    print(value)
-    print(script_dir)
+
+    # Print the provided value and duration for debugging purposes
+    print(f"Value: {value}, Duration: {duration} ms")
+    print(f"Script Directory: {script_dir}")
+
     # Define the relative path to the parport executable
     parport_path = os.path.join(script_dir, "parport")
-    print(parport_path)
-    # Define the command to run your C program with the provided value
-    command = f"sudo {parport_path} {value}"
+    print(f"Parport Path: {parport_path}")
+
+    # Define the command to run your C program with the provided value and duration
+    command = f"sudo {parport_path} {value} {duration}"
 
     # Execute the command and capture both stdout and stderr
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -22,7 +26,11 @@ def run_c_program_with_value(value):
         print(f"Error: {stderr}")
         return None
 
-    # Return the output of your C program
+    # If there's output, print it (for debugging or confirmation)
+    if stdout:
+        print(stdout)
+
+    # Return the output of your C program (or you could just return True to indicate success)
     return stdout
 # src/utils/utility_functions.py
 
@@ -60,17 +68,9 @@ def save_configuration(config, pattern_time, intertrial_time, holding_time, fram
         config.write(configfile)
         print("Se sobreescribió config.ini con éxito")
 
-
-
-
-
-# Example usage:
 if __name__ == "__main__":
-    # Probando el envio de señal TTL
-    value_to_pass = "66"  # Replace with the desired value
-    output = run_c_program_with_value(value_to_pass)
+    value = 66
+    duration = 1000  # Duration in milliseconds
+    output = run_c_program(value, duration)
     if output is not None:
-        print("Output:", output)
-
-    # Call the function to check frame rates for both cameras
-    #llet21Zacheck_frame_rate_for_cameras()
+        print("Command executed successfully:\n", output)
