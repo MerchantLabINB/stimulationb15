@@ -63,3 +63,18 @@ coverage/
 # Para asegurarte de que archivos importantes de configuración y código no sean ignorados
 !*.py
 !README.md
+
+# Ignorar archivos de datos grandes y generados por DLC
+*.h5
+*.pickle
+*.csv
+*.json
+
+# Ignorar carpetas de modelos y resultados que pueden ser reproducidos
+models/
+dlc-models/
+logs/
+videos/
+
+# Ignorar completamente la carpeta DeepLabCut y su contenido
+DeepLabCut/
