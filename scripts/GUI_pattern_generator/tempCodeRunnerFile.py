@@ -388,12 +388,7 @@ def save_stimulation_data(forma, amplitud, duracion, frecuencia, duracion_pulso,
     - amplitude_list: List of amplitude values.
     - duration_list: List of duration values.
     """
-    directory = "C:\\Users\\samae\\Documents\\GitHub\\stimulationb15\\data\\Estímulos"
-    
-    # Verificar si el directorio existe, si no, crearlo
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
+    directory = "C:\\Users\\samae\\Documents\\GitHub\\GUI_pattern_generator\\data"
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{directory}\\stimulus_data_{timestamp}.txt"
     
@@ -406,7 +401,6 @@ def save_stimulation_data(forma, amplitud, duracion, frecuencia, duracion_pulso,
         file.write(str(duration_list))
     
     print(f"Data saved to {filename}")
-
 
 def prepare_data():
   forma = forma_var.get()
