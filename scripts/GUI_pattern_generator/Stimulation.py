@@ -124,26 +124,25 @@ def estimulo (forma = "rombo", amplitud = 140000000, duracion = 500000, frecuenc
     lista_tiempo = []
 
     if forma in ["rampa ascendente", "rampa descendente"]:
-      for i in range(num_pulsos):
-          
-          if forma == "rampa ascendente":
-              value = (incremento_amplitud/2) * (i+1)  # Linear increment
-          elif forma == "rampa descendente":
-              value = amplitud - ((incremento_amplitud/2) * (i))  # Linear decrement
+        for i in range(num_pulsos):
+            if forma == "rampa ascendente":
+                value = (incremento_amplitud / 2) * (i + 1)  # Linear increment
+            elif forma == "rampa descendente":
+                value = amplitud - ((incremento_amplitud / 2) * i)  # Linear decrement
 
-          value = int(round(value, 0))  # Ensure the value is an integer
+            value = int(round(value, 0))
 
-          if i == range(num_pulsos)[-1]:  # If it's the last pulse, don't add a zero period
-              lista_amplitud.extend([-value, value])
-              lista_tiempo.extend([time, time])
-              tiempo_total += 2 * time
-              break
+            # Corregido: Uso correcto de num_pulsos en la última iteración
+            if i == num_pulsos - 1:
+                lista_amplitud.extend([-value, value])
+                lista_tiempo.extend([time, time])
+                tiempo_total += 2 * time
+                break
 
-          # Append negative and positive phases of the biphasic pulse
-          lista_amplitud.extend([-value, value, 0])
-          lista_tiempo.extend([time, time, tiempo_cada_espacio])
+            lista_amplitud.extend([-value, value, 0])
+            lista_tiempo.extend([time, time, tiempo_cada_espacio])
 
-          tiempo_total += (2 * time + tiempo_cada_espacio)  # Update the total time to include both phases and the zero period
+            tiempo_total += (2 * time + tiempo_cada_espacio)
 
 
 
