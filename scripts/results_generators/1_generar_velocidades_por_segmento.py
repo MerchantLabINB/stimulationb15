@@ -6,7 +6,7 @@ from math import sqrt
 from fpdf import FPDF
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-import logging  # Import logging module
+import logging  # Import logging module 
 
 # Set up logging
 log_file_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\processing_log.txt'
@@ -124,7 +124,7 @@ def generar_estimulo_desde_parametros(forma, amplitud, duracion, frecuencia, dur
         logging.error(f'Error generating stimulus: {e}')
         return [], []
 
-# Function to plot stimulus and velocities with fixed x-axis of 400 frames and shaded stimulus area
+# Function to plot stimulus and velocities with fixed x-axis of 400 frames, shaded stimulus area, and additional ms axis
 def plot_stimulus_with_velocities(velocidades, amplitude_list, duration_list, segmento, global_max_velocity):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11.69, 8.27), gridspec_kw={'height_ratios': [3, 1]})
 
@@ -165,11 +165,31 @@ def plot_stimulus_with_velocities(velocidades, amplitude_list, duration_list, se
     ax2.set_xlabel('Frames')
     ax2.set_ylabel('Amplitud (microamperios)')
     ax2.set_xlim(0, 400)  # Fijar el límite superior en 400 frames
+    ax2.set_ylim(-160, 160)  # Ajustar el eje y desde -160 a +160 microamperios
 
     # Sombrear la región del estímulo en ambas gráficas
-    ax1.axvspan(start_frame, current_frame, color='purple', alpha=0.3, label='Zona de estímulo')
-    ax2.axvspan(start_frame, current_frame, color='purple', alpha=0.3, label='Zona de estímulo')
+    ax1.axvspan(start_frame, current_frame, color='blue', alpha=0.3, label='Zona de estímulo')
+    ax2.axvspan(start_frame, current_frame, color='blue', alpha=0.3, label='Zona de estímulo')
 
+    # Crear un eje x secundario para mostrar la equivalencia de frames a milisegundos debajo del gráfico
+    def ms_from_frames(x):
+        return x * 10  # 1 frame = 10 ms
+
+    def frames_from_ms(x):
+        return x / 10
+
+    ax2_secondary = ax2.secondary_xaxis('bottom', functions=(ms_from_frames, frames_from_ms))
+    ax2_secondary.set_xlabel("Milisegundos (ms)")
+    ax2_secondary.set_xticks(np.arange(0, 401, 100))
+    ax2_secondary.set_xlim(ax2.get_xlim())
+
+    # Ajustar la posición del eje x secundario debajo del gráfico
+    ax2_secondary.spines['bottom'].set_position(('outward', 40))
+
+    # Ocultar las etiquetas del eje x principal en ax2
+    ax2.xaxis.set_visible(False)
+
+    # Guardar la imagen
     graph_image_path = f"temp_graph_{segmento}.png"
     plt.savefig(graph_image_path)
     plt.close()
@@ -198,7 +218,7 @@ def plot_trajectories_over_frames(csv_path, body_parts, start_frame, end_frame):
             ax.plot(frames, y_vals, label=f'{part} (y)', color=color_map(i % 10), linestyle='--')
 
     # Sombrear la región del estímulo usando start_frame y end_frame
-    ax.axvspan(start_frame, end_frame, color='purple', alpha=0.3, label='Zona de estímulo')
+    ax.axvspan(start_frame, end_frame, color='blue', alpha=0.3, label='Zona de estímulo')
     ax.set_xlabel('Frames')
     ax.set_ylabel('Coordenadas (px)')
     ax.set_xlim(0, 400)  # Fijar el límite superior en 400 frames
@@ -282,7 +302,7 @@ for index, row in stimuli_info.iterrows():
                 if csv_path:
                     velocidades = calcular_velocidades(csv_path)
                     for part, vel in velocidades.items():
-                        if len(vel) > 0:  # Ensure this check looks at the length of the velocity list
+                        if len(vel) > 0:
                             if np.max(vel) > global_max_velocity:
                                 global_max_velocity = np.max(vel)
 
