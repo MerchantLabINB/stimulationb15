@@ -7,6 +7,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import logging
+import seaborn as sns
 
 # Configuración del logging
 log_file_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\processing_log.txt'
@@ -42,6 +43,17 @@ stimuli_info = stimuli_info[stimuli_info['Descartar'] == 'No']
 if stimuli_info.empty:
     logging.error("El DataFrame stimuli_info está vacío después de filtrar por 'Descartar' == 'No'. Verifica el archivo CSV.")
     sys.exit("El DataFrame stimuli_info está vacío. No hay datos para procesar.")
+
+# Verificar que las columnas necesarias estén presentes
+required_columns = [
+    'Amplitud (microA)', 'Duración (ms)', 'Forma del Pulso', 'Frecuencia (Hz)',
+    'Camara Lateral', 'Coordenada_x', 'Coordenada_y'
+]
+
+missing_columns = [col for col in required_columns if col not in stimuli_info.columns]
+if missing_columns:
+    logging.error(f"Las siguientes columnas faltan en Stimuli_information.csv: {missing_columns}")
+    sys.exit(f"Faltan las columnas {missing_columns} en Stimuli_information.csv.")
 
 # Articulaciones (body parts) con nombres de paletas de colores
 body_parts_colors = {
@@ -90,12 +102,16 @@ def calcular_velocidades(csv_path):
             x_col = (df.columns[1][0], part, 'x')
             y_col = (df.columns[1][0], part, 'y')
             likelihood_col = (df.columns[1][0], part, 'likelihood')
+
+            # Filtrar por likelihood
             df_filtered = df[df[likelihood_col] > 0.1]
 
             if df_filtered.empty:
-                velocidades[part] = []
-                posiciones[part] = {'x': [], 'y': []}
+                velocidades[part] = {'velocidad': [], 'frames': []}
+                posiciones[part] = {'x': [], 'y': [], 'frames': []}
                 continue
+
+            frames_indices = df_filtered.index.values  # Índices de frames originales
 
             velocidad_part = []
             for i in range(1, len(df_filtered)):
@@ -107,17 +123,31 @@ def calcular_velocidades(csv_path):
                 velocidad_part.append(velocidad)
 
             # Aplicar suavizado con una ventana más grande
-            velocidad_part = moving_average(velocidad_part, window_size=21)
-            velocidades[part] = velocidad_part
+            window_size = 21
+            if len(velocidad_part) >= window_size:
+                velocidad_part_smoothed = moving_average(velocidad_part, window_size=window_size)
+                # Ajustar frames_indices para coincidir con velocidad_part_smoothed
+                frames_velocidades = frames_indices[1 + (window_size - 1):]  # Ajuste debido al suavizado
+            else:
+                # Si el tamaño es menor al de la ventana, no aplicar suavizado
+                velocidad_part_smoothed = velocidad_part
+                frames_velocidades = frames_indices[1:]
+
+            velocidades[part] = {
+                'velocidad': velocidad_part_smoothed,
+                'frames': frames_velocidades
+            }
             posiciones[part] = {
                 'x': df_filtered[x_col].values,
-                'y': df_filtered[y_col].values
+                'y': df_filtered[y_col].values,
+                'frames': frames_indices  # Frames asociados a las posiciones
             }
 
         return velocidades, posiciones
     except Exception as e:
         logging.error(f'Error al calcular velocidades para CSV: {csv_path}, Error: {e}')
         return {}, {}
+
 
 def calcular_aceleraciones(velocidades):
     aceleraciones = {}
@@ -132,25 +162,29 @@ def us_to_frames(duracion_us):
     return duracion_us / 10000  # 1 frame = 10,000 µs
 
 # Función para generar el estímulo desde parámetros usando la lógica de Stimulation.py
-def generar_estimulo_desde_parametros(forma, amplitud, duracion, frecuencia, duracion_pulso, compensar):
+def generar_estimulo_desde_parametros(forma, amplitud_microA, duracion_ms, frecuencia, duracion_pulso_us, compensar):
     try:
         forma = forma.strip().lower()  # Asegurar minúsculas
-        print(f"Generando estímulo con forma: {forma}, amplitud: {amplitud}, duración: {duracion}, frecuencia: {frecuencia}, duración del pulso: {duracion_pulso}, compensar: {compensar}")
+        print(f"Generando estímulo con forma: {forma}, amplitud: {amplitud_microA} μA, duración: {duracion_ms} ms, frecuencia: {frecuencia}, duración del pulso: {duracion_pulso_us} μs, compensar: {compensar}")
 
         # Verificar parámetros válidos
-        if duracion <= 0 or frecuencia <= 0 or duracion_pulso <= 0:
-            logging.error(f"Parámetros inválidos: duración={duracion}, frecuencia={frecuencia}, duración_pulso={duracion_pulso}")
+        if duracion_ms <= 0 or frecuencia <= 0 or duracion_pulso_us <= 0:
+            logging.error(f"Parámetros inválidos: duración={duracion_ms}, frecuencia={frecuencia}, duración_pulso={duracion_pulso_us}")
             return [], []
+
+        # Convertir amplitud a nA y duración a μs para la función estimulo
+        amplitud_nA = amplitud_microA * 1000  # Convertir μA a nA
+        duracion_us = duracion_ms * 1000  # Convertir ms a μs
 
         # Generar estímulo usando la función estimulo
         lista_amplitud, lista_tiempo = estimulo(
-            forma=forma, amplitud=amplitud, duracion=duracion,
-            frecuencia=frecuencia, duracion_pulso=duracion_pulso, compensar=compensar
+            forma=forma, amplitud=amplitud_nA, duracion=duracion_us,
+            frecuencia=frecuencia, duracion_pulso=duracion_pulso_us, compensar=compensar
         )
 
         # Asegurar generación correcta del estímulo
         if not lista_amplitud or not lista_tiempo:
-            logging.error(f"Estímulo inválido con parámetros: forma={forma}, amplitud={amplitud}, duración={duracion}, frecuencia={frecuencia}, duración_pulso={duracion_pulso}, compensar={compensar}")
+            logging.error(f"Estímulo inválido con parámetros: forma={forma}, amplitud={amplitud_nA}, duración={duracion_us}, frecuencia={frecuencia}, duración_pulso={duracion_pulso_us}, compensar={compensar}")
             return [], []
 
         # Convertir todos los tiempos del estímulo (en µs) a frames
@@ -161,8 +195,115 @@ def generar_estimulo_desde_parametros(forma, amplitud, duracion, frecuencia, dur
         logging.error(f'Error al generar estímulo: {e}')
         return [], []
 
-# Función para plotear los gráficos incluyendo la leyenda del estímulo y ajustes de estilo
-# ... (resto de las importaciones y configuraciones)
+# Función para procesar los ensayos y recopilar datos
+def process_trials_and_collect_data(stimuli_info, segmented_info, csv_folder):
+    data = []
+    for index, row in stimuli_info.iterrows():
+        trial_id = index  # Puedes usar otro identificador único si lo prefieras
+        Coordenada_x = row['Coordenada_x']
+        Coordenada_y = row['Coordenada_y']
+        camara_lateral = row['Camara Lateral']
+        
+        # Generar estímulo para obtener start_frame y end_frame
+        amplitude_list, duration_list = generar_estimulo_desde_parametros(
+            row['Forma del Pulso'],
+            row['Amplitud (microA)'],            # Ya en μA
+            row['Duración (ms)'],                # Ya en ms
+            row['Frecuencia (Hz)'],
+            200, compensar=True)                 # Duración del pulso en μs
+
+        if amplitude_list and duration_list:
+            start_frame = 100  # Asignamos el valor de inicio
+            stimulus_duration_frames = sum(duration_list)
+            end_frame = start_frame + stimulus_duration_frames + 30  # 30 frames adicionales (300 ms)
+        else:
+            # Si no se pudo generar el estímulo, continuar con el siguiente ensayo
+            logging.warning(f"No se pudo generar el estímulo para el ensayo {trial_id}")
+            continue
+
+        if pd.notna(camara_lateral):
+            matching_segment = segmented_info[segmented_info['CarpetaPertenece'].str.contains(str(camara_lateral), na=False)]
+            if not matching_segment.empty:
+                matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
+
+                for segment_idx, (_, segment_row) in enumerate(matching_segment_sorted.iterrows()):
+                    nombre_segmento = segment_row['NombreArchivo'].replace('.mp4', '').replace('lateral_', '')
+                    csv_path = encontrar_csv(str(camara_lateral), nombre_segmento)
+                    if csv_path:
+                        velocidades, posiciones = calcular_velocidades(csv_path)
+                        for body_part in body_parts:
+                            # Obtener posiciones y velocidades de la articulación
+                            positions_bp = posiciones.get(body_part, {'x': [], 'y': [], 'frames': []})
+                            x_positions = positions_bp['x']
+                            y_positions = positions_bp['y']
+                            frames_positions = positions_bp['frames']
+
+                            # Convertir frames_positions a un arreglo de NumPy
+                            frames_positions = np.array(frames_positions)
+                            x_positions = np.array(x_positions)
+                            y_positions = np.array(y_positions)
+
+
+
+                            # Filtrar posiciones entre start_frame y end_frame usando máscaras
+                            mask_positions = (frames_positions >= int(start_frame)) & (frames_positions <= int(end_frame))
+                            x_positions_filtered = x_positions[mask_positions]
+                            y_positions_filtered = y_positions[mask_positions]
+
+                            if len(x_positions_filtered) > 1:
+                                # Calcular desplazamiento total durante el período de interés
+                                total_displacement = np.sum(np.sqrt(np.diff(x_positions_filtered)**2 + np.diff(y_positions_filtered)**2))
+
+                                # Obtener velocidades y frames asociados
+                                velocidades_bp_data = velocidades.get(body_part, {'velocidad': [], 'frames': []})
+                                velocidades_bp = velocidades_bp_data['velocidad']
+                                frames_velocidades = velocidades_bp_data['frames']
+                                
+                                velocidades_bp = np.array(velocidades_bp)
+                                frames_velocidades = np.array(frames_velocidades)
+
+                                # Filtrar velocidades entre start_frame y end_frame usando máscaras
+                                mask_velocidades = (frames_velocidades >= int(start_frame)) & (frames_velocidades <= int(end_frame))
+                                velocidades_bp_filtered = np.array(velocidades_bp)[mask_velocidades]
+
+                                average_speed = np.mean(velocidades_bp_filtered) if len(velocidades_bp_filtered) > 0 else np.nan
+
+                                data.append({
+                                    'TrialID': trial_id,
+                                    'SegmentIndex': segment_idx,
+                                    'Coordenada_x': Coordenada_x,
+                                    'Coordenada_y': Coordenada_y,
+                                    'BodyPart': body_part,
+                                    'TotalDisplacement': total_displacement,
+                                    'AverageSpeed': average_speed
+                                })
+                            else:
+                                # Si no hay datos de movimiento para esta articulación
+                                data.append({
+                                    'TrialID': trial_id,
+                                    'SegmentIndex': segment_idx,
+                                    'Coordenada_x': Coordenada_x,
+                                    'Coordenada_y': Coordenada_y,
+                                    'BodyPart': body_part,
+                                    'TotalDisplacement': np.nan,
+                                    'AverageSpeed': np.nan
+                                })
+            else:
+                logging.warning(f"No se encontraron segmentos coincidentes para la cámara lateral {camara_lateral}")
+        else:
+            logging.warning(f"Camara Lateral es NaN para el ensayo {trial_id}")
+    # Convertir la lista de diccionarios en un DataFrame
+    data_df = pd.DataFrame(data)
+    return data_df
+
+
+# Procesar los ensayos y recolectar los datos
+data_df = process_trials_and_collect_data(stimuli_info, segmented_info, csv_folder)
+
+# Guardar el DataFrame para su posterior análisis
+output_data_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\movement_data.csv'
+data_df.to_csv(output_data_path, index=False)
+print(f'Datos de movimiento guardados en {output_data_path}')
 
 # Función para plotear los gráficos incluyendo la leyenda del estímulo y ajustes de estilo
 def plot_graphs(velocidades_per_bodypart, aceleraciones_per_bodypart, positions_per_bodypart,
@@ -348,10 +489,10 @@ def plot_graphs(velocidades_per_bodypart, aceleraciones_per_bodypart, positions_
 
     return graph_image_path, mean_velocity
 
-def generar_pdf_por_fila(index, row):
+def generar_pdf_por_fila(index, row, global_max_velocity):
     try:
-        print(f"\nGenerando PDF para la fila {index}, Cámara Lateral: {row['Camara Lateral']}")
-        logging.info(f"Generando PDF para la fila {index}, Cámara Lateral: {row['Camara Lateral']}")
+        print(f"\nGenerando PDF para la fila {index}, Camara Lateral: {row['Camara Lateral']}")
+        logging.info(f"Generando PDF para la fila {index}, Camara Lateral: {row['Camara Lateral']}")
         camara_lateral = row['Camara Lateral']
 
         if pd.notna(camara_lateral):
@@ -382,10 +523,10 @@ def generar_pdf_por_fila(index, row):
                 # Generar estímulo
                 amplitude_list, duration_list = generar_estimulo_desde_parametros(
                     row['Forma del Pulso'],
-                    row['Amplitud (microA)'] * 1000,      # Convertir a μA
-                    row['Duración (ms)'] * 1000,      # Convertir a μs
+                    row['Amplitud (microA)'],            # Ya en μA
+                    row['Duración (ms)'],                # Ya en ms
                     row['Frecuencia (Hz)'],
-                    200, compensar=True)              # Duración del pulso en μs
+                    200, compensar=True)                 # Duración del pulso en μs
 
                 # Información del estímulo para el gráfico y el PDF
                 estimulo_params_text = f"Forma: {row['Forma del Pulso']}, Amplitud: {row['Amplitud (microA)']} μA, Duración: {row['Duración (ms)']} ms, Frecuencia: {row['Frecuencia (Hz)']} Hz"
@@ -412,7 +553,6 @@ def generar_pdf_por_fila(index, row):
                 os.remove(trajectory_graph_path)
 
                 # Por cada articulación, generar el gráfico y añadir al PDF
-                # En generar_pdf_por_fila...
                 for body_part in body_parts:
                     if len(velocidades_per_bodypart[body_part]) > 0:
                         # Generar gráfico
@@ -459,7 +599,6 @@ def generar_pdf_por_fila(index, row):
                             line_color = ax.get_lines()[-1].get_color()
                             ax.axhline(avg_velocity, linestyle='--', color=line_color)
                             # Añadir etiqueta con el valor fuera del área del gráfico
-                            # Usar coordenadas relativas para colocar el texto fuera del área de datos
                             ax.annotate(f"{avg_velocity:.2f}",
                                         xy=(1.01, avg_velocity),
                                         xycoords=('axes fraction', 'data'),
@@ -500,9 +639,6 @@ def generar_pdf_por_fila(index, row):
                 summary_graph_path = f"temp_summary_{camara_lateral}.png"
                 plt.savefig(summary_graph_path, bbox_inches='tight')
                 plt.close()
-
-
-
 
                 # Añadir gráfico al PDF
                 pdf.image(summary_graph_path, x=10, y=40, w=190)
@@ -546,7 +682,7 @@ def plot_overall_trajectories(positions_per_bodypart, start_frame, current_frame
     ax.set_title('Trayectorias x vs y durante el estímulo', fontsize=12)
     ax.set_xlabel('Posición x (px)', fontsize=10)
     ax.set_ylabel('Posición y (px)', fontsize=10)
-    ax.invert_yaxis()
+    #ax.invert_yaxis()
     ax.set_aspect('equal', adjustable='datalim')
 
     # Añadir líneas de cuadrícula en ambos ejes
@@ -566,6 +702,39 @@ def plot_overall_trajectories(positions_per_bodypart, start_frame, current_frame
     
     return trajectory_graph_path
 
+def plot_movement_heatmap(data_df, body_part, movement_metric='TotalDisplacement'):
+    df_bp = data_df[data_df['BodyPart'] == body_part]
+    pivot_table = df_bp.pivot_table(values=movement_metric, index='Coordenada_y', columns='Coordenada_x', aggfunc='mean')
+    sns.heatmap(pivot_table, cmap='viridis')
+    plt.title(f'{movement_metric} para {body_part}')
+    plt.xlabel('Coordenada_x')
+    plt.ylabel('Coordenada_y')
+    plt.show()
+
+# Llamar a la función para una articulación y métrica específica
+plot_movement_heatmap(data_df, 'Muñeca', 'TotalDisplacement')
+# Cálculo de global_max_velocity
+global_max_velocity = 0
+for index, row in stimuli_info.iterrows():
+    camara_lateral = row['Camara Lateral']
+    if pd.notna(camara_lateral):
+        matching_segment = segmented_info[segmented_info['CarpetaPertenece'].str.contains(camara_lateral, na=False)]
+        if not matching_segment.empty:
+            matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
+            for _, segment_row in matching_segment_sorted.iterrows():
+                nombre_segmento = segment_row['NombreArchivo'].replace('.mp4', '').replace('lateral_', '')
+                csv_path = encontrar_csv(camara_lateral, nombre_segmento)
+                if csv_path:
+                    velocidades, _ = calcular_velocidades(csv_path)
+                    for vel in velocidades.values():
+                        if len(vel) > 0:
+                            max_vel = np.nanmax(vel)  # Usar np.nanmax para manejar NaNs
+                            if max_vel > global_max_velocity:
+                                global_max_velocity = max_vel
+
+logging.info(f"global_max_velocity calculado: {global_max_velocity}")
+
+
 # Generar PDF para cada fila en stimuli_info
 for index, row in stimuli_info.iterrows():
-    generar_pdf_por_fila(index, row)
+    generar_pdf_por_fila(index, row, global_max_velocity)
