@@ -3,6 +3,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+from scipy.optimize import curve_fit, least_squares
 from math import sqrt
 import matplotlib
 matplotlib.use('Agg')  # Para entornos sin interfaz gráfica
@@ -12,7 +13,7 @@ import matplotlib.cm as cm
 import logging
 import seaborn as sns
 
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter, find_peaks
 import re
 import shutil
 import glob  # Importar el módulo glob
@@ -61,7 +62,7 @@ except ImportError as e:
 stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information.csv'
 segmented_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\informacion_archivos_segmentados.csv'
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_variability_plots'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\multiple_filtered_variability_plots'
 
 # Asegurarse de que el directorio de salida existe
 if not os.path.exists(output_comparisons_dir):
@@ -152,13 +153,96 @@ body_parts_specific_colors = {
 }
 
 body_parts = list(body_parts_specific_colors.keys())
+def minimum_jerk_velocity(t, *params):
+    n_submovements = len(params) // 3
+    v_total = np.zeros_like(t)
+    for i in range(n_submovements):
+        A = params[3*i]
+        t0 = params[3*i + 1]
+        T = params[3*i + 2]
+        # Ensure T > 0
+        if T <= 0:
+            continue
+        # Compute the time within the submovement
+        tau = (t - t0) / T
+        # Only consider times within [0, T]
+        valid_idx = (tau >= 0) & (tau <= 1)
+        v = np.zeros_like(t)
+        v[valid_idx] = A * 30 * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
+        v_total += v
+    return v_total
+
+# Define the sum of submovements model
+def sum_of_minimum_jerk(t, *params):
+    n_submovements = len(params) // 3
+    v_total = np.zeros_like(t)
+    for i in range(n_submovements):
+        A = params[3*i]
+        t0 = params[3*i + 1]
+        T = params[3*i + 2]
+        v_total += minimum_jerk_velocity(t, A, t0, T)
+    return v_total
+
+def fit_velocity_profile(t, observed_velocity, n_submovements):
+    # Check if t is valid
+    if len(t) <= 1:
+        logging.warning("Time array t is too short to fit the model.")
+        return None
+
+    # Ensure t is sorted in ascending order
+    if not np.all(np.diff(t) >= 0):
+        logging.warning("Time array t is not sorted in ascending order. Sorting t.")
+        sorted_indices = np.argsort(t)
+        t = t[sorted_indices]
+        observed_velocity = observed_velocity[sorted_indices]
+
+    # Calculate total time
+    total_time = t[-1] - t[0]
+    logging.debug(f"Trial: t[0]={t[0]}, t[-1]={t[-1]}, total_time={total_time}")
+
+    if total_time <= 0:
+        logging.warning("Total time duration is not positive. Skipping fitting for this trial.")
+        return None
+
+    # Initial guess for parameters
+    params_init = []
+    for i in range(n_submovements):
+        A_init = np.max(observed_velocity) / n_submovements
+        t0_init = t[0] + i * total_time / n_submovements
+        T_init = total_time / n_submovements
+        params_init.extend([A_init, t0_init, T_init])
+
+    # Bounds for parameters
+    lower_bounds = []
+    upper_bounds = []
+    for i in range(n_submovements):
+        min_T = 0.01  # Minimum duration of 10ms
+        lower_bounds.extend([0, t[0], min_T])
+        upper_bounds.extend([np.inf, t[-1], total_time])
+
+    # Ensure initial guesses are within bounds
+    params_init = np.maximum(params_init, lower_bounds)
+    params_init = np.minimum(params_init, upper_bounds)
+
+    # Fit the model
+    try:
+        result = least_squares(
+            lambda params: sum_of_minimum_jerk(t, *params) - observed_velocity,
+            x0=params_init,
+            bounds=(lower_bounds, upper_bounds)
+        )
+    except ValueError as e:
+        logging.error(f"Least squares fitting failed for trial: {e}")
+        return None
+    return result
+
 
 def sanitize_filename(filename):
     """
     Reemplaza los caracteres inválidos por guiones bajos.
     """
     sanitized = re.sub(r'[\\/*?:"<>|]', "_", filename)
-    logging.debug(f"Sanitizing filename: Original='{filename}', Sanitized='{sanitized}'")
+    # logging.debug(f"Sanitizing filename: Original='{filename}', Sanitized='{sanitized}'")
     return sanitized
 
 # Función para calcular la distancia entre dos puntos
@@ -443,15 +527,13 @@ def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experim
     fig_height = max(rows * 5, min_fig_height)  # Ajustar la altura según el número de filas
     fig_width = cols * 15  # Ajustar el ancho según el número de columnas
 
-    
-    # Crear subplots
-    fig, axes = plt.subplots(4, num_stimuli, figsize=(fig_width, fig_height),
-                             gridspec_kw={'height_ratios': [4, 4, 4, 2]})
+    fig, axes = plt.subplots(5, num_stimuli, figsize=(fig_width, fig_height),
+                             gridspec_kw={'height_ratios': [4, 4, 4, 4, 2]})
     plt.subplots_adjust(wspace=0.4, hspace=0.6)
     
     # Asegurar que axes es un arreglo 2D
     if num_stimuli == 1:
-        axes = np.array([axes]).reshape(4, 1)
+        axes = np.array([axes]).reshape(5, 1)
     
     # Colores para los estímulos
     cmap = plt.get_cmap('tab10')
@@ -491,25 +573,25 @@ def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experim
         # 2. Graficar Velocidades
         # -----------------------
         ax_vel = axes[1, idx] if num_stimuli > 1 else axes[1]
+
         movement_trials_passed = 0  # Contador de ensayos que superaron el umbral durante el estímulo
         total_trials = len(data['velocities'])
-        vel_lengths = [len(vel) for vel in data['velocities']]
-        min_length = min(vel_lengths)
-        vel_array = np.array([vel[:min_length] for vel in data['velocities']])
-        mean_vel = np.nanmean(vel_array, axis=0)
-        seconds_vel = np.arange(min_length) / 100
-        
+
         for trial_idx, vel in enumerate(data['velocities']):
-            frames_vel = np.arange(len(vel))  # Índices de frames
-            seconds_vel_individual = frames_vel / 100  # Tiempo en segundos
-            ax_vel.plot(seconds_vel_individual, vel, color=stimulus_colors[stimulus_key], alpha=0.5)
+            if len(vel) <= 1 or np.isnan(vel).all():
+                logging.warning(f"Trial {trial_idx} has insufficient or invalid velocity data.")
+                continue
+            frames_vel = np.arange(len(vel))
+            t = frames_vel / 100  # Convertir frames a tiempo en segundos
+            observed_velocity = vel
+            ax_vel.plot(t, vel, color=stimulus_colors[stimulus_key], alpha=0.5)
 
             # Obtener movimientos correspondientes a este ensayo
             movements_in_trial = [mr for mr in data['movement_ranges'] if mr['Ensayo'] == trial_idx + 1]
 
             # Obtener movimientos que inician durante el estímulo en este ensayo
             movements_in_trial_durante_estimulo = [mr for mr in movements_in_trial if mr['Periodo'] == 'Durante Estímulo']
-            
+
             if movements_in_trial_durante_estimulo:
                 movement_trials_passed += 1  # Contar el ensayo si hay al menos un movimiento que inicia durante el estímulo
 
@@ -569,9 +651,6 @@ def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experim
         ]
         legend_text = f'Superaron: {movement_trials_passed}/{total_trials}'
         ax_vel.legend(handles=legend_elements, title=legend_text, loc='upper right', fontsize=9)
-        
-        # Mover la gráfica de la media de velocidades al final para que aparezca encima
-        ax_vel.plot(seconds_vel, mean_vel, color='black', linewidth=2, label='Media de Ensayos')
 
         # -----------------------
         # 3. Graficar Duraciones de Movimiento
@@ -647,11 +726,106 @@ def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experim
             ax_mov.axis('off')
             ax_mov.text(0.5, 0.5, 'No se detectaron movimientos que excedan el umbral.',
                        horizontalalignment='center', verticalalignment='center', fontsize=10)
-        
+
         # -----------------------
-        # 4. Graficar Estímulo
+        # 4. Graficar Submovimientos
         # -----------------------
-        ax_stim = axes[3, idx] if num_stimuli > 1 else axes[3]
+        ax_submov = axes[3, idx] if num_stimuli > 1 else axes[3]
+        bell_shaped_functions = []  # Para almacenar las funciones bell-shaped de cada ensayo
+
+        for trial_idx, vel in enumerate(data['velocities']):
+            if len(vel) <= 1 or np.isnan(vel).all():
+                logging.warning(f"Trial {trial_idx} tiene datos de velocidad insuficientes o inválidos.")
+                continue
+            frames_vel = np.arange(len(vel))
+            t = frames_vel / 100  # Convertir frames a tiempo en segundos
+
+            # Obtener movimientos que inician durante el estímulo para este ensayo
+            movements_in_trial = [mr for mr in data['movement_ranges'] if mr['Ensayo'] == trial_idx + 1 and mr['Periodo'] == 'Durante Estímulo']
+
+            if not movements_in_trial:
+                logging.info(f"No hay movimientos que inician durante el estímulo para el ensayo {trial_idx + 1}")
+                continue
+
+            for movement in movements_in_trial:
+                movement_start = movement['Inicio Movimiento (Frame)']
+                movement_end = movement['Fin Movimiento (Frame)']
+
+                # Extraer el segmento de velocidad correspondiente al movimiento
+                segment_indices = np.arange(movement_start, movement_end + 1)
+                # Asegurarse de que los índices estén dentro del rango de vel
+                segment_indices = segment_indices[(segment_indices >= 0) & (segment_indices < len(vel))]
+
+                t_segment = segment_indices / 100  # Convertir a tiempo en segundos
+                vel_segment = vel[segment_indices]
+
+                if len(vel_segment) <= 1 or np.isnan(vel_segment).all():
+                    logging.warning(f"Movimiento en el ensayo {trial_idx + 1} tiene datos de velocidad insuficientes o inválidos.")
+                    continue
+
+                # Ajustar el perfil de velocidad al modelo de mínimo jerk
+                n_submovements = 1  # Analizando movimientos individuales que inician durante el estímulo
+
+                result = fit_velocity_profile(t_segment, vel_segment, n_submovements)
+                if result is None:
+                    logging.warning(f"Omitiendo movimiento en el ensayo {trial_idx + 1} debido a datos insuficientes para el ajuste.")
+                    continue
+
+                fitted_params = result.x
+                # Extraer parámetros del submovimiento
+                A = fitted_params[0]
+                t0 = fitted_params[1]
+                T = fitted_params[2]
+                submovement = {'A': A, 't0': t0, 'T': T}
+
+                # Generar la función bell-shaped usando la velocidad de mínimo jerk
+                v_sm = minimum_jerk_velocity(t_segment, A, t0, T)
+
+                # Almacenar la función bell-shaped
+                bell_shaped_functions.append({'t': t_segment, 'v': v_sm})
+
+                # Graficar la función bell-shaped
+                ax_submov.plot(t_segment, v_sm, linestyle='-', linewidth=1, color='red', alpha=0.5)
+
+        # Después de procesar todos los ensayos, calcular la función bell-shaped promedio
+        if bell_shaped_functions:
+            # Re-samplear todas las funciones bell-shaped en un vector de tiempo común
+            # Primero, encontrar el rango de tiempo común
+            t_min = min(bf['t'][0] for bf in bell_shaped_functions)
+            t_max = max(bf['t'][-1] for bf in bell_shaped_functions)
+            t_common = np.linspace(t_min, t_max, 500)  # 500 puntos
+
+            # Interpolar cada función bell-shaped en t_common
+            v_interp_list = []
+            for bf in bell_shaped_functions:
+                v_interp = np.interp(t_common, bf['t'], bf['v'])
+                v_interp_list.append(v_interp)
+
+            # Calcular el promedio
+            v_mean = np.mean(v_interp_list, axis=0)
+
+            # Graficar la función bell-shaped promedio
+            ax_submov.plot(t_common, v_mean, linestyle='-', linewidth=2, color='blue', alpha=1, label='Promedio')
+
+        # Resaltar el periodo de estimulación
+        ax_submov.axvspan(start_time, current_time, color='blue', alpha=0.1)
+
+        ax_submov.set_title(f'Submovimientos - {stimulus_key}', fontsize=12)
+        ax_submov.set_xlabel('Tiempo (s)')
+        ax_submov.set_ylabel('Velocidad (pixeles/s)')
+        ax_submov.set_xlim(0, max_time)
+        ax_submov.set_ylim(vel_min, vel_max)
+
+        # Configurar ticks para el eje X
+        ax_submov.xaxis.set_major_locator(MultipleLocator(0.5))
+        ax_submov.xaxis.set_minor_locator(MultipleLocator(0.1))
+        ax_submov.tick_params(axis='x', which='minor', length=4, color='grey')
+        ax_submov.legend(loc='upper right')
+
+        # -----------------------
+        # 5. Graficar Estímulo
+        # -----------------------
+        ax_stim = axes[4, idx] if num_stimuli > 1 else axes[4]
         x_vals = [start_time]
         y_vals = [0]
         current_time_stimulus = start_time
@@ -724,7 +898,7 @@ def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experim
     finally:
         plt.close()
 
-
+        
 # Función modificada para recolectar datos de velocidad y umbrales
 def collect_velocity_threshold_data():
     logging.info("Iniciando la recopilación de datos de umbral de velocidad.")
@@ -892,6 +1066,17 @@ def collect_velocity_threshold_data():
                                         if part in velocidades:
                                             vel = velocidades[part]
                                             if len(vel) > 0:
+                                                vel_pre_stim = vel[:start_frame]
+                                                vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
+                                                if len(vel_pre_stim) == 0:
+                                                    logging.warning(f"Trial has no valid pre-stimulus velocity data.")
+                                                    continue
+
+                                                mean_vel_pre_trial = np.nanmean(vel_pre_stim)
+                                                if mean_vel_pre_trial > mean_vel_pre + 3 * std_vel_pre:
+                                                    logging.info(f"Excluyendo ensayo debido a movimiento pre-estímulo alto.")
+                                                    continue  # Excluir este ensayo
+
                                                 total_trials_part += 1
 
                                                 # Determinar múltiples segmentos de movimiento
@@ -1027,6 +1212,18 @@ def collect_velocity_threshold_data():
                                         vel = velocidades[part]
                                         pos = posiciones[part]
                                         if len(vel) > 0:
+                                            # Verificar si el ensayo debe ser excluido
+                                            vel_pre_stim = vel[:start_frame]
+                                            vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
+                                            if len(vel_pre_stim) == 0:
+                                                logging.warning(f"Trial {trial_counter} has no valid pre-stimulus velocity data.")
+                                                continue
+
+                                            mean_vel_pre_trial = np.nanmean(vel_pre_stim)
+                                            if mean_vel_pre_trial > mean_vel_pre + 3 * std_vel_pre:
+                                                logging.info(f"Excluyendo ensayo {trial_counter} debido a movimiento pre-estímulo alto.")
+                                                continue  # Excluir este ensayo
+
                                             group_velocities.append(vel)
                                             group_positions['x'].append(pos['x'])
                                             group_positions['y'].append(pos['y'])
@@ -1100,6 +1297,9 @@ def collect_velocity_threshold_data():
                     print(f"No hay datos de velocidades para graficar para {part} en el día {dia_experimental}, estímulo {forma_pulso} {duracion_ms} ms.")
                     continue  # No hay datos para graficar
 
+                # Actualizar total_trials con el número de ensayos después de excluir
+                total_trials_filtered = len(group_velocities)
+
                 # Crear una clave única para este estímulo con el número de orden
                 if duracion_ms is not None:
                     stimulus_key = f"{order}. {forma_pulso.capitalize()}_{duracion_ms}ms"
@@ -1125,7 +1325,7 @@ def collect_velocity_threshold_data():
                     'frequency': frequency,
                     'movement_ranges': movement_ranges,
                     'movement_trials': movement_trials_in_selected,
-                    'total_trials': len(group_velocities),
+                    'total_trials': total_trials_filtered,  # Usar total de ensayos después de excluir
                     'trials_passed': trials_passed,
                     'Order': order  # Añadir el número de orden
                 }
@@ -1188,9 +1388,6 @@ def collect_velocity_threshold_data():
     logging.info("Finalizada la recopilación de datos de umbral de velocidad.")
     print("Finalizada la recopilación de datos de umbral de velocidad.")
     return counts_df
-
-
-
 
 # Función modificada para generar gráficos comparativos por día
 # Función para simplificar los gráficos de resumen
