@@ -1,4 +1,3 @@
-# Importaciones y configuración inicial
 import os
 import sys
 import pandas as pd
@@ -12,11 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import logging
 import seaborn as sns
+from matplotlib.patches import Patch
 
 from scipy.signal import savgol_filter, find_peaks
 import re
 import shutil
 import glob  # Importar el módulo glob
+
 
 # Configuración del logging
 refactored_log_file_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
@@ -33,10 +34,6 @@ console.setLevel(logging.DEBUG)  # Cambiado a DEBUG para más detalles en consol
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
-
-# Confirmar inicio del script
-print("Inicio del script: 5_velocity_thresholds_comparaciones_refined.py")
-logging.info("Inicio del script: 5_velocity_thresholds_comparaciones_refined.py")
 
 # Añadir la ruta a Stimulation.py
 stimulation_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\scripts\GUI_pattern_generator'
@@ -62,7 +59,7 @@ except ImportError as e:
 stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information.csv'
 segmented_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\informacion_archivos_segmentados.csv'
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\multiple_filtered_variability_plots'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\decomposed_velocity_plots'
 
 # Asegurarse de que el directorio de salida existe
 if not os.path.exists(output_comparisons_dir):
@@ -151,8 +148,117 @@ body_parts_specific_colors = {
     'Braquiradial': 'grey',
     'Bicep': 'brown'
 }
+def detectar_movimientos(vel, threshold, start_frame, current_frame):
+    """
+    Detecta segmentos de movimiento donde la velocidad filtrada sobrepasa el umbral.
+    Usa vel_suav (velocidad filtrada) en lugar de vel cruda.
+    
+    Retorna una lista de dict con info de cada movimiento:
+    [
+      {
+        'Inicio Movimiento (Frame)': ...,
+        'Fin Movimiento (Frame)': ...,
+        'Periodo': 'Pre-Estímulo' o 'Durante Estímulo' o 'Post-Estímulo'
+      }, ...
+    ]
+    """
+    # Primero suavizamos la velocidad para detectar movimientos:
+    vel_suav = suavizar_datos(vel, 10)
+    
+    frames_vel = np.arange(len(vel))
+    above_threshold = (vel_suav > threshold)
+    indices_above = frames_vel[above_threshold]
+    
+    movimientos = []
+    
+    if len(indices_above) == 0:
+        return movimientos
+    
+    segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
+    for segment in segments:
+        movement_start = segment[0]
+        movement_end = segment[-1]
+        
+        # Determinar el periodo del movimiento
+        if movement_start < start_frame:
+            periodo = 'Pre-Estímulo'
+        elif start_frame <= movement_start <= current_frame:
+            periodo = 'Durante Estímulo'
+        else:
+            periodo = 'Post-Estímulo'
+        
+        movimientos.append({
+            'Inicio Movimiento (Frame)': movement_start,
+            'Fin Movimiento (Frame)': movement_end,
+            'Periodo': periodo
+        })
+    
+    return movimientos
+def detectar_picos_submovimiento(vel_suav_segment, threshold):
+    """
+    Detecta picos locales en un segmento de velocidad suavizada usando la derivada.
+    Debe superar el threshold y tener al menos 5 frames por encima del umbral para considerarse submovimiento.
+    """
+    # Derivada
+    dvel = np.diff(vel_suav_segment)
+    
+    # Signo de la derivada
+    sign_dvel = np.sign(dvel)
+    # Donde ocurre cambio de signo de + a -
+    # Esto indica un pico local
+    cambios_signo = np.where(np.diff(sign_dvel) < 0)[0]
+    candidate_peaks = cambios_signo + 1  # Ajustar índice
+    
+    # Filtrar picos que estén por encima del threshold
+    candidate_peaks = candidate_peaks[vel_suav_segment[candidate_peaks] > threshold]
+    
+    valid_peaks = []
+    for peak_idx in candidate_peaks:
+        # Buscar duración mínima del submovimiento
+        # Expandirse hacia atrás y adelante mientras vel_suav_segment > threshold
+        start_idx = peak_idx
+        while start_idx > 0 and vel_suav_segment[start_idx] > threshold:
+            start_idx -= 1
+        end_idx = peak_idx
+        while end_idx < len(vel_suav_segment)-1 and vel_suav_segment[end_idx] > threshold:
+            end_idx += 1
+        
+        segment_length = end_idx - start_idx
+        # Mínimo 5 frames = 50 ms
+        if segment_length >= 5:
+            valid_peaks.append(peak_idx)
+    
+    return valid_peaks
 
 body_parts = list(body_parts_specific_colors.keys())
+def gaussian(x, A, mu, sigma):
+    return A * np.exp(-((x - mu)**2) / (2 * sigma**2))
+
+def fit_gaussian(t_data, v_data):
+    # Estimaciones iniciales
+    A_init = np.max(v_data) if len(v_data) > 0 else 0.1
+    mu_init = t_data[np.argmax(v_data)] if len(t_data) > 0 else 0.0
+    sigma_init = (t_data[-1] - t_data[0]) / 4.0 if len(t_data) > 1 else 0.01
+
+    # Límites razonables
+    lower_bounds = [0, t_data[0], 0.0001]
+    upper_bounds = [np.inf, t_data[-1], (t_data[-1] - t_data[0])]
+
+    try:
+        popt, pcov = curve_fit(gaussian, t_data, v_data, p0=[A_init, mu_init, sigma_init], bounds=(lower_bounds, upper_bounds))
+        return {
+            'A_gauss': popt[0],
+            'mu_gauss': popt[1],
+            'sigma_gauss': popt[2]
+        }
+    except Exception as e:
+        logging.warning(f'No se pudo ajustar Gaussiana al submovimiento: {e}')
+        return {
+            'A_gauss': np.nan,
+            'mu_gauss': np.nan,
+            'sigma_gauss': np.nan
+        }
+
 def minimum_jerk_velocity(t, *params):
     n_submovements = len(params) // 3
     v_total = np.zeros_like(t)
@@ -160,19 +266,15 @@ def minimum_jerk_velocity(t, *params):
         A = params[3*i]
         t0 = params[3*i + 1]
         T = params[3*i + 2]
-        # Ensure T > 0
         if T <= 0:
             continue
-        # Compute the time within the submovement
         tau = (t - t0) / T
-        # Only consider times within [0, T]
         valid_idx = (tau >= 0) & (tau <= 1)
         v = np.zeros_like(t)
         v[valid_idx] = A * 30 * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
         v_total += v
     return v_total
 
-# Define the sum of submovements model
 def sum_of_minimum_jerk(t, *params):
     n_submovements = len(params) // 3
     v_total = np.zeros_like(t)
@@ -184,27 +286,22 @@ def sum_of_minimum_jerk(t, *params):
     return v_total
 
 def fit_velocity_profile(t, observed_velocity, n_submovements):
-    # Check if t is valid
     if len(t) <= 1:
         logging.warning("Time array t is too short to fit the model.")
         return None
 
-    # Ensure t is sorted in ascending order
     if not np.all(np.diff(t) >= 0):
-        logging.warning("Time array t is not sorted in ascending order. Sorting t.")
+        logging.warning("Time array t is not sorted. Sorting t.")
         sorted_indices = np.argsort(t)
         t = t[sorted_indices]
         observed_velocity = observed_velocity[sorted_indices]
 
-    # Calculate total time
     total_time = t[-1] - t[0]
-    logging.debug(f"Trial: t[0]={t[0]}, t[-1]={t[-1]}, total_time={total_time}")
-
     if total_time <= 0:
-        logging.warning("Total time duration is not positive. Skipping fitting for this trial.")
+        logging.warning("Total time duration is not positive.")
         return None
 
-    # Initial guess for parameters
+    # Estimación inicial de parámetros
     params_init = []
     for i in range(n_submovements):
         A_init = np.max(observed_velocity) / n_submovements
@@ -212,29 +309,29 @@ def fit_velocity_profile(t, observed_velocity, n_submovements):
         T_init = total_time / n_submovements
         params_init.extend([A_init, t0_init, T_init])
 
-    # Bounds for parameters
+    # Límites
     lower_bounds = []
     upper_bounds = []
     for i in range(n_submovements):
-        min_T = 0.01  # Minimum duration of 10ms
+        min_T = 0.01  # 10ms
         lower_bounds.extend([0, t[0], min_T])
         upper_bounds.extend([np.inf, t[-1], total_time])
 
-    # Ensure initial guesses are within bounds
     params_init = np.maximum(params_init, lower_bounds)
     params_init = np.minimum(params_init, upper_bounds)
 
-    # Fit the model
     try:
         result = least_squares(
-            lambda params: sum_of_minimum_jerk(t, *params) - observed_velocity,
+            lambda p: sum_of_minimum_jerk(t, *p) - observed_velocity,
             x0=params_init,
             bounds=(lower_bounds, upper_bounds)
         )
     except ValueError as e:
-        logging.error(f"Least squares fitting failed for trial: {e}")
+        logging.error(f"Fallo en el ajuste: {e}")
         return None
+
     return result
+
 
 
 def sanitize_filename(filename):
@@ -274,29 +371,22 @@ def encontrar_csv(camara_lateral, nombre_segmento):
         logging.error(f'Error al acceder a los archivos CSV: {e}')
         return None
 
-def suavizar_datos(data, window_length=10):
-    if len(data) < window_length:
-        logging.warning(f"Datos demasiado cortos para suavizar. Longitud={len(data)}, window_length={window_length}")
+# Función de suavizado usando un simple moving average
+
+# Cambiar el suavizado de velocidad a ventana de 10 frames
+def suavizar_datos(data, window_size=10):
+    """
+    Aplica un promedio móvil para suavizar datos. Si los datos son cortos, 
+    retorna los datos originales. Se mantiene igual, ya estaba bien.
+    """
+    if len(data) < window_size:
+        logging.warning(f"Datos demasiado cortos para aplicar moving average. Longitud={len(data)}, window_size={window_size}")
         return data
-
-    # Creamos una ventana de unos y luego la dividimos para hacer el promedio.
-    window = np.ones(window_length) / window_length
-
-    # Convolve calcula la suma ponderada en cada posición.
-    # mode='valid' devuelve solo las posiciones donde la ventana entra completa.
-    filtered = np.convolve(data, window, mode='valid')
-
-    # Si queremos mantener el mismo largo que la señal original, podemos rellenar los bordes.
-    # Aquí, por ejemplo, rellenamos el inicio y el final con el valor más cercano:
-    pad_size = (window_length - 1) // 2
-    # Relleno inicial y final para mantener longitud
-    filtered = np.concatenate((
-        np.full(pad_size, filtered[0]), 
-        filtered, 
-        np.full(pad_size, filtered[-1])
-    ))
-
-    return filtered
+    try:
+        return np.convolve(data, np.ones(window_size)/window_size, mode='same')
+    except Exception as e:
+        logging.error(f'Error al aplicar moving average: {e}')
+        return data
 
 
 # Función para calcular velocidades y posiciones para cada articulación con suavizado
@@ -370,7 +460,8 @@ def calcular_velocidades(csv_path):
             velocidad_part = distancias / delta_t
 
             # Smooth velocities
-            velocidad_part = suavizar_datos(velocidad_part, window_length=10)
+            velocidad_part = suavizar_datos(velocidad_part, 10)  # Antes 21, ahora 10
+
             logging.debug(f"Velocidades suavizadas para {part_original}.")
             print(f"Velocidades suavizadas para {part_original}.")
 
@@ -424,6 +515,7 @@ def generar_estimulo_desde_parametros(forma, amplitud, duracion, frecuencia, dur
         logging.error(f'Error al generar estímulo: {e}')
         print(f'Error al generar estímulo: {e}')
         return [], []
+
 def create_color_palette(df):
     # Obtener las formas de pulso únicas
     formas_unicas = df['Forma del Pulso'].unique()
@@ -449,568 +541,303 @@ def create_color_palette(df):
     
     return stim_color_dict
 
-def plot_all_stimuli_graphs(all_stimuli_data, group_name, body_part, dia_experimental, output_png_path):
-    import matplotlib.patches as mpatches
-    from matplotlib.lines import Line2D
-    from matplotlib.ticker import MultipleLocator
+def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, output_dir, coord_x=None, coord_y=None, dist_ic=None):
+    """
+    Si la cantidad de ensayos es mayor a 15, subdividir en grupos de 15.
+    Cada grupo se grafica en una figura separada.
+    """
+    dist_str = f"{dist_ic}".replace('.', '_')
+    coord_x_str = str(coord_x)
+    coord_y_str = str(coord_y)
 
-    logging.info(f"Generando gráfico consolidado para: Articulación={body_part}, Día={dia_experimental}")
-    print(f"Generando gráfico consolidado para: Articulación={body_part}, Día={dia_experimental}")
+    base_output_dir = os.path.join(
+        output_dir, 
+        'trials_side_by_side', 
+        f"Dia_{sanitize_filename(str(dia_experimental))}_X_{coord_x_str}_Y_{coord_y_str}_Dist_{dist_str}",
+        f'{sanitize_filename(stimulus_key)}', 
+        f'{sanitize_filename(body_part)}'
+    )
+    if not os.path.exists(base_output_dir):
+        os.makedirs(base_output_dir)
     
-    num_stimuli = len(all_stimuli_data)
-    
-    if num_stimuli == 0:
-        logging.warning(f"No hay estímulos para graficar para {body_part} en el día {dia_experimental}.")
-        print(f"No hay estímulos para graficar para {body_part} en el día {dia_experimental}.")
+    trials_data = data.get('trials_data', [])
+    if not trials_data:
+        logging.warning(f"No hay datos de ensayos para {stimulus_key} en {body_part} día {dia_experimental}")
         return
-    
-    # Calcular los límites dinámicos para mantenerlos iguales en todos los subgráficos
-    all_displacements = []
-    all_velocities = []
-    max_ensayo = 0
-    max_time = 0  # Para ajustar el eje X del estímulo
-    
-    for data in all_stimuli_data.values():
-        # Desplazamiento
-        for x, y in zip(data['positions']['x'], data['positions']['y']):
-            displacement = np.sqrt((x - x[0])**2 + (y - y[0])**2)
-            all_displacements.extend(displacement)
-        
-        # Velocidades
-        for vel in data['velocities']:
-            all_velocities.extend(vel)
-        
-        # Ensayos
-        if data.get('movement_ranges'):
-            for mr in data['movement_ranges']:
-                if mr['Ensayo'] > max_ensayo:
-                    max_ensayo = mr['Ensayo']
-        
-        # Actualizar el tiempo máximo para el estímulo
-        stim_end_time = data['current_frame'] / 100
-        if stim_end_time > max_time:
-            max_time = stim_end_time
 
-    # Asegurar que max_time es al menos un valor mínimo para evitar escalamiento excesivo
-    min_time_limit = 4  # Puedes ajustar este valor según tus necesidades
-    max_time = max(max_time, min_time_limit)
-    
-    # Definir límites para los gráficos
-    # Aplicar detección de outliers para el desplazamiento
-    if all_displacements:
-        disp_array = np.array(all_displacements)
-        mean_disp = np.mean(disp_array)
-        std_disp = np.std(disp_array)
-        # Filtrar outliers que están más allá de 3 desviaciones estándar
-        disp_filtered = disp_array[(disp_array >= mean_disp - 3 * std_disp) & (disp_array <= mean_disp + 3 * std_disp)]
-        disp_min = np.min(disp_filtered) - 10
-        disp_max = np.max(disp_filtered) + 10
-        # Establecer un valor mínimo para disp_max
-        disp_min_limit = 100  # Valor mínimo para disp_max
-        disp_max = max(disp_max, disp_min_limit)
-        # Asegurar que disp_max es mayor que disp_min
-        if disp_max <= disp_min:
-            disp_max = disp_min + 10
-    else:
-        disp_min, disp_max = (0, 500)
-    
-    # Aplicar detección de outliers para las velocidades
-    if all_velocities:
-        vel_array = np.array(all_velocities)
-        mean_vel = np.mean(vel_array)
-        std_vel = np.std(vel_array)
-        # Filtrar outliers que están más allá de 3 desviaciones estándar
-        vel_filtered = vel_array[(vel_array >= mean_vel - 3 * std_vel) & (vel_array <= mean_vel + 3 * std_vel)]
-        vel_min = np.min(vel_filtered) - 5
-        vel_max = np.max(vel_filtered) + 5
-        # Establecer un valor mínimo para vel_max
-        vel_min_limit = 10  # Valor mínimo para vel_max
-        vel_max = max(vel_max, vel_min_limit)
-        vel_max = max(vel_max, vel_min + 1)  # Asegurar que vel_max es mayor que vel_min
-    else:
-        vel_min, vel_max = (0, 50)
-    
-    mov_min, mov_max = (0, max_ensayo + 2)
-    amp_min, amp_max = -160, 160  # Límites fijos para el gráfico de estimulación
-    
-    # Calcular disposición de subplots
-    cols = min(num_stimuli, 3)  # Máximo 3 columnas
-    rows = int(np.ceil(num_stimuli / cols))
-    
-    min_fig_height = 10  # Ajusta este valor según sea necesario
-    fig_height = max(rows * 5, min_fig_height)  # Ajustar la altura según el número de filas
-    fig_width = cols * 15  # Ajustar el ancho según el número de columnas
+    num_trials = len(trials_data)
+    if num_trials == 0:
+        logging.warning(f"No hay ensayos para graficar en {stimulus_key} en {body_part} día {dia_experimental}")
+        return
 
-    fig, axes = plt.subplots(5, num_stimuli, figsize=(fig_width, fig_height),
-                             gridspec_kw={'height_ratios': [4, 4, 4, 4, 2]})
-    plt.subplots_adjust(wspace=0.4, hspace=0.6)
-    
-    # Asegurar que axes es un arreglo 2D
-    if num_stimuli == 1:
-        axes = np.array([axes]).reshape(5, 1)
-    
-    # Colores para los estímulos
-    cmap = plt.get_cmap('tab10')
-    stimulus_colors = {stimulus_key: body_parts_specific_colors.get(body_part, cmap(idx % 10)) for idx, stimulus_key in enumerate(all_stimuli_data.keys())}
-    
-    for idx, (stimulus_key, data) in enumerate(all_stimuli_data.items()):
-        logging.debug(f"Procesando estímulo: {stimulus_key}")
-        print(f"Procesando estímulo: {stimulus_key}")
-        
-        # Convertir frames a segundos
-        start_time = data['start_frame'] / 100
-        current_time = data['current_frame'] / 100
+    # Determinar el número de figuras a crear si hay más de 15 ensayos
+    max_per_figure = 15
+    num_figures = (num_trials // max_per_figure) + (1 if num_trials % max_per_figure != 0 else 0)
 
-        # -----------------------
-        # 1. Graficar Desplazamiento
-        # -----------------------
-        ax_disp = axes[0, idx] if num_stimuli > 1 else axes[0]
-        for x, y in zip(data['positions']['x'], data['positions']['y']):
-            frames = np.arange(len(x))
-            seconds = frames / 100
-            displacement = np.sqrt((x - x[0])**2 + (y - y[0])**2)
-            ax_disp.plot(seconds, displacement, color=stimulus_colors[stimulus_key], linestyle='-', alpha=0.5)
-        
-        ax_disp.set_title(f'Desplazamiento - {stimulus_key}', fontsize=12)
-        ax_disp.set_xlabel('Tiempo (s)')
-        ax_disp.set_ylabel('Desplazamiento (px)')
-        ax_disp.set_xlim(0, max_time)
-        ax_disp.set_ylim(disp_min, disp_max)
-        ax_disp.axvspan(start_time, current_time, color='blue', alpha=0.1)
-        
-        # Configurar ticks mayores y menores para el eje X
-        ax_disp.xaxis.set_major_locator(MultipleLocator(0.5))
-        ax_disp.xaxis.set_minor_locator(MultipleLocator(0.1))
-        ax_disp.tick_params(axis='x', which='minor', length=4, color='grey')
+    for fig_index in range(num_figures):
+        start_idx = fig_index * max_per_figure
+        end_idx = min(start_idx + max_per_figure, num_trials)
+        subset_trials = trials_data[start_idx:end_idx]
 
-        # -----------------------
-        # 2. Graficar Velocidades
-        # -----------------------
-        ax_vel = axes[1, idx] if num_stimuli > 1 else axes[1]
+        colors = plt.cm.viridis(np.linspace(0, 1, len(subset_trials)))
+        max_time = max([len(trial_data['velocity']) for trial_data in subset_trials]) / 100
+        max_disp = max([
+            np.max(np.sqrt((trial_data['positions']['x'] - trial_data['positions']['x'][0])**2 + 
+                           (trial_data['positions']['y'] - trial_data['positions']['y'][0])**2))
+            for trial_data in subset_trials
+        ])
+        max_vel = max([np.max(trial_data['velocity']) for trial_data in subset_trials])
+        max_amp = max(data['amplitude_list']) / 1000
+        min_amp = min(data['amplitude_list']) / 1000
 
-        movement_trials_passed = 0  # Contador de ensayos que superaron el umbral durante el estímulo
-        total_trials = len(data['velocities'])
+        fig_height = 5 * 5  # 5 filas
+        fig_width = len(subset_trials) * 5
+        height_ratios = [2, 2, 0.5, 2, 2]
 
-        for trial_idx, vel in enumerate(data['velocities']):
-            if len(vel) <= 1 or np.isnan(vel).all():
-                logging.warning(f"Trial {trial_idx} has insufficient or invalid velocity data.")
-                continue
+        fig, axes = plt.subplots(5, len(subset_trials), 
+                                figsize=(fig_width, fig_height), 
+                                sharey=False, 
+                                gridspec_kw={'height_ratios': height_ratios})
+
+        if len(subset_trials) == 1:
+            axes = np.array(axes).reshape(5, 1)
+
+        for idx, trial_data in enumerate(subset_trials):
+            trial_index = trial_data['trial_index']
+            vel = trial_data['velocity']
+            pos = trial_data['positions']
+            submovements = trial_data['submovements']
+            movement_ranges = trial_data['movement_ranges']
             frames_vel = np.arange(len(vel))
-            t = frames_vel / 100  # Convertir frames a tiempo en segundos
-            observed_velocity = vel
-            ax_vel.plot(t, vel, color=stimulus_colors[stimulus_key], alpha=0.5)
+            t_vel = frames_vel / 100
 
-            # Obtener movimientos correspondientes a este ensayo
-            movements_in_trial = [mr for mr in data['movement_ranges'] if mr['Ensayo'] == trial_idx + 1]
+            # Velocidad suavizada (MA 10)
+            vel_suav = suavizar_datos(vel, 10)
 
-            # Obtener movimientos que inician durante el estímulo en este ensayo
-            movements_in_trial_durante_estimulo = [mr for mr in movements_in_trial if mr['Periodo'] == 'Durante Estímulo']
+            # 1er gráfico: desplazamiento crudo (color azul para desplazamiento)
+            ax_disp = axes[0, idx]
+            displacement = np.sqrt((pos['x'] - pos['x'][0])**2 + (pos['y'] - pos['y'][0])**2)
+            t_disp = np.arange(len(displacement)) / 100
+            ax_disp.plot(t_disp, displacement, color='blue', label='Desplazamiento')
+            ax_disp.set_title(f'Ensayo {trial_index + 1}')
+            ax_disp.set_xlabel('Tiempo (s)')
+            ax_disp.set_ylabel('Desplazamiento (px)')
+            ax_disp.set_xlim(0, max_time)
+            ax_disp.set_ylim(0, max_disp + 10)
+            ax_disp.axvspan(data['start_frame'] / 100, data['current_frame'] / 100, color='green', alpha=0.1)
+            if idx == 0:
+                ax_disp.legend(fontsize=8)
 
-            if movements_in_trial_durante_estimulo:
-                movement_trials_passed += 1  # Contar el ensayo si hay al menos un movimiento que inicia durante el estímulo
+            # 2do gráfico: velocidad cruda + suavizada (MA 10) + umbral
+            # Usamos 'orange' para la velocidad suavizada aquí
+            ax_vel = axes[1, idx]
+            ax_vel.plot(t_vel, vel, color='blue', alpha=0.6, label='Velocidad cruda')
+            ax_vel.plot(t_vel, vel_suav, color='orange', alpha=0.8, label='Velocidad suavizada (MA 10)')
+            ax_vel.axhline(data['threshold'], color='k', linestyle='--', label=f'Umbral ({data["threshold"]:.2f})')
+            ax_vel.axhline(data['mean_vel_pre'], color='lightcoral', linestyle='-', linewidth=1, label=f'Media pre-estímulo ({data["mean_vel_pre"]:.2f})')
 
-            for movement in movements_in_trial:
-                movement_start = movement['Inicio Movimiento (Frame)']
-                movement_end = movement['Fin Movimiento (Frame)']
+            ax_vel.axvspan(data['start_frame'] / 100, data['current_frame'] / 100, color='green', alpha=0.1)
+            ax_vel.set_xlabel('Tiempo (s)')
+            ax_vel.set_ylabel('Velocidad (px/s)')
+            ax_vel.set_xlim(0, max_time)
+            ax_vel.set_ylim(0, max_vel + 5)
+            if idx == 0:
+                ax_vel.legend(fontsize=8)
+
+            # 3er gráfico: duraciones de movimiento
+            ax_mov = axes[2, idx]
+            period_colors = {
+                'Pre-Estímulo': 'orange',
+                'Durante Estímulo': 'red',
+                'Post-Estímulo': 'gray'
+            }
+
+            for movement in movement_ranges:
+                movement_start = movement['Inicio Movimiento (Frame)'] / 100
+                movement_end = movement['Fin Movimiento (Frame)'] / 100
                 periodo = movement['Periodo']
-
-                # Obtener los índices de frames del movimiento
-                segment_indices = np.arange(movement_start, movement_end + 1)
-                # Asegurarse de que los índices estén dentro del rango de vel
-                segment_indices = segment_indices[(segment_indices >= 0) & (segment_indices < len(vel))]
-
-                # Color según el periodo
-                if periodo == 'Pre-Estímulo':
-                    color_mov = 'orange'
-                elif periodo == 'Durante Estímulo':
-                    color_mov = 'red'
-                elif periodo == 'Post-Estímulo':
-                    color_mov = 'gray'
-                else:
-                    color_mov = 'blue'  # Por defecto
-
-                ax_vel.plot(segment_indices / 100, vel[segment_indices], color=color_mov, linewidth=1, alpha=0.7)
-
-        # Añadir líneas horizontales para el umbral y la media pre-estímulo
-        ax_vel.axhline(data['threshold'], color='k', linestyle='--', label=f'Umbral ({data["threshold"]:.2f})')
-        ax_vel.axhline(data['mean_vel_pre'], color='lightcoral', linestyle='-', linewidth=1,
-                       label=f'Media pre-estímulo ({data["mean_vel_pre"]:.2f})')
-        
-        # Añadir líneas de cuadrícula verticales cada 1 segundo
-        grid_interval = 1
-        grid_seconds = np.arange(0, max_time + 1, grid_interval)
-        for gs in grid_seconds:
-            ax_vel.axvline(gs, color='lightgray', linestyle='--', linewidth=0.5)
-        
-        # Establecer límites dinámicos
-        ax_vel.set_ylim(vel_min, vel_max)
-        
-        # Añadir título y leyenda con información de ensayos que pasaron el umbral
-        ax_vel.set_title(f'Velocidades - {stimulus_key}', fontsize=12)
-        ax_vel.set_xlabel('Tiempo (s)')
-        ax_vel.set_ylabel('Velocidad (pixeles/s)')
-        ax_vel.set_xlim(0, max_time)
-        ax_vel.axvspan(start_time, current_time, color='blue', alpha=0.1)
-        
-        # Configurar ticks mayores y menores para el eje X
-        ax_vel.xaxis.set_major_locator(MultipleLocator(0.5))
-        ax_vel.xaxis.set_minor_locator(MultipleLocator(0.1))
-        ax_vel.tick_params(axis='x', which='minor', length=4, color='grey')
-        
-        # Crear elementos de leyenda
-        legend_elements = [
-            Line2D([0], [0], color='lightcoral', lw=2.5, label=f'Media pre-estímulo ({data["mean_vel_pre"]:.2f})'),
-            Line2D([0], [0], color='k', linestyle='--', label=f'Umbral ({data["threshold"]:.2f})'),
-            mpatches.Patch(facecolor='blue', alpha=0.1, label='Duración del estímulo')
-        ]
-        legend_text = f'Superaron: {movement_trials_passed}/{total_trials}'
-        ax_vel.legend(handles=legend_elements, title=legend_text, loc='upper right', fontsize=9)
-
-        # -----------------------
-        # 3. Graficar Duraciones de Movimiento
-        # -----------------------
-        ax_mov = axes[2, idx] if num_stimuli > 1 else axes[2]
-        if data.get('movement_ranges'):
-            for mr in data['movement_ranges']:
-                ensayo = mr['Ensayo']
-                inicio = mr['Inicio Movimiento (Frame)'] / 100
-                fin = mr['Fin Movimiento (Frame)'] / 100
-
-                # Obtener el periodo del movimiento
-                periodo = mr['Periodo']
-
-                # Determinar el color según el periodo
-                if periodo == 'Pre-Estímulo':
-                    color_mov = 'orange'
-                elif periodo == 'Durante Estímulo':
-                    color_mov = 'red'
-                elif periodo == 'Post-Estímulo':
-                    color_mov = 'gray'
-                else:
-                    color_mov = 'blue'  # Por defecto
-
-                ax_mov.hlines(y=ensayo, xmin=inicio, xmax=fin, color=color_mov, linewidth=2)
-                
-                # Obtener las velocidades para este ensayo
-                if ensayo - 1 < len(data['velocities']):
-                    vel = data['velocities'][ensayo - 1]
-                    segment_indices = (np.arange(len(vel)) / 100 >= inicio) & (np.arange(len(vel)) / 100 <= fin)
-                    segment_velocities = vel[segment_indices]
-                    if len(segment_velocities) > 0:
-                        max_vel_index = np.argmax(segment_velocities)
-                        max_vel_time = inicio + (max_vel_index / 100)
-                        ax_mov.plot(max_vel_time, ensayo, marker='o', markersize=3, color='black')
-                        # ax_mov.axvline(max_vel_time, color='black', linestyle=':', linewidth=0.5)
+                color_mov = period_colors.get(periodo, 'blue')
+                ax_mov.hlines(y=1, xmin=movement_start, xmax=movement_end, color=color_mov, linewidth=4)
             
-            
-            # Calcular duración media
-            total_durations = [mr['Fin Movimiento (Frame)'] - mr['Inicio Movimiento (Frame)'] for mr in data['movement_ranges']]
-            mean_duration_frames = np.mean(total_durations) if total_durations else 0
-            mean_duration = mean_duration_frames / 100  # Convertir a segundos
-            
-            # Establecer límites
-            ax_mov.set_ylim(mov_min, mov_max)
-            ax_mov.set_xlim(0, max_time)  # Usar max_time fijo para evitar escalamiento
-            
-            ax_mov.set_title(f'Duraciones de Movimiento por Ensayo - {stimulus_key}', fontsize=12)
+            if idx == 0:
+                legend_elements_mov = [
+                    Patch(facecolor='orange', label='Pre-Estímulo'),
+                    Patch(facecolor='red', label='Durante Estímulo'),
+                    Patch(facecolor='gray', label='Post-Estímulo')
+                ]
+                ax_mov.legend(handles=legend_elements_mov, fontsize=8)
+
             ax_mov.set_xlabel('Tiempo (s)')
-            ax_mov.set_ylabel('Ensayo')
-            
-            # Dibujar banda vertical para la duración del estímulo
-            ax_mov.axvspan(start_time, current_time, color='blue', alpha=0.1, label=f'Duración del estímulo: {current_time - start_time:.2f}s')
-            
-            # Añadir líneas de cuadrícula verticales
-            for gs in grid_seconds:
-                ax_mov.axvline(gs, color='lightgray', linestyle='--', linewidth=0.5)
-            
-            # Configurar ticks mayores y menores para el eje X
-            ax_mov.xaxis.set_major_locator(MultipleLocator(0.5))
-            ax_mov.xaxis.set_minor_locator(MultipleLocator(0.1))
-            ax_mov.tick_params(axis='x', which='minor', length=4, color='grey')
-            
-            # Añadir leyenda
-            legend_elements_mov = [
-                Line2D([0], [0], color='orange', lw=2, label='Mov. pre-estímulo'),
-                Line2D([0], [0], color='red', lw=2, label='Mov. durante estímulo'),
-                Line2D([0], [0], color='gray', lw=2, label='Mov. post-estímulo'),
-                mpatches.Patch(facecolor='blue', alpha=0.1, label='Duración del estímulo')
-            ]
-            ax_mov.legend(handles=legend_elements_mov, loc='lower right', fontsize=9)
-        else:
-            ax_mov.axis('off')
-            ax_mov.text(0.5, 0.5, 'No se detectaron movimientos que excedan el umbral.',
-                       horizontalalignment='center', verticalalignment='center', fontsize=10)
+            ax_mov.set_ylabel('Movimiento')
+            ax_mov.set_xlim(0, max_time)
+            ax_mov.set_ylim(0.99, 1.01)
+            ax_mov.axvspan(data['start_frame'] / 100, data['current_frame'] / 100, color='green', alpha=0.1)
+            ax_mov.set_yticks([1])
+            ax_mov.set_yticklabels(['Mov'])
 
-        # -----------------------
-        # 4. Graficar Submovimientos
-        # -----------------------
-        ax_submov = axes[3, idx] if num_stimuli > 1 else axes[3]
-        bell_shaped_functions = []  # Para almacenar las funciones bell-shaped de cada ensayo
+            # 4to gráfico: velocidad filtrada + picos + gaussianas conceptuales
+            # Ahora la velocidad filtrada también será naranja aquí para consistencia
+            ax_submov = axes[3, idx]
+            ax_submov.plot(t_vel, vel_suav, color='orange', alpha=0.8, label='Vel. filtrada (MA 10)')
 
-        for trial_idx, vel in enumerate(data['velocities']):
-            if len(vel) <= 1 or np.isnan(vel).all():
-                logging.warning(f"Trial {trial_idx} tiene datos de velocidad insuficientes o inválidos.")
-                continue
-            frames_vel = np.arange(len(vel))
-            t = frames_vel / 100  # Convertir frames a tiempo en segundos
+            for submovement in submovements:
+                t_segment = submovement['t_segment']
+                v_sm = submovement['v_sm']
 
-            # Obtener movimientos que inician durante el estímulo para este ensayo
-            movements_in_trial = [mr for mr in data['movement_ranges'] if mr['Ensayo'] == trial_idx + 1 and mr['Periodo'] == 'Durante Estímulo']
+                peak_idx = np.argmax(v_sm)
+                peak_time = t_segment[peak_idx]
+                peak_value = v_sm[peak_idx]
 
-            if not movements_in_trial:
-                logging.info(f"No hay movimientos que inician durante el estímulo para el ensayo {trial_idx + 1}")
-                continue
+                # Línea vertical en el pico
+                ax_submov.axvline(x=peak_time, color='green', linestyle=':', label='Pico submovimiento')
 
-            for movement in movements_in_trial:
-                movement_start = movement['Inicio Movimiento (Frame)']
-                movement_end = movement['Fin Movimiento (Frame)']
+                # Gaussiana conceptual
+                seg_duration = t_segment[-1] - t_segment[0]
+                sigma_g = seg_duration / 6.0
+                A_g = peak_value
+                mu_g = peak_time
 
-                # Extraer el segmento de velocidad correspondiente al movimiento
-                segment_indices = np.arange(movement_start, movement_end + 1)
-                # Asegurarse de que los índices estén dentro del rango de vel
-                segment_indices = segment_indices[(segment_indices >= 0) & (segment_indices < len(vel))]
+                gauss_fit = A_g * np.exp(-((t_segment - mu_g)**2) / (2 * sigma_g**2))
+                ax_submov.plot(t_segment, gauss_fit, linestyle='--', color='red', alpha=0.8, label='Gauss (conceptual)')
 
-                t_segment = segment_indices / 100  # Convertir a tiempo en segundos
-                vel_segment = vel[segment_indices]
+            ax_submov.axhline(data['threshold'], color='k', linestyle='--', label=f'Umbral')
+            ax_submov.axhline(data['mean_vel_pre'], color='lightcoral', linestyle='-', linewidth=1, label=f'Media pre-estímulo')
+            ax_submov.axvspan(data['start_frame'] / 100, data['current_frame'] / 100, color='green', alpha=0.1)
+            ax_submov.set_xlabel('Tiempo (s)')
+            ax_submov.set_ylabel('Velocidad (px/s)')
+            ax_submov.set_xlim(0, max_time)
+            ax_submov.set_ylim(0, max_vel + 5)
+            if idx == 0:
+                ax_submov.legend(fontsize=8)
 
-                if len(vel_segment) <= 1 or np.isnan(vel_segment).all():
-                    logging.warning(f"Movimiento en el ensayo {trial_idx + 1} tiene datos de velocidad insuficientes o inválidos.")
-                    continue
+            # 5to gráfico: estímulo (sin cambios)
+            ax_stim = axes[4, idx]
+            x_vals = [data['start_frame'] / 100]
+            y_vals = [0]
+            current_time_stimulus = data['start_frame'] / 100
+            for amp, dur in zip(data['amplitude_list'], data['duration_list']):
+                next_time = current_time_stimulus + dur / 100
+                x_vals.extend([current_time_stimulus, next_time])
+                y_vals.extend([amp / 1000, amp / 1000])
+                current_time_stimulus = next_time
 
-                # Ajustar el perfil de velocidad al modelo de mínimo jerk
-                n_submovements = 1  # Analizando movimientos individuales que inician durante el estímulo
+            ax_stim.step(x_vals, y_vals, color='purple', where='pre', linewidth=1, label='Estímulo')
+            ax_stim.set_xlabel('Tiempo (s)')
+            ax_stim.set_ylabel('Amplitud (μA)')
+            ax_stim.set_xlim(0, max_time)
+            ax_stim.set_ylim(min_amp - 20, max_amp + 20)
+            ax_stim.axhline(0, color='black', linestyle='-', linewidth=0.5)
+            ax_stim.axvspan(data['start_frame'] / 100, data['current_frame'] / 100, color='green', alpha=0.1)
+            if idx == 0:
+                ax_stim.legend(fontsize=8)
 
-                result = fit_velocity_profile(t_segment, vel_segment, n_submovements)
-                if result is None:
-                    logging.warning(f"Omitiendo movimiento en el ensayo {trial_idx + 1} debido a datos insuficientes para el ajuste.")
-                    continue
+        plt.tight_layout()
+        main_title = f'{stimulus_key} - {body_part} - Día {dia_experimental} (Grupo {fig_index+1} de {num_figures})'
+        fig.suptitle(main_title, fontsize=16, y=1.02)
+        plt.subplots_adjust(top=0.95)
 
-                fitted_params = result.x
-                # Extraer parámetros del submovimiento
-                A = fitted_params[0]
-                t0 = fitted_params[1]
-                T = fitted_params[2]
-                submovement = {'A': A, 't0': t0, 'T': T}
-
-                # Generar la función bell-shaped usando la velocidad de mínimo jerk
-                v_sm = minimum_jerk_velocity(t_segment, A, t0, T)
-
-                # Almacenar la función bell-shaped
-                bell_shaped_functions.append({'t': t_segment, 'v': v_sm})
-
-                # Graficar la función bell-shaped
-                ax_submov.plot(t_segment, v_sm, linestyle='-', linewidth=1, color='red', alpha=0.5)
-
-        # Después de procesar todos los ensayos, calcular la función bell-shaped promedio
-        if bell_shaped_functions:
-            # Re-samplear todas las funciones bell-shaped en un vector de tiempo común
-            # Primero, encontrar el rango de tiempo común
-            t_min = min(bf['t'][0] for bf in bell_shaped_functions)
-            t_max = max(bf['t'][-1] for bf in bell_shaped_functions)
-            t_common = np.linspace(t_min, t_max, 500)  # 500 puntos
-
-            # Interpolar cada función bell-shaped en t_common
-            v_interp_list = []
-            for bf in bell_shaped_functions:
-                v_interp = np.interp(t_common, bf['t'], bf['v'])
-                v_interp_list.append(v_interp)
-
-            # Calcular el promedio
-            v_mean = np.mean(v_interp_list, axis=0)
-
-            # Graficar la función bell-shaped promedio
-            ax_submov.plot(t_common, v_mean, linestyle='-', linewidth=2, color='blue', alpha=1, label='Promedio')
-
-        # Resaltar el periodo de estimulación
-        ax_submov.axvspan(start_time, current_time, color='blue', alpha=0.1)
-
-        ax_submov.set_title(f'Submovimientos - {stimulus_key}', fontsize=12)
-        ax_submov.set_xlabel('Tiempo (s)')
-        ax_submov.set_ylabel('Velocidad (pixeles/s)')
-        ax_submov.set_xlim(0, max_time)
-        ax_submov.set_ylim(vel_min, vel_max)
-
-        # Configurar ticks para el eje X
-        ax_submov.xaxis.set_major_locator(MultipleLocator(0.5))
-        ax_submov.xaxis.set_minor_locator(MultipleLocator(0.1))
-        ax_submov.tick_params(axis='x', which='minor', length=4, color='grey')
-        ax_submov.legend(loc='upper right')
-
-        # -----------------------
-        # 5. Graficar Estímulo
-        # -----------------------
-        ax_stim = axes[4, idx] if num_stimuli > 1 else axes[4]
-        x_vals = [start_time]
-        y_vals = [0]
-        current_time_stimulus = start_time
-        for amp, dur in zip(data['amplitude_list'], data['duration_list']):
-            next_time = current_time_stimulus + dur / 100  # Convertir duración a segundos
-            x_vals.extend([current_time_stimulus, next_time])
-            y_vals.extend([amp / 1000, amp / 1000])  # Convertir a μA
-            current_time_stimulus = next_time
-
-        # Graficar el estímulo sin cortar
-        ax_stim.step(x_vals, y_vals, color='purple', where='pre', linewidth=1,
-                     label=f'Amplitud(es): {data["amplitud_real"]} μA')
-        
-        # Establecer límites
-        ax_stim.set_ylim(amp_min - 20, amp_max + 20)
-        ax_stim.set_xlim(0, max_time)  # Usar max_time fijo para evitar escalamiento
-        
-        # Añadir líneas punteadas en los valores máximos y mínimos de amplitud
-        ax_stim.axhline(amp_min, color='darkblue', linestyle=':', linewidth=1)
-        ax_stim.axhline(amp_max, color='darkblue', linestyle=':', linewidth=1)
-        
-        # Establecer ticks fijos en el eje Y
-        ax_stim.set_yticks([amp_min, 0, amp_max])
-        
-        # Cambiar el color de las etiquetas de los ticks en max_amp y min_amp
-        yticks = ax_stim.get_yticks()
-        yticklabels = ax_stim.get_yticklabels()
-        for tick, label in zip(yticks, yticklabels):
-            if tick == amp_min or tick == amp_max:
-                label.set_color('darkblue')
-        
-        ax_stim.set_xlabel('Tiempo (s)')
-        ax_stim.set_ylabel('Amplitud (μA)')
-        
-        ax_stim.axhline(0, color='black', linestyle='-', linewidth=0.5)
-        ax_stim.axvspan(start_time, current_time, color='blue', alpha=0.3)
-        
-        # Añadir líneas de cuadrícula verticales
-        for gs in grid_seconds:
-            ax_stim.axvline(gs, color='lightgray', linestyle='--', linewidth=0.5)
-        
-        # Configurar ticks mayores y menores para el eje X
-        ax_stim.xaxis.set_major_locator(MultipleLocator(0.5))
-        ax_stim.xaxis.set_minor_locator(MultipleLocator(0.1))
-        ax_stim.tick_params(axis='x', which='minor', length=4, color='grey')
-        
-        # Añadir texto de parámetros del estímulo
-        estimulo_params_text = f"Forma: {data['form']}\nDuración: {data['duration_ms']} ms\nFrecuencia: {data['frequency']} Hz"
-        ax_stim.text(0.95, 0.95, estimulo_params_text, transform=ax_stim.transAxes, fontsize=8,
-                    verticalalignment='top', horizontalalignment='right',
-                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
-        
-        # Mostrar leyenda
-        ax_stim.legend(loc='lower right', fontsize=9)
-    
-    # Título principal
-    main_title = f'{group_name} - {body_part} - Día {dia_experimental}'
-    fig.suptitle(main_title, fontsize=18)
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Ajustar para el título superior
-    
-    # Guardar y cerrar la figura
-    try:
-        plt.savefig(output_png_path)
-        logging.info(f"Gráfico guardado en: {output_png_path}")
-        print(f"Gráfico guardado en: {output_png_path}")
-    except Exception as e:
-        logging.error(f"Error al guardar el gráfico en {output_png_path}: {e}")
-        print(f"Error al guardar el gráfico en {output_png_path}: {e}")
-    finally:
+        output_path = os.path.join(base_output_dir, f'trials_side_by_side_group_{fig_index+1}.png')
+        plt.savefig(output_path)
         plt.close()
+        logging.info(f"Gráfico guardado en {output_path}")
+        print(f"Gráfico guardado en {output_path}")
 
-        
-# Función modificada para recolectar datos de velocidad y umbrales
+
+
+# Después de cargar stimuli_info
+print("Convirtiendo 'Distancia Intracortical' a punto decimal...")
+stimuli_info['Distancia Intracortical'] = stimuli_info['Distancia Intracortical'].astype(str).str.replace(',', '.')
+stimuli_info['Distancia Intracortical'] = pd.to_numeric(stimuli_info['Distancia Intracortical'], errors='coerce')
+print("Conversión de Distancia Intracortical completada.")
+
+# Ahora agrupamos por múltiples columnas, incluyendo las coordenadas y la distancia intracortical
+grouped_data = stimuli_info.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical'])
+
+# Modificar la función collect_velocity_threshold_data para llamar a la nueva función
 def collect_velocity_threshold_data():
     logging.info("Iniciando la recopilación de datos de umbral de velocidad.")
     print("Iniciando la recopilación de datos de umbral de velocidad.")
     
     total_trials = 0
-    all_movement_data = []  # Para recolectar datos de movimiento a través de los ensayos
-    thresholds_data = []  # Para almacenar los umbrales para cada articulación
-    processed_combinations = set()  # Para verificar las combinaciones procesadas
-    movement_ranges_all = []  # Para almacenar todos los movement_ranges
+    all_movement_data = []
+    thresholds_data = []
+    processed_combinations = set()
+    movement_ranges_all = []
 
-    grouped_by_day = stimuli_info.groupby('Dia experimental')
+    # Iterar por día, coordenadas y distancia intracortical
+    for (dia_experimental, coord_x, coord_y, dist_ic), day_df in grouped_data:
+        print(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
+        logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
+        print(f'Número de ensayos en este grupo: {len(day_df)}')
+        logging.info(f'Número de ensayos en este grupo: {len(day_df)}')
 
-    for dia_experimental, day_df in grouped_by_day:
-        print(f'Procesando Día Experimental: {dia_experimental}')
-        logging.info(f'Procesando Día Experimental: {dia_experimental}')
-        print(f'Número de ensayos en day_df: {len(day_df)}')
-        logging.info(f'Número de ensayos en day_df: {len(day_df)}')
-
-        # Normalizar 'Forma del Pulso' en day_df
+        # Normalizar 'Forma del Pulso'
         day_df['Forma del Pulso'] = day_df['Forma del Pulso'].str.lower()
 
         # Restablecer el índice para obtener el orden de los estímulos
         day_df = day_df.reset_index(drop=True)
-        day_df['Order'] = day_df.index + 1  # El primer estímulo tendrá Order = 1
+        day_df['Order'] = day_df.index + 1
 
         for part in body_parts:
-            # Añadir registro de depuración para verificar las combinaciones
-            logging.info(f'Procesando: Día {dia_experimental}, Articulación {part}')
-            print(f'Procesando: Día {dia_experimental}, Articulación {part}')
-            processed_combinations.add((dia_experimental, 'All_Stimuli', part))  # 'All_Stimuli' indica que no hay grupos específicos
+            logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}, Articulación {part}')
+            print(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}, Articulación {part}')
+            processed_combinations.add((dia_experimental, coord_x, coord_y, dist_ic, 'All_Stimuli', part))
 
-            # Inicializar diccionarios para acumular datos de todos los estímulos
-            all_stimuli_data = {}  # Clave: stimulus_key, Valor: datos para graficar
-
-            # Velocidades pre-estímulo para la articulación específica en todos los ensayos del día
+            all_stimuli_data = {}
             pre_stim_velocities = []
 
-            # Iterar sobre todos los ensayos del día para el cálculo del umbral
+            # Cálculo de umbral
             for index, row in day_df.iterrows():
                 camara_lateral = row['Camara Lateral']
-
                 if pd.notna(camara_lateral):
                     matching_segment = segmented_info[segmented_info['CarpetaPertenece'].str.contains(camara_lateral, na=False)]
                     if not matching_segment.empty:
                         matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
-
-                        # Extraer datos de velocidad pre-estímulo para la articulación
                         for _, segment_row in matching_segment_sorted.iterrows():
                             nombre_segmento = segment_row['NombreArchivo'].replace('.mp4', '').replace('lateral_', '')
                             csv_path = encontrar_csv(camara_lateral, nombre_segmento)
                             if csv_path:
                                 velocidades, posiciones = calcular_velocidades(csv_path)
-
                                 vel = velocidades.get(part, [])
                                 if len(vel) > 0:
-                                    vel_pre_stim = vel[:100]  # Primeros 100 frames para pre-estímulo
-                                    vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]  # Eliminar NaN
+                                    vel_pre_stim = vel[:100]
+                                    vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
                                     pre_stim_velocities.extend(vel_pre_stim)
 
-            # Calcular el umbral basado en las velocidades pre-estímulo de todos los estímulos
             vel_list = pre_stim_velocities
-
             if len(vel_list) < 10:
-                logging.warning(f'Datos insuficientes para calcular el umbral para {part} en el día {dia_experimental}')
-                print(f'Datos insuficientes para calcular el umbral para {part} en el día {dia_experimental}')
+                logging.warning(f'Datos insuficientes para calcular el umbral para {part} en Dia={dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
+                print(f'Datos insuficientes para calcular el umbral para {part} en Dia={dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
                 continue
 
-            # Manejo de outliers: eliminar valores que excedan 3 desviaciones estándar
             mean_vel_pre = np.nanmean(vel_list)
             std_vel_pre = np.nanstd(vel_list)
-            vel_list_filtered = [v for v in vel_list if (mean_vel_pre - 3 * std_vel_pre) <= v <= (mean_vel_pre + 3 * std_vel_pre)]
+            vel_list_filtered = [v for v in vel_list if (mean_vel_pre - 3*std_vel_pre) <= v <= (mean_vel_pre + 3*std_vel_pre)]
 
             if len(vel_list_filtered) < 10:
-                logging.warning(f'Datos insuficientes después de eliminar outliers para {part} en el día {dia_experimental}')
-                print(f'Datos insuficientes después de eliminar outliers para {part} en el día {dia_experimental}')
+                logging.warning(f'Datos insuficientes tras filtrar outliers para {part} en Dia={dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
+                print(f'Datos insuficientes tras filtrar outliers para {part} en Dia={dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
                 continue
 
-            # Recalcular la media y desviación estándar sin outliers
             mean_vel_pre = np.nanmean(vel_list_filtered)
             std_vel_pre = np.nanstd(vel_list_filtered)
-            threshold = mean_vel_pre + 2 * std_vel_pre  # Umbral es media + 2*desviación estándar
+            threshold = mean_vel_pre + 2*std_vel_pre
 
-            # Registrar los cálculos de umbral para verificación
-            logging.info(f'Umbral calculado para {part} en el día {dia_experimental}: Media={mean_vel_pre:.4f}, Desviación Estándar={std_vel_pre:.4f}, Umbral={threshold:.4f}')
-            print(f'Umbral calculado para {part} en el día {dia_experimental}: Media={mean_vel_pre:.4f}, Desviación Estándar={std_vel_pre:.4f}, Umbral={threshold:.4f}')
+            logging.info(f'Umbral para {part} en Dia={dia_experimental},X={coord_x},Y={coord_y},Dist={dist_ic}: Media={mean_vel_pre:.4f}, STD={std_vel_pre:.4f}, Umbral={threshold:.4f}')
+            print(f'Umbral para {part} en Dia={dia_experimental},X={coord_x},Y={coord_y},Dist={dist_ic}: Media={mean_vel_pre:.4f}, STD={std_vel_pre:.4f}, Umbral={threshold:.4f}')
 
-            # Almacenar datos de umbrales
             thresholds_data.append({
                 'body_part': part,
                 'Dia experimental': dia_experimental,
+                'Coordenada_x': coord_x,
+                'Coordenada_y': coord_y,
+                'Distancia Intracortical': dist_ic,
                 'threshold': threshold,
                 'mean_pre_stim': mean_vel_pre,
                 'std_pre_stim': std_vel_pre,
                 'num_pre_stim_values': len(vel_list_filtered)
             })
 
-            # Ahora, procesar cada estímulo individualmente utilizando el umbral calculado
             unique_stimuli = day_df.drop_duplicates(
                 subset=['Forma del Pulso', 'Duración (ms)'],
                 keep='first'
@@ -1019,23 +846,16 @@ def collect_velocity_threshold_data():
             for _, stim in unique_stimuli.iterrows():
                 forma_pulso = stim['Forma del Pulso'].lower()
                 duracion_ms = stim.get('Duración (ms)', None)
-                order = stim['Order']  # Obtener el número de orden del estímulo
+                order = stim['Order']
 
                 if duracion_ms is not None:
-                    stim_df = day_df[
-                        (day_df['Forma del Pulso'].str.lower() == forma_pulso) &
-                        (day_df['Duración (ms)'] == duracion_ms)
-                    ]
+                    stim_df = day_df[(day_df['Forma del Pulso'].str.lower() == forma_pulso) & (day_df['Duración (ms)'] == duracion_ms)]
                 else:
-                    stim_df = day_df[
-                        (day_df['Forma del Pulso'].str.lower() == forma_pulso)
-                    ]
+                    stim_df = day_df[(day_df['Forma del Pulso'].str.lower() == forma_pulso)]
 
                 if stim_df.empty:
-                    logging.debug(f"No hay datos para el estímulo: {forma_pulso}, Duración: {duracion_ms}ms")
-                    continue  # No hay datos para este estímulo
+                    continue
 
-                # Analizar las amplitudes disponibles para este estímulo
                 amplitudes = stim_df['Amplitud (microA)'].unique()
                 amplitude_movement_counts = {}
 
@@ -1192,6 +1012,8 @@ def collect_velocity_threshold_data():
                 trial_counter = 0
                 movement_ranges = []  # Para almacenar los rangos de movimiento
 
+                trials_data = []  # Lista para almacenar datos por ensayo
+
                 for index, row in selected_trials.iterrows():
                     camara_lateral = row['Camara Lateral']
                     duracion_ms = row['Duración (ms)']
@@ -1259,6 +1081,9 @@ def collect_velocity_threshold_data():
                                             # Encontrar segmentos continuos donde la velocidad excede el umbral
                                             if len(indices_above) > 0:
                                                 segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
+                                                submovements = []
+                                                # n_submovements = 1  # Ajustamos un submovimiento por movimiento
+
                                                 for segment in segments:
                                                     movement_start = segment[0]
                                                     movement_end = segment[-1]
@@ -1304,6 +1129,118 @@ def collect_velocity_threshold_data():
                                                         movement_ranges.append(movement_data)
                                                         movement_ranges_all.append(movement_data)
 
+                                                    # Ajuste de submovimientos
+                                                    t_segment = frames_vel[movement_start:movement_end+1] / 100
+                                                    vel_segment = vel[movement_start:movement_end+1]
+
+                                                    # Detectar picos en vel_segment para determinar n_submovements
+                                                    ...
+                                                    # Dentro del for donde estamos analizando cada trial:
+
+                                                    # Donde antes estaba esta línea:
+                                                    # peak_indices, _ = find_peaks(vel_segment, height=threshold*0.5)
+
+                                                    # Ahora hacemos el cálculo de picos usando la derivada y cambio de signo:
+                                                    dvel = np.diff(vel_segment)
+                                                    # Un pico ocurre cuando dvel pasa de positivo a negativo,
+                                                    # es decir, sign(dvel[i]) > 0 y sign(dvel[i+1]) < 0
+                                                    # Para simplificar buscamos índices i donde dvel[i] > 0 y dvel[i+1] < 0
+                                                    candidate_peaks = []
+                                                    for i in range(len(dvel)-1):
+                                                        if dvel[i] > 0 and dvel[i+1] < 0:
+                                                            candidate_peaks.append(i+1)  # i+1 por el shift de derivada
+
+                                                    # Filtrar candidatos: deben superar threshold*0.5 en velocidad
+                                                    candidate_peaks = [pk for pk in candidate_peaks if vel_segment[pk] > threshold*0.5]
+
+                                                    valid_peaks = []
+                                                    for pk in candidate_peaks:
+                                                        # Chequear al menos 5 frames por encima del umbral
+                                                        start_pk = pk
+                                                        while start_pk > 0 and vel_segment[start_pk] > threshold:
+                                                            start_pk -= 1
+                                                        end_pk = pk
+                                                        while end_pk < len(vel_segment)-1 and vel_segment[end_pk] > threshold:
+                                                            end_pk += 1
+                                                        if (end_pk - start_pk) >= 5:  # mínimo 5 frames = 50 ms
+                                                            valid_peaks.append(pk)
+
+                                                    if len(valid_peaks) == 0:
+                                                        n_submovements = 1
+                                                    else:
+                                                        n_submovements = len(valid_peaks)
+
+                                                    # El resto del código dentro de este bloque permanece igual,
+                                                    # solo hemos reemplazado la lógica de detección de picos.
+                                                    # Por ejemplo:
+                                                    result = fit_velocity_profile(t_segment, vel_segment, n_submovements)
+                                                    if result is None:
+                                                        logging.warning(f"Omitiendo movimiento en el ensayo {trial_counter + 1} debido a datos insuficientes para el ajuste.")
+                                                        continue
+
+                                                    fitted_params = result.x
+
+                                                    # Y el resto sigue igual como en su código original.
+                                                    ...
+
+
+
+                                                    # Aquí calculas las métricas para cada submovimiento
+                                                    submovements = []
+                                                    for i_sub in range(n_submovements):
+                                                        A_i = fitted_params[3*i_sub]
+                                                        t0_i = fitted_params[3*i_sub + 1]
+                                                        T_i = fitted_params[3*i_sub + 2]
+
+                                                        # Calcular métricas clave del submovimiento
+                                                        subm_latency_onset = t0_i - (start_frame / 100)
+                                                        subm_duration = T_i
+                                                        subm_peak_time = t0_i + 0.4 * T_i  # el pico en mínimo jerk suele estar aprox. al 40% de la duración
+                                                        subm_latency_peak = subm_peak_time - (start_frame / 100)
+                                                        subm_peak_value = A_i * 1.728  # pico teórico del perfil mínimo jerk normalizado ~1.728*A
+
+                                                        # Obtener el perfil del submovimiento
+                                                        v_sm = minimum_jerk_velocity(t_segment, A_i, t0_i, T_i)
+                                                        # Ajustar Gaussiana
+                                                        gauss_params = fit_gaussian(t_segment, v_sm)
+
+                                                        # Guardar información del submovimiento
+                                                        submovements.append({
+                                                            'A': A_i,
+                                                            't0': t0_i,
+                                                            'T': T_i,
+                                                            'latencia_inicio': subm_latency_onset,
+                                                            'latencia_pico': subm_latency_peak,
+                                                            'duracion': subm_duration,
+                                                            'valor_pico': subm_peak_value,
+                                                            'gaussian_params': gauss_params,
+                                                            't_segment': t_segment,
+                                                            'v_sm': v_sm,
+                                                            'movement': movement_data
+                                                        })
+
+                                                    # Guardar submovements en trial_data
+                                                    trial_data = {
+                                                        'velocity': vel,
+                                                        'positions': pos,
+                                                        'trial_index': trial_counter,
+                                                        'movement_ranges': [md for md in movement_ranges if md['Ensayo'] == trial_counter + 1],
+                                                        'submovements': submovements
+                                                    }
+                                                    trials_data.append(trial_data)
+
+
+                                            else:
+                                                # Si no hay movimientos que excedan el umbral, almacenar el ensayo sin submovimientos
+                                                trial_data = {
+                                                    'velocity': vel,
+                                                    'positions': pos,
+                                                    'trial_index': trial_counter,
+                                                    'movement_ranges': [],
+                                                    'submovements': []
+                                                }
+                                                trials_data.append(trial_data)
+
                                             trial_counter += 1  # Incrementar el contador de ensayos
 
                 if len(group_velocities) == 0:
@@ -1341,7 +1278,8 @@ def collect_velocity_threshold_data():
                     'movement_trials': movement_trials_in_selected,
                     'total_trials': total_trials_filtered,  # Usar total de ensayos después de excluir
                     'trials_passed': trials_passed,
-                    'Order': order  # Añadir el número de orden
+                    'Order': order,  # Añadir el número de orden
+                    'trials_data': trials_data  # Almacenar datos por ensayo
                 }
 
             if len(all_stimuli_data) == 0:
@@ -1360,13 +1298,28 @@ def collect_velocity_threshold_data():
             logging.info(f"Guardando gráfico consolidado en: {output_png_path}")
             print(f"Guardando gráfico consolidado en: {output_png_path}")
 
-            plot_all_stimuli_graphs(
-                all_stimuli_data,
-                group_name='All_Stimuli',
-                body_part=part,
-                dia_experimental=dia_experimental,
-                output_png_path=output_png_path
-            )
+            # Aquí puedes mantener o comentar la llamada a plot_all_stimuli_graphs si no es necesaria
+            # plot_all_stimuli_graphs(
+            #     all_stimuli_data,
+            #     group_name='All_Stimuli',
+            #     body_part=part,
+            #     dia_experimental=dia_experimental,
+            #     output_png_path=output_png_path
+            # )
+
+            # --- Llamar a la función para graficar por ensayo ---
+            output_dir = output_comparisons_dir  # Directorio base de salida
+            for stimulus_key, data in all_stimuli_data.items():
+                plot_trials_side_by_side(
+                    stimulus_key=stimulus_key,
+                    data=data,
+                    body_part=part,
+                    dia_experimental=dia_experimental,
+                    output_dir=output_dir,
+                    coord_x=coord_x,       # <-- Añadir esta línea
+                    coord_y=coord_y,       # <-- Añadir esta línea
+                    dist_ic=dist_ic        # <-- Añadir esta línea
+                )
 
     # Crear un DataFrame a partir de los datos de movimiento recolectados
     counts_df = pd.DataFrame(all_movement_data)
@@ -1402,6 +1355,7 @@ def collect_velocity_threshold_data():
     logging.info("Finalizada la recopilación de datos de umbral de velocidad.")
     print("Finalizada la recopilación de datos de umbral de velocidad.")
     return counts_df
+
 
 # Función modificada para generar gráficos comparativos por día
 # Función para simplificar los gráficos de resumen
@@ -1850,6 +1804,9 @@ def plot_effectiveness_over_time(counts_df):
         plt.close()
 
 
+# Las demás funciones (analyze_best_bodyparts_and_stimuli, plot_heatmap, plot_effectiveness_over_time, plot_summary_movement_data) permanecen sin cambios
+
+# Ejecutar el bloque principal del script
 if __name__ == "__main__":
     logging.info("Ejecutando el bloque principal del script.")
     print("Ejecutando el bloque principal del script.")
