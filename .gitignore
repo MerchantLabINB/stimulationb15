@@ -1,1 +1,80 @@
+# Ignorar archivos y carpetas generadas automáticamente o grandes
+# No queremos subir archivos de datos o salidas de procesamiento
+
+# Ignorar archivos de configuración específicos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos temporales de editores y del sistema operativo
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Ignorar carpetas específicas del entorno de desarrollo
+.vscode/
+.idea/
+__pycache__/
+
+# Ignorar entornos virtuales de Python
+venv/
+.env/
+
+# Ignorar archivos binarios o de compilación
+*.pyc
+*.pyo
+*.exe
+*.dll
+*.out
+
+# Ignorar grandes archivos de datos que no deberían estar en el repositorio
 data/
+media/
+*.mp4
+*.avi
+*.mov
+*.png
+*.jpg
+*.jpeg
+
+# Ignorar salidas del procesamiento de video o imágenes
+processed/
+results/
+*.zip
+
+# Archivos generados por jupyter notebooks
+.ipynb_checkpoints/
+
+# Archivos de caché y temporales generados por PyTest o procesos de prueba
+.cache/
+coverage/
+*.log
+
+# Archivos generados por herramientas como ffmpeg
+*.log
+*.ts
+*.webm
+
+# Ignorar archivos grandes que no deben subirse (opcionalmente, puedes manejar grandes archivos con Git LFS si lo deseas)
+*.mp4
+*.mkv
+*.mov
+
+# Para asegurarte de que archivos importantes de configuración y código no sean ignorados
+!*.py
+!README.md
+
+# Ignorar archivos de datos grandes y generados por DLC
+*.h5
+*.pickle
+*.csv
+*.json
+
+# Ignorar carpetas de modelos y resultados que pueden ser reproducidos
+models/
+dlc-models/
+logs/
+videos/
+
+# Ignorar completamente la carpeta DeepLabCut y su contenido
+DeepLabCut/
