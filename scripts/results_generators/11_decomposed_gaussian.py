@@ -18,7 +18,6 @@ import re
 import shutil
 import glob  # Importar el módulo glob
 
-from sklearn.mixture import BayesianGaussianMixture
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.signal import butter, filtfilt
 
@@ -206,77 +205,10 @@ def detectar_submovimientos_en_segmento(vel_segment, threshold):
     return valid_peaks
 
 
-'''
-
-def detectar_picos_submovimiento(vel_suav_segment, threshold):
-    """
-    Detecta picos locales en un segmento de velocidad suavizada usando la derivada.
-    Debe superar el threshold y tener al menos 5 frames por encima del umbral para considerarse submovimiento.
-    """
-    # Derivada
-    dvel = np.diff(vel_suav_segment)
-    
-    # Signo de la derivada
-    sign_dvel = np.sign(dvel)
-    # Donde ocurre cambio de signo de + a -
-    # Esto indica un pico local
-    cambios_signo = np.where(np.diff(sign_dvel) < 0)[0]
-    candidate_peaks = cambios_signo + 1  # Ajustar índice
-    
-    # Filtrar picos que estén por encima del threshold
-    candidate_peaks = candidate_peaks[vel_suav_segment[candidate_peaks] > threshold]
-    
-    valid_peaks = []
-    for peak_idx in candidate_peaks:
-        # Buscar duración mínima del submovimiento
-        # Expandirse hacia atrás y adelante mientras vel_suav_segment > threshold
-        start_idx = peak_idx
-        while start_idx > 0 and vel_suav_segment[start_idx] > threshold:
-            start_idx -= 1
-        end_idx = peak_idx
-        while end_idx < len(vel_suav_segment)-1 and vel_suav_segment[end_idx] > threshold:
-            end_idx += 1
-        
-        segment_length = end_idx - start_idx
-        # Mínimo 5 frames = 50 ms
-        if segment_length >= 5:
-            valid_peaks.append(peak_idx)
-    
-    return valid_peaks
-'''
-
-
 body_parts = list(body_parts_specific_colors.keys())
 def gaussian(x, A, mu, sigma):
     return A * np.exp(-((x - mu)**2) / (2 * sigma**2))
 
-
-"""
-def fit_gaussian(t_data, v_data):
-    # Estimaciones iniciales
-    A_init = np.max(v_data) if len(v_data) > 0 else 0.1
-    mu_init = t_data[np.argmax(v_data)] if len(t_data) > 0 else 0.0
-    sigma_init = (t_data[-1] - t_data[0]) / 4.0 if len(t_data) > 1 else 0.01
-
-    # Límites razonables
-    lower_bounds = [0, t_data[0], 0.0001]
-    upper_bounds = [np.inf, t_data[-1], (t_data[-1] - t_data[0])]
-
-    try:
-        popt, pcov = curve_fit(gaussian, t_data, v_data, p0=[A_init, mu_init, sigma_init], bounds=(lower_bounds, upper_bounds))
-        return {
-            'A_gauss': popt[0],
-            'mu_gauss': popt[1],
-            'sigma_gauss': popt[2]
-        }
-    except Exception as e:
-        logging.warning(f'No se pudo ajustar Gaussiana al submovimiento: {e}')
-        return {
-            'A_gauss': np.nan,
-            'mu_gauss': np.nan,
-            'sigma_gauss': np.nan
-        }
-"""  
 def fit_gaussian_submovement(t_segment, v_segment, threshold):
     """
     Ajusta la Gaussiana:
@@ -430,22 +362,6 @@ def encontrar_csv(camara_lateral, nombre_segmento):
     except Exception as e:
         logging.error(f'Error al acceder a los archivos CSV: {e}')
         return None
-
-# Cambiar el suavizado de velocidad a ventana de 10 frames
-# Nueva función para aplicar LOESS:
-def aplicar_loess(y, frac=0.1):
-    """
-    Aplica LOESS (Locally Weighted Scatterplot Smoothing) a la señal y.
-    frac es la fracción del total de puntos usados en el vecindario local.
-    """
-    if len(y) < 5:
-        # Demasiado corto para LOESS
-        return y
-    x = np.arange(len(y))
-    # Aplicar lowess
-    # lowess devuelve un array Nx2 con las columnas: [x, y_suavizada]
-    loess_result = lowess(y, x, frac=frac, return_sorted=False)
-    return loess_result
 
 def aplicar_moving_average(data, window_size=10):
     """
@@ -668,9 +584,8 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
         't_segment': array,
         'v_sm': array (opcional, p.ej. min. jerk),
         ...
-      }
+      }    
     """
-
     trials_data = data.get('trials_data', [])
     if not trials_data:
         logging.warning(
@@ -683,12 +598,13 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
     num_figures = (len(trials_data) // max_per_figure) + (1 if len(trials_data) % max_per_figure != 0 else 0)
 
     fs = 100.0  # asumiendo 100 fps
+
     for fig_index in range(num_figures):
         start_idx = fig_index * max_per_figure
         end_idx   = min(start_idx + max_per_figure, len(trials_data))
         subset    = trials_data[start_idx:end_idx]
 
-        # Hallar tiempo máximo y velocidad máxima para escalas globales
+        # Hallar tiempo máximo y velocidad máxima para escalas
         max_time = 0
         max_vel  = 0
         for td in subset:
@@ -700,9 +616,8 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
         fig_height = 25
         fig_width  = len(subset) * 5
 
-        # 5 filas con proporciones
+        # 5 filas
         height_ratios = [2, 2, 0.5, 2, 2]
-
         fig, axes = plt.subplots(
             5, len(subset),
             figsize=(fig_width, fig_height),
@@ -710,7 +625,6 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             gridspec_kw={'height_ratios': height_ratios}
         )
         if len(subset) == 1:
-            # Asegurar que 'axes' siempre sea indexable [fila, col]
             axes = axes.reshape(5, 1)
 
         for idx_col, trial in enumerate(subset):
@@ -741,7 +655,7 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             stim_start_s = start_frame / fs
             stim_end_s   = current_frame / fs
 
-            # ---------------- Panel 1: Desplazamiento --------------
+            # -------------- Panel 1: Desplazamiento ---------------
             if len(pos['x']) == len(pos['y']) and len(pos['x']) > 0:
                 displacement = np.sqrt((pos['x'] - pos['x'][0])**2 + (pos['y'] - pos['y'][0])**2)
                 t_disp = np.arange(len(displacement)) / fs
@@ -752,15 +666,12 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             ax_disp.set_title(f"Ensayo {trial.get('trial_index', 0) + 1}")
             ax_disp.set_xlabel('Tiempo (s)')
             ax_disp.set_xlim(0, max_time)
-
-            # Sombra del estímulo
             ax_disp.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # ---------------- Panel 2: Vel. Final vs. Umbral -------------
+            # -------------- Panel 2: Vel. Final vs Umbral ----------
             ax_vel.plot(t_vel, vel, color='blue', alpha=0.8, label='Vel. Final')
             ax_vel.axhline(threshold, color='k', ls='--', label=f'Umbral={threshold:.2f}')
             ax_vel.axhline(mean_vel_pre, color='lightcoral', ls='-', label=f'MeanPre={mean_vel_pre:.2f}')
-            # Banda ±1 std
             ax_vel.fill_between(
                 t_vel,
                 mean_vel_pre - std_vel_pre,
@@ -774,11 +685,9 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             ax_vel.set_ylim(0, max_vel + 5)
             if idx_col == 0:
                 ax_vel.legend(fontsize=7)
-
-            # Sombra del estímulo
             ax_vel.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # ---------------- Panel 3: Rango Movimientos sobre Umbral -----
+            # -------------- Panel 3: Rango Movimientos sobre Umbral ----
             ax_mov.set_xlabel('Tiempo (s)')
             ax_mov.set_ylabel('Mov.')
             ax_mov.set_xlim(0, max_time)
@@ -805,8 +714,8 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
                     linewidth=4
                 )
 
-            # ---------------- Panel 4: Vel. + Gaussianas --------------
-            ax_submov.plot(t_vel, vel, color='darkorange', label='Vel.')
+            # -------------- Panel 4: Vel. + Gaussianas ---------------
+            ax_submov.plot(t_vel, vel, color='darkorange', label='Vel. (px/s)')
             ax_submov.axhline(threshold, color='k', ls='--')
             ax_submov.set_xlabel('Tiempo (s)')
             ax_submov.set_ylabel('Vel. (px/s)')
@@ -814,9 +723,10 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             ax_submov.set_ylim(0, max_vel + 5)
             ax_submov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            gauss_in_stim = 0
+            valid_gauss_count = 0  # <-- Contador de Gaussianas que sí se muestran
+
             for i, subm in enumerate(submovements):
-                # Opcional: si guardamos una curva "v_sm" (p.ej. min jerk)
+                # (Opcional) Graficar "v_sm" si existe
                 if 't_segment' in subm and 'v_sm' in subm:
                     t_seg = subm['t_segment']
                     v_seg = subm['v_sm']
@@ -828,37 +738,50 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
                 mu_g  = gauss_params.get('mu_gauss', np.nan)
                 sig_g = gauss_params.get('sigma_gauss', 0.001)
 
-                if (not np.isnan(A_g)) and (not np.isnan(mu_g)) and sig_g > 0:
-                    c = cm.tab10(i % 10)
-                    # Graficar la Gaussian en mu ± 3*sigma
-                    left_g  = mu_g - 3*sig_g
-                    right_g = mu_g + 3*sig_g
-                    if left_g < 0:
-                        left_g = 0
-                    if right_g > max_time:
-                        right_g = max_time
+                if np.isnan(A_g) or np.isnan(mu_g) or sig_g <= 0:
+                    continue  # Gauss inválida, la saltamos
 
-                    t_gauss = np.linspace(left_g, right_g, 300)
-                    gauss_curve = A_g * np.exp(-((t_gauss - mu_g)**2) / (2 * sig_g**2))
+                # Queremos graficar en mu ± 3*sigma
+                left_g  = mu_g - 3*sig_g
+                right_g = mu_g + 3*sig_g
+                # Checar duración total < 3 frames => skip
+                # 3 frames => 0.03 s a 100 fps.
+                total_gauss_width = right_g - left_g  # en segundos
+                if total_gauss_width < 0.03:
+                    continue  # menor de 3 frames, no se muestra
 
-                    ax_submov.plot(t_gauss, gauss_curve, color=c, linestyle=':', alpha=0.7)
-                    gauss_in_stim += 1
+                # Recortamos a [0, max_time] en caso de salirse
+                if left_g < 0:
+                    left_g = 0
+                if right_g > max_time:
+                    right_g = max_time
 
-                    # Mostrar la duración (2*sigma) en la fila 3 (y=0.96)
-                    ax_mov.hlines(
-                        y=0.96,
-                        xmin=left_g,
-                        xmax=right_g,
-                        color=c,
-                        linewidth=2,
-                        alpha=0.8
-                    )
-                    ax_mov.plot(mu_g, 0.96, 'o', color=c, markersize=4)
+                # Generar la curva de la Gauss
+                t_gauss = np.linspace(left_g, right_g, 300)
+                gauss_curve = A_g * np.exp(-((t_gauss - mu_g)**2) / (2 * (sig_g**2)))
 
-            if gauss_in_stim > 0:
-                ax_submov.legend([f"Submov. Gauss: {gauss_in_stim}"], loc='upper right', fontsize=7)
+                c = cm.tab10(i % 10)
+                ax_submov.plot(t_gauss, gauss_curve, color=c, linestyle=':', alpha=0.7)
 
-            # ---------------- Panel 5: Perfil de Estímulo -------------
+                # En panel 3 (ax_mov) dibujamos la "banda" de la Gauss
+                ax_mov.hlines(
+                    y=0.96,
+                    xmin=left_g,
+                    xmax=right_g,
+                    color=c,
+                    linewidth=2,
+                    alpha=0.8
+                )
+                ax_mov.plot(mu_g, 0.96, 'o', color=c, markersize=4)
+
+                valid_gauss_count += 1
+
+            # Al terminar de dibujar submovements
+            if valid_gauss_count > 0:
+                # Agregar leyenda con el número total
+                ax_submov.legend([f"Submov. Gauss: {valid_gauss_count}"], loc='upper right', fontsize=7)
+
+            # -------------- Panel 5: Perfil del Estímulo -------------
             ax_stim.set_xlabel('Tiempo (s)')
             ax_stim.set_ylabel('Amplitud (µA)')
             ax_stim.set_xlim(0, max_time)
@@ -866,7 +789,7 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
             ax_stim.set_title('Perfil del estímulo')
             ax_stim.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # Dibujo escalonado (si amplitude_list/duration_list)
+            # Escalonado del estímulo (si hay amplitude_list/duration_list)
             if amplitude_list and duration_list and len(amplitude_list) == len(duration_list):
                 x_vals = [stim_start_s]
                 y_vals = [0]
@@ -874,8 +797,7 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
                 for amp, dur in zip(amplitude_list, duration_list):
                     nxt_time = t_stim + (dur / fs)
                     x_vals.extend([t_stim, nxt_time])
-                    # amp en µA:
-                    y_vals.extend([amp, amp])
+                    y_vals.extend([amp, amp])  # amp en µA
                     t_stim = nxt_time
                 ax_stim.step(x_vals, y_vals, color='purple', where='pre', linewidth=1)
 
@@ -886,15 +808,13 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
         plt.subplots_adjust(top=0.90)
 
         day_str = str(dia_experimental).replace('/', '-')
-        # O utilizar tu 'sanitize_filename' si lo deseas
-        out_filename = (
-            f"Dia_{day_str}_{body_part}_{stimulus_key}_Group_{fig_index+1}.png"
-        )
+        out_filename = f"Dia_{day_str}_{body_part}_{stimulus_key}_Group_{fig_index+1}.png"
         out_path = os.path.join(output_dir, out_filename)
         plt.savefig(out_path, dpi=150)
         logging.info(f"Gráfico guardado en {out_path}")
         print(f"Gráfico guardado en {out_path}")
         plt.close()
+
 
 
 
@@ -1873,7 +1793,6 @@ def plot_effectiveness_over_time(counts_df):
         plt.close()
 
 
-# Las demás funciones (analyze_best_bodyparts_and_stimuli, plot_heatmap, plot_effectiveness_over_time, plot_summary_movement_data) permanecen sin cambios
 
 # Ejecutar el bloque principal del script
 if __name__ == "__main__":
