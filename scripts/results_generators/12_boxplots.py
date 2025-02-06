@@ -21,6 +21,8 @@ import glob  # Importar el módulo glob
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.signal import butter, filtfilt
 
+import textwrap
+
 # Configuración del logging
 refactored_log_file_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
 logging.basicConfig(
@@ -1392,41 +1394,47 @@ def collect_velocity_threshold_data():
 # Función para simplificar los gráficos de resumen
 def plot_summary_movement_data(movement_ranges_df):
     """
-    Genera boxplots comparativos de 'Latencia al Inicio (ms)', 'Latencia al Pico (ms)',
-    'Duración Total (ms)' y 'Valor Pico (velocidad)' para los movimientos
-    (Threshold-based) y submovimientos (Gaussian-based) detectados 'Durante Estímulo'.
-
-    Además, añade la cuenta de movimientos/submovimientos en la etiqueta de cada box
-    (p.e. "Mov=5" o "Sub=3"), hace los ejes X más amplios y mejora la leyenda.
+    Genera boxplots comparativos de:
+    1) Latencia al Inicio (ms)
+    2) Latencia al Pico (ms)
+    3) Duración Total (ms) (sumada por ensayo si hay varios movimientos/submovimientos)
+    4) Valor Pico (velocidad)
+    5) Número de Movimientos/Submovimientos (por ensayo)
+    
+    Se separa entre 'Threshold-based' y 'Gaussian-based'.
+    Además, se omiten los outliers y no se muestran whiskers/caps, para ver
+    el patrón central de los datos sin dispersión excesiva.
     """
+
     import matplotlib.pyplot as plt
     import seaborn as sns
     from matplotlib.patches import Patch
     import numpy as np
     import textwrap
-    import logging
 
     logging.info("Generando gráficos comparativos de movimientos (Threshold/Gaussian) durante el estímulo por articulación y día.")
     print("Generando gráficos comparativos de movimientos (Threshold/Gaussian) durante el estímulo por articulación y día.")
 
-    # ============ 1) Only rows 'Durante Estímulo' ============
-    df_durante_estimulo = movement_ranges_df[movement_ranges_df['Periodo'] == 'Durante Estímulo'].copy()
-    if df_durante_estimulo.empty:
+    # 1) Filtrar solo los movimientos 'Durante Estímulo'
+    df_durante = movement_ranges_df[movement_ranges_df['Periodo'] == 'Durante Estímulo'].copy()
+    if df_durante.empty:
         logging.info("No hay movimientos durante el estímulo para graficar.")
         print("No hay movimientos durante el estímulo para graficar.")
         return
 
-    # ============ 2) Convert times to ms if needed ============
-    df_durante_estimulo['Latencia al Inicio (ms)'] = df_durante_estimulo['Latencia al Inicio (s)'] * 1000
-    df_durante_estimulo['Duración Total (ms)']     = df_durante_estimulo['Duración Total (s)'] * 1000
-    df_durante_estimulo['Latencia al Pico (ms)']   = df_durante_estimulo['Latencia al Pico (s)'] * 1000
-    # 'Valor Pico (velocidad)' is in velocity units already
+    # 2) Convertir tiempos a ms donde aplique
+    df_durante['Latencia al Inicio (ms)'] = df_durante['Latencia al Inicio (s)'] * 1000
+    df_durante['Latencia al Pico (ms)']   = df_durante['Latencia al Pico (s)']   * 1000
 
-    # ============ 3) Clean up columns =============
-    df_durante_estimulo['Forma del Pulso'] = df_durante_estimulo['Forma del Pulso'].str.capitalize()
-    df_durante_estimulo['Duración (ms)']   = df_durante_estimulo['Duración (ms)'].astype(int)
+    # -- Para la duración total, en lugar de usar 'Duración Total (s)' directamente, la vamos a sumar por ensayo --
+    #    Pero primero convertimos su columna a ms para cada fila.
+    df_durante['Duración Total (ms)'] = df_durante['Duración Total (s)'] * 1000
 
-    # ============ 4) Shapes & durations dictionary =============
+    # 3) Estandarizar strings
+    df_durante['Forma del Pulso']   = df_durante['Forma del Pulso'].str.capitalize()
+    df_durante['Duración (ms)']     = df_durante['Duración (ms)'].astype(int)
+
+    # 4) Definir un mapeo de las Formas de Pulso y sus duraciones
     pulse_duration_dict = {
         'Rectangular': [500, 750, 1000],
         'Rombo': [500, 750, 1000],
@@ -1435,49 +1443,74 @@ def plot_summary_movement_data(movement_ranges_df):
         'Triple rombo': [700]
     }
 
-    # ============ 5) Color palette by shape ============
+    # 5) Construir la paleta de colores para las Formas de Pulso
     pulse_shapes = list(pulse_duration_dict.keys())
     base_colors  = sns.color_palette('tab10', n_colors=len(pulse_shapes))
     pulse_shape_colors = dict(zip(pulse_shapes, base_colors))
 
-    # ============ 6) Movement Types ============
+    # 6) Tipos de Movimiento
     movement_types = ['Threshold-based', 'Gaussian-based']
 
-    # Helper to adjust shade of color based on movement type
+    # Helper para oscurecer el color en Gaussian-based
     def shade_color(base_rgb, movement_type):
-        """
-        'Gaussian-based' => darker version
-        'Threshold-based' => lighter version (or keep same)
-        """
-        r, g, b = base_rgb
+        r,g,b = base_rgb
         if movement_type == 'Gaussian-based':
-            factor = 0.7  # darken
+            factor = 0.7  # oscurecer
         else:
-            factor = 1.0  # keep the same or lighten
+            factor = 1.0
         return (min(r*factor,1.0), min(g*factor,1.0), min(b*factor,1.0))
 
-    # ============ 7) Measurements we plot ============
+    # 7) Creamos una nueva columna para la "Duración Total (ms) sumada por ensayo"
+    #    y una para "Número de Movimientos" (cada row es un movimiento).  
+    #    Para boxplots, necesitamos un 'DataFrame' con UNA fila por (Ensayo, MovementType).
+    #    Lo que haremos es agrupar por: Dia experimental, body_part, Ensayo, MovementType, Forma del Pulso, Duración (ms).
+    #    Y sumar "Duración Total (ms)" y contar cuántos hay.
+    grouping_cols = [
+        'Dia experimental', 'body_part', 'Ensayo',
+        'MovementType', 'Forma del Pulso', 'Duración (ms)'
+    ]
+
+    # Agrupamos la info
+    grouped = df_durante.groupby(grouping_cols, dropna=False).agg({
+        'Latencia al Inicio (ms)': 'mean',  # Latencia la promediamos si hubiera varios, o podrías hacer min...
+        'Latencia al Pico (ms)':   'mean',  # idem
+        'Valor Pico (velocidad)':  'mean',  # O max, segun la definicion. Se asume mean
+        'Duración Total (ms)':     'sum',   # sumamos las duraciones
+        # Contamos cuántos movimientos hay en este grouping
+        'Ensayo': 'count'
+    }).rename(columns={'Ensayo': 'N_Mov'}).reset_index()
+
+    # 'N_Mov' es el número de movimientos en ese grouping
+    # Creamos la col "Numero de Movimientos/Submovimientos"
+    grouped['Numero Mov/Sub'] = grouped['N_Mov'].astype(int)
+
+    # 8) Definimos las mediciones que graficaremos. Ahora hay 5:
+    #    1) Latencia al Inicio (ms)
+    #    2) Latencia al Pico (ms)
+    #    3) Duración Total (ms)  (ya sumada)
+    #    4) Valor Pico (velocidad)
+    #    5) Numero Mov/Sub
     measurements = [
         'Latencia al Inicio (ms)',
         'Latencia al Pico (ms)',
         'Duración Total (ms)',
-        'Valor Pico (velocidad)'
+        'Valor Pico (velocidad)',
+        'Numero Mov/Sub'
     ]
 
-    # ============ 8) By day =============
-    unique_days = df_durante_estimulo['Dia experimental'].unique()
-    for dia_experimental in unique_days:
-        df_day = df_durante_estimulo[df_durante_estimulo['Dia experimental'] == dia_experimental]
+    # 9) Vamos a iterar por día y hacer la figura "Resumen General" y luego por (body_part, day).
+    unique_days = grouped['Dia experimental'].unique()
+
+    for day in unique_days:
+        df_day = grouped[grouped['Dia experimental'] == day].copy()
         if df_day.empty:
             continue
 
-        # ============ 'Resumen General' figure (all BPs) ============
-        num_measurements = len(measurements)
-        # Make the figure WIDER so the n= fits well
-        fig, axs = plt.subplots(1, num_measurements, figsize=(7 * num_measurements, 8), sharey=False)
+        # =========== Resumen General (todas las articulaciones) ===========
+        fig, axs = plt.subplots(1, len(measurements), figsize=(7*len(measurements), 8), sharey=False)
 
         for idx, measurement in enumerate(measurements):
-            ax = axs[idx] if num_measurements > 1 else axs
+            ax = axs[idx] if len(measurements)>1 else axs
 
             boxplot_data = []
             x_positions  = []
@@ -1486,62 +1519,44 @@ def plot_summary_movement_data(movement_ranges_df):
             box_colors   = []
             current_pos  = 0
             width        = 0.6
-            gap_dur      = 0.4  # gap between durations
-            gap_shape    = 1.5  # gap between shapes
+            gap_dur      = 0.4
+            gap_shape    = 1.5
             shape_positions = []
 
-            for pulse_shape in pulse_shapes:
-                data_pulse = df_day[df_day['Forma del Pulso'] == pulse_shape]
-                durations  = pulse_duration_dict[pulse_shape]
-                if data_pulse.empty:
+            for shape in pulse_shapes:
+                df_shape = df_day[df_day['Forma del Pulso'] == shape]
+                durations = pulse_duration_dict[shape]
+                if df_shape.empty:
                     continue
 
                 positions = np.arange(
                     current_pos,
                     current_pos + len(durations)*(width+gap_dur),
-                    (width + gap_dur)
+                    (width+gap_dur)
                 )
                 for i, dur in enumerate(durations):
                     base_x = positions[i]
-                    # We'll produce 2 side-by-side boxes: threshold-based & gaussian-based
-                    offset_map = {'Threshold-based': 0.0, 'Gaussian-based': width/2.0}
 
                     for mtype in movement_types:
-                        sub_df = data_pulse[
-                            (data_pulse['Duración (ms)'] == dur) &
-                            (data_pulse['MovementType'] == mtype)
+                        sub_df = df_shape[
+                            (df_shape['Duración (ms)'] == dur) &
+                            (df_shape['MovementType'] == mtype)
                         ]
-                        measurement_data = sub_df[measurement].dropna()
+                        data_measure = sub_df[measurement].dropna()
+                        offset = (width/2.0 if mtype=='Gaussian-based' else 0.0)
+                        x_pos = base_x + offset
 
-                        x_pos = base_x + offset_map[mtype]
-                        boxplot_data.append(measurement_data)
+                        boxplot_data.append(data_measure)
                         x_positions.append(x_pos)
-                        x_labels.append(f"{dur} ms")  # same label for both
+                        x_labels.append(f"{dur} ms")
                         x_label_positions.append(x_pos)
 
-                        # Color
-                        base_rgb = pulse_shape_colors[pulse_shape]
+                        base_rgb = pulse_shape_colors[shape]
                         final_rgb= shade_color(base_rgb, mtype)
                         box_colors.append(final_rgb)
 
-                        # How many movements or submovements
-                        # each row = 1 movement or submovement
-                        # so just do len(sub_df)
-                        num_items = len(sub_df)
-                        if mtype == 'Threshold-based':
-                            label_str = f"Mov={num_items}"
-                        else:
-                            label_str = f"Sub={num_items}"
-
-                        if not measurement_data.empty:
-                            y_pos = measurement_data.max() + (measurement_data.max() * 0.05)
-                        else:
-                            y_pos = 0
-                        ax.text(x_pos, y_pos, label_str, ha='center', fontsize=8)
-
-                if len(positions) > 0:
-                    shape_positions.append((positions.mean(), pulse_shape))
-
+                if len(positions)>0:
+                    shape_positions.append((positions.mean(), shape))
                 current_pos = positions[-1] + gap_shape
 
             if not boxplot_data:
@@ -1549,13 +1564,31 @@ def plot_summary_movement_data(movement_ranges_df):
                 ax.text(0.5,0.5,'No data',ha='center',va='center',fontsize=12)
                 continue
 
-            bp = ax.boxplot(boxplot_data, positions=x_positions, widths=width/2.2, patch_artist=True)
-            for patch, color in zip(bp['boxes'], box_colors):
-                patch.set_facecolor(color)
-            for part_name in ('whiskers','caps','medians'):
-                for part_obj in bp[part_name]:
-                    part_obj.set_color('black')
+            # =========== Creamos el boxplot sin whiskers ni outliers ===========
+            bp = ax.boxplot(
+                boxplot_data,
+                positions=x_positions,
+                widths=width/2.2,
+                patch_artist=True,
+                showfliers=False,       # No dibuja outliers
+                whis=(0, 100)          # Esto hará que no extienda whiskers
+            )
+            # Quitar whiskers y caps
+            for part_name in ('whiskers','caps'):
+                for line in bp[part_name]:
+                    line.set_visible(False)
 
+            # Ajustar color de medianas
+            for median in bp['medians']:
+                median.set_color('black')
+                median.set_linewidth(2)
+
+            # Color de las cajas
+            for patch, color in zip(bp['boxes'], box_colors):
+                patch.set_edgecolor('black')
+                patch.set_facecolor(color)
+
+            # Ajustar ticks
             ax.set_xticks(x_label_positions)
             ax.set_xticklabels(x_labels, rotation=45)
             ax.set_xlabel('Duración (ms)')
@@ -1564,63 +1597,60 @@ def plot_summary_movement_data(movement_ranges_df):
 
             y_lims = ax.get_ylim()
             for x_ctr, shape_name in shape_positions:
-                text_wrapped = '\n'.join(textwrap.wrap(shape_name, width=10))
+                wrapped_text = '\n'.join(textwrap.wrap(shape_name, width=10))
                 ax.text(x_ctr, y_lims[1]+(y_lims[1]-y_lims[0])*0.05,
-                        text_wrapped, ha='center',va='bottom',fontsize=10)
+                        wrapped_text, ha='center',va='bottom',fontsize=10)
             ax.set_ylim(y_lims[0], y_lims[1]+(y_lims[1]-y_lims[0])*0.15)
 
-        # Create a legend that explains shape => color, MovementType => shading
         shape_legend = [Patch(facecolor=pulse_shape_colors[ps], label=ps) for ps in pulse_shapes]
-        # Also add short explanation of threshold-based vs gaussian-based shading
-        # e.g. pure white patch with text: "Threshold-based => original color\nGaussian-based => darker shade"
-        legend_expl = Patch(facecolor='white', edgecolor='black', label='Threshold-based => color\nGaussian-based => shade')
+        legend_expl  = Patch(facecolor='white', edgecolor='black', label='Threshold => color\nGaussian => shade')
         axs[-1].legend(
             handles=[legend_expl]+shape_legend,
             loc='upper right',
-            title='Leyenda (FormaPulso vs. MovementType)',
+            title='Leyenda (FormaPulso vs. MovType)',
             fontsize=9
         )
 
-        fig.suptitle(f'Resumen General (Día {dia_experimental})', fontsize=16)
+        fig.suptitle(f'Resumen General (Día {day})', fontsize=16)
         plt.tight_layout(rect=[0,0.03,1,0.90])
-        fname_general = f'summary_general_dia_{sanitize_filename(str(dia_experimental))}.png'
-        out_path_general = os.path.join(output_comparisons_dir, fname_general)
-        plt.savefig(out_path_general, dpi=150)
-        print(f"Gráfico (resumen general) guardado en {out_path_general}")
+        fname = f'summary_general_dia_{sanitize_filename(str(day))}.png'
+        out_path = os.path.join(output_comparisons_dir, fname)
+        plt.savefig(out_path, dpi=150)
         plt.close()
+        print(f"[Plot] Resumen General Día {day} guardado en {out_path}")
 
 
-    # ============ 9) Now by body_part and day =============
-    body_day_combos = df_durante_estimulo[['body_part','Dia experimental']].drop_duplicates()
-    for _, (body_part, dia_experimental) in body_day_combos.iterrows():
-        df_subset = df_durante_estimulo[
-            (df_durante_estimulo['body_part'] == body_part) &
-            (df_durante_estimulo['Dia experimental'] == dia_experimental)
+    # =========== 10) Repetimos para (body_part, day) ===========
+    bpd_combos = grouped[['body_part','Dia experimental']].drop_duplicates()
+
+    for _, (bp, day) in bpd_combos.iterrows():
+        df_sub = grouped[
+            (grouped['body_part'] == bp) &
+            (grouped['Dia experimental'] == day)
         ]
-        if df_subset.empty:
+        if df_sub.empty:
             continue
 
-        num_measurements = len(measurements)
-        fig, axs = plt.subplots(1, num_measurements, figsize=(7*num_measurements,8), sharey=False)
+        fig, axs = plt.subplots(1, len(measurements), figsize=(7*len(measurements), 8), sharey=False)
 
         for idx, measurement in enumerate(measurements):
-            ax = axs[idx] if num_measurements>1 else axs
+            ax = axs[idx] if len(measurements)>1 else axs
 
-            boxplot_data    = []
-            x_positions     = []
-            x_labels        = []
+            boxplot_data = []
+            x_positions  = []
+            x_labels     = []
             x_label_positions = []
-            box_colors      = []
-            current_pos     = 0
-            width           = 0.6
-            gap_dur         = 0.4
-            gap_shape       = 1.5
+            box_colors   = []
+            current_pos  = 0
+            width        = 0.6
+            gap_dur      = 0.4
+            gap_shape    = 1.5
             shape_positions = []
 
-            for pulse_shape in pulse_shapes:
-                data_shape = df_subset[df_subset['Forma del Pulso'] == pulse_shape]
-                durations  = pulse_duration_dict[pulse_shape]
-                if data_shape.empty:
+            for shape in pulse_shapes:
+                df_shape = df_sub[df_sub['Forma del Pulso'] == shape]
+                durations = pulse_duration_dict[shape]
+                if df_shape.empty:
                     continue
 
                 positions = np.arange(
@@ -1631,46 +1661,49 @@ def plot_summary_movement_data(movement_ranges_df):
                 for i, dur in enumerate(durations):
                     base_x = positions[i]
                     for mtype in movement_types:
-                        sub_df = data_shape[
-                            (data_shape['Duración (ms)'] == dur) &
-                            (data_shape['MovementType'] == mtype)
+                        sub_df = df_shape[
+                            (df_shape['Duración (ms)'] == dur) &
+                            (df_shape['MovementType'] == mtype)
                         ]
-                        measurement_data = sub_df[measurement].dropna()
-
-                        offset = 0.0 if mtype=='Threshold-based' else width/2.0
+                        data_measure = sub_df[measurement].dropna()
+                        offset = (width/2.0 if mtype=='Gaussian-based' else 0.0)
                         x_pos = base_x + offset
-                        boxplot_data.append(measurement_data)
+
+                        boxplot_data.append(data_measure)
                         x_positions.append(x_pos)
                         x_labels.append(f"{dur} ms")
                         x_label_positions.append(x_pos)
 
-                        base_rgb = pulse_shape_colors[pulse_shape]
-                        final_rgb= shade_color(base_rgb,mtype)
+                        base_rgb = pulse_shape_colors[shape]
+                        final_rgb= shade_color(base_rgb, mtype)
                         box_colors.append(final_rgb)
 
-                        num_items = len(sub_df)
-                        label_str = f"Mov={num_items}" if mtype=='Threshold-based' else f"Sub={num_items}"
-                        if not measurement_data.empty:
-                            y_pos = measurement_data.max() + (measurement_data.max()*0.05)
-                        else:
-                            y_pos = 0
-                        ax.text(x_pos, y_pos, label_str, ha='center', fontsize=8)
-
                 if len(positions)>0:
-                    shape_positions.append((positions.mean(), pulse_shape))
+                    shape_positions.append((positions.mean(), shape))
                 current_pos = positions[-1] + gap_shape
 
             if not boxplot_data:
                 ax.axis('off')
-                ax.text(0.5,0.5,'No data', ha='center',va='center',fontsize=12)
+                ax.text(0.5,0.5,'No data',ha='center',va='center',fontsize=12)
                 continue
 
-            bp = ax.boxplot(boxplot_data, positions=x_positions, widths=width/2.2, patch_artist=True)
-            for patch, color in zip(bp['boxes'], box_colors):
+            bp_obj = ax.boxplot(
+                boxplot_data,
+                positions=x_positions,
+                widths=width/2.2,
+                patch_artist=True,
+                showfliers=False,
+                whis=(0,100)  # no whiskers
+            )
+            for part_name in ('whiskers','caps'):
+                for line in bp_obj[part_name]:
+                    line.set_visible(False)
+            for median in bp_obj['medians']:
+                median.set_color('black')
+                median.set_linewidth(2)
+            for patch, color in zip(bp_obj['boxes'], box_colors):
+                patch.set_edgecolor('black')
                 patch.set_facecolor(color)
-            for part_name in ('whiskers','caps','medians'):
-                for part_obj in bp[part_name]:
-                    part_obj.set_color('black')
 
             ax.set_xticks(x_label_positions)
             ax.set_xticklabels(x_labels, rotation=45)
@@ -1680,13 +1713,13 @@ def plot_summary_movement_data(movement_ranges_df):
 
             y_lims = ax.get_ylim()
             for x_ctr, shape_name in shape_positions:
-                text_wrapped = '\n'.join(textwrap.wrap(shape_name, width=10))
+                wrapped_text = '\n'.join(textwrap.wrap(shape_name, width=10))
                 ax.text(x_ctr, y_lims[1]+(y_lims[1]-y_lims[0])*0.05,
-                        text_wrapped, ha='center', va='bottom', fontsize=10)
+                        wrapped_text, ha='center',va='bottom',fontsize=10)
             ax.set_ylim(y_lims[0], y_lims[1]+(y_lims[1]-y_lims[0])*0.15)
 
         shape_legend = [Patch(facecolor=pulse_shape_colors[ps], label=ps) for ps in pulse_shapes]
-        legend_expl  = Patch(facecolor='white', edgecolor='black', label='Threshold => Mov\nGaussian => Sub')
+        legend_expl  = Patch(facecolor='white', edgecolor='black', label='Threshold => color\nGaussian => shade')
         axs[-1].legend(
             handles=[legend_expl]+shape_legend,
             loc='upper right',
@@ -1694,13 +1727,14 @@ def plot_summary_movement_data(movement_ranges_df):
             fontsize=9
         )
 
-        fig.suptitle(f'Articulación: {body_part}, Día: {dia_experimental}', fontsize=16)
+        fig.suptitle(f'Articulación: {bp}, Día: {day}', fontsize=16)
         plt.tight_layout(rect=[0,0.03,1,0.90])
-        fname = f'summary_{sanitize_filename(body_part)}_dia_{sanitize_filename(str(dia_experimental))}.png'
-        out_path = os.path.join("C:/Users/samae/Documents/GitHub/stimulationb15/data/decomposed_gaussian_velocity_plots24", fname)
+        fname = f'summary_{sanitize_filename(bp)}_dia_{sanitize_filename(str(day))}.png'
+        out_path = os.path.join(output_comparisons_dir, fname)
         plt.savefig(out_path, dpi=150)
-        print(f"Gráfico (Artic. {body_part}, Día {dia_experimental}) guardado en {out_path}")
         plt.close()
+        print(f"[Plot] Articulación {bp}, Día {day} guardado en {out_path}")
+
 
 
 
