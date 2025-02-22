@@ -270,7 +270,8 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start):
         try:
             popt, _ = curve_fit(gaussian, t_win, v_win, p0=p0, bounds=(lb, ub))
             modelo_pico = gaussian(mu_init, *popt)
-            scale = v_segment[peak] / modelo_pico if modelo_pico > 0 else 1.0
+            epsilon = 1e-6  # Add a small epsilon to avoid division by zero
+            scale = v_segment[peak] / (modelo_pico + epsilon)
             popt[0] *= scale
 
             # Reaplicar las condiciones con el sigma ajustado
@@ -323,21 +324,16 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start):
 
 
 # ------------------------------------------------------------------------------
-def minimum_jerk_velocity(t, *params):
-    n_submovements = len(params) // 3
-    v_total = np.zeros_like(t)
-    for i in range(n_submovements):
-        A = params[3*i]
-        t0 = params[3*i + 1]
-        T = params[3*i + 2]
-        if T <= 0:
-            continue
-        tau = (t - t0) / T
-        valid_idx = (tau >= 0) & (tau <= 1)
-        v = np.zeros_like(t)
-        v[valid_idx] = A * 30 * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
-        v_total += v
-    return v_total
+def minimum_jerk_velocity(t, A, t0, T):
+    if T <= 0:
+        return np.zeros_like(t)
+    tau = (t - t0) / T
+    valid_idx = (tau >= 0) & (tau <= 1)
+    v = np.zeros_like(t)
+    # Note the division by T
+    v[valid_idx] = (30 * A / T) * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
+    return v
+
 
 
 def sum_of_minimum_jerk(t, *params):
@@ -351,8 +347,17 @@ def sum_of_minimum_jerk(t, *params):
     return v_total
 
 
+def regularized_residuals(p, t, observed_velocity, lambda_reg, A_target):
+    residual = sum_of_minimum_jerk(t, *p) - observed_velocity
+    amplitudes = p[0::3]
+    penalty = np.sqrt(lambda_reg) * (amplitudes - A_target)
+    return np.concatenate([residual, penalty])
 
-def fit_velocity_profile(t, observed_velocity, n_submovements):
+
+
+def fit_velocity_profile(t, observed_velocity, n_submovements, 
+                         lambda_reg=0.1, loss='soft_l1', f_scale=0.5):
+    # Get initial guess from peaks
     peak_indices, _ = find_peaks(observed_velocity, height=np.mean(observed_velocity), distance=10)
     peak_times = t[peak_indices]
     peak_amplitudes = observed_velocity[peak_indices]
@@ -377,28 +382,83 @@ def fit_velocity_profile(t, observed_velocity, n_submovements):
 
     lower_bounds = []
     upper_bounds = []
+    epsilon = 1e-3
     for i in range(n_submovements):
         min_T = 0.01
-        lower_bounds.extend([0, t[0], min_T])
+        lower_bounds.extend([epsilon, t[0], min_T])
         upper_bounds.extend([np.inf, t[-1], total_time])
     
     params_init = np.maximum(params_init, lower_bounds)
     params_init = np.minimum(params_init, upper_bounds)
 
+    # Set A_target to be the maximum observed velocity (or a fraction thereof)
+    A_target = np.max(observed_velocity)
+    if A_target < epsilon:
+        A_target = epsilon
+
     try:
         result = least_squares(
-            lambda p: sum_of_minimum_jerk(t, *p) - observed_velocity,
+            lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target),
             x0=params_init,
             bounds=(lower_bounds, upper_bounds),
-            loss='huber',  # You can try 'huber' or 'cauchy'
-            f_scale=0.5      # Factor de escala del error
+            loss=loss,
+            f_scale=f_scale
         )
-
     except ValueError as e:
         logging.error(f"Fallo en el ajuste: {e}")
         return None
 
     return result
+
+
+def robust_fit_velocity_profile(t, observed_velocity, n_submovements, 
+                                n_restarts=5, 
+                                lambda_reg=0.1, loss='soft_l1', f_scale=0.5):
+    """
+    Try multiple restarts with slightly perturbed initial guesses.
+    Returns the result with the lowest cost.
+    """
+    # Define a small epsilon in this function scope
+    epsilon = 1e-3
+    
+    best_result = None
+    best_cost = np.inf
+
+    # Get a base initial guess from our original routine.
+    base_result = fit_velocity_profile(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale)
+    if base_result is None:
+        logging.error("Initial fit failed.")
+        return None
+    best_result = base_result
+    best_cost = base_result.cost
+
+    # Now try additional restarts with random perturbations.
+    for i in range(n_restarts):
+        # perturb the initial guess by up to ±10%
+        perturbation = np.random.uniform(0.9, 1.1, size=len(base_result.x))
+        perturbed_init = base_result.x * perturbation
+        # Avoid amplitudes falling to zero
+        perturbed_init = np.maximum(perturbed_init, epsilon)
+        try:
+            result = least_squares(
+                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target=np.max(observed_velocity)),
+                x0=perturbed_init,
+                bounds=([epsilon for _ in base_result.x], [np.inf for _ in base_result.x]),
+                loss=loss,
+                f_scale=f_scale
+            )
+            if result.cost < best_cost:
+                best_cost = result.cost
+                best_result = result
+        except Exception as e:
+            logging.warning(f"Restart {i} failed: {e}")
+            continue
+
+    logging.info(f"Robust fit result cost: {best_cost}")
+    logging.info(f"Fitted parameters: {best_result.x}")
+    return best_result
+
+
 
 
 
@@ -1236,7 +1296,7 @@ def collect_velocity_threshold_data():
                                                     # --- Nuevo: Modelo Minimum Jerk ---
                                                     # (Asegúrate de que las funciones 'fit_velocity_profile' y 'sum_of_minimum_jerk' estén definidas y disponibles)
                                                     n_submovimientos = len(submov_peak_indices)  # o asigna un valor adecuado
-                                                    result_minjerk = fit_velocity_profile(t_segment, vel_segment, n_submovimientos)
+                                                    result_minjerk = robust_fit_velocity_profile(t_segment, vel_segment, n_submovimientos)
                                                     if result_minjerk is not None:
                                                         params_minjerk = result_minjerk.x
                                                         # Calcula la velocidad modelo sumando las contribuciones de cada submovimiento
@@ -1407,14 +1467,14 @@ def plot_summary_movement_data(movement_ranges_df, output_dir):
         anova_df = None
 
     metrics_dict = {
-        'lat_inicio_ms': "Latencia al inicio (ms)",
-        'lat_primer_pico_ms': "Latencia al primer pico (ms)",
-        'lat_pico_max_ms': "Latencia al pico máximo (ms)",
-        'dur_total_ms': "Duración total (ms)",
-        'valor_pico_inicial': "Valor pico inicial",
-        'valor_pico_max': "Valor pico máximo",
-        'num_movs': "Número de movimientos"
+        "Latencia al Inicio (ms)": "Latencia al Inicio (ms)",
+        "Latencia al Pico (ms)": "Latencia al Pico (ms)",
+        "Latencia al Pico Máximo (ms)": "Latencia al Pico Máximo (ms)",
+        "Duración Total (ms)": "Duración Total (ms)",
+        "Valor Pico (velocidad)": "Valor Pico (velocidad)",
+        "Número de Movimientos": "Número de Movimientos"
     }
+
     measurements = list(metrics_dict.values())
 
 
@@ -2421,8 +2481,7 @@ def plot_boxplot_metric_with_posthoc(data_metric, metric, factor_name, tukey_df,
 
 
 def aggregate_trial_metrics(movement_ranges_df):
-    # Filtrar solo para los movimientos de interés de Threshold y Gaussian
-    # (en este ejemplo, Minimum Jerk se agregará por separado)
+    # Filtrar solo para los movimientos de interés (Threshold, Gaussian, y MinimumJerk)
     df_filtrado = movement_ranges_df[movement_ranges_df['MovementType'].isin(['Threshold-based', 'Gaussian-based', 'MinimumJerk'])]
     
     def agg_func(group):
@@ -2436,22 +2495,20 @@ def aggregate_trial_metrics(movement_ranges_df):
             dur_total = (group['Latencia al Pico (s)'].max() - group['Latencia al Inicio (s)'].min()) * 1000
         idx_min = group['Latencia al Inicio (s)'].idxmin()
         valor_inicial = group.loc[idx_min, 'Valor Pico (velocidad)']
-        valor_max = group['Valor Pico (velocidad)'].max()
         num_movs = len(group)
-        # Para Minimum Jerk, se suma el conteo (si el grupo es de MinimumJerk, o se podría tener por separado)
+        # Para Minimum Jerk, se puede sumar el conteo (si se desea)
         minjerk_count = group[group['MovementType'] == 'MinimumJerk'].shape[0]
         return pd.Series({
-            'lat_inicio_ms': lat_inicio,
-            'lat_primer_pico_ms': lat_primer,
-            'lat_pico_max_ms': lat_max,
-            'dur_total_ms': dur_total,
-            'valor_pico_inicial': valor_inicial,
-            'valor_pico_max': valor_max,
-            'num_movs': num_movs,
-            'minjerk_count': minjerk_count  # nuevo campo para el conteo de Minimum Jerk
-        })
+            "Latencia al Inicio (ms)": lat_inicio,
+            "Latencia al Pico (ms)": lat_primer,
+            "Latencia al Pico Máximo (ms)": lat_max,
+            "Duración Total (ms)": dur_total,
+            "Valor Pico (velocidad)": valor_inicial,
+            "Número de Movimientos": num_movs
+            })
     aggregated = df_filtrado.groupby(['Ensayo', 'Estímulo', 'MovementType']).apply(agg_func).reset_index()
     return aggregated
+
 
 
 
@@ -2493,14 +2550,14 @@ def plot_global_summary_with_significance_all(movement_ranges_df, output_dir):
     
     # Diccionario de métricas a graficar (clave = nombre de columna en agg_df, etiqueta para eje y)
     metrics_dict = {
-        'lat_inicio_ms': "Latencia al inicio (ms)",
-        'lat_primer_pico_ms': "Latencia al primer pico (ms)",
-        'lat_pico_max_ms': "Latencia al pico máximo (ms)",
-        'dur_total_ms': "Duración total (ms)",
-        'valor_pico_inicial': "Valor pico inicial",
-        'valor_pico_max': "Valor pico máximo",
-        'num_movs': "Número de movs/submovs"
+        "Latencia al Inicio (ms)": "Latencia al Inicio (ms)",
+        "Latencia al Pico (ms)": "Latencia al Pico (ms)",
+        "Latencia al Pico Máximo (ms)": "Latencia al Pico Máximo (ms)",
+        "Duración Total (ms)": "Duración Total (ms)",
+        "Valor Pico (velocidad)": "Valor Pico (velocidad)",
+        "Número de Movimientos": "Número de Movimientos"
     }
+
     
     n_metrics = len(metrics_dict)
     fig, axs = plt.subplots(1, n_metrics, figsize=(n_metrics * 5, 8), sharey=False)
