@@ -689,32 +689,81 @@ def plot_trials_side_by_side(stimulus_key, data, body_part, dia_experimental, ou
                 ax_vel.legend(fontsize=7)
             ax_vel.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # -------------- Panel 3: Rango Movimientos sobre Umbral ----
+            # PANEL 3: Mostrar duraciones de cada modelo y marcar los picos
             ax_mov.set_xlabel('Tiempo (s)')
-            ax_mov.set_ylabel('Mov.')
+            ax_mov.set_ylabel('Modelos')
             ax_mov.set_xlim(0, max_time)
-            ax_mov.set_ylim(0.95, 1.05)
-            ax_mov.set_yticks([1.0])
-            ax_mov.set_yticklabels(['Mov'])
+            ax_mov.set_ylim(0.8, 1.2)  # Reservamos tres "niveles": 1.0 (Threshold), 0.94 (MinJerk) y 0.86 (Gaussian)
             ax_mov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            period_colors = {
-                'Pre-Estímulo': 'orange',
-                'Durante Estímulo': 'red',
-                'Post-Estímulo': 'gray'
-            }
+            # 1. Modelo Threshold-based:
+            # Se dibujan las líneas correspondientes a las secciones detectadas mediante threshold.
+            threshold_label_added = False
             for mov in mov_ranges:
+                periodo = mov.get('Periodo', 'Desconocido')
+                if periodo != 'Durante Estímulo':
+                    continue
                 startF = mov['Inicio Movimiento (Frame)']
-                endF   = mov['Fin Movimiento (Frame)']
-                periodo = mov['Periodo']
-                colorMov = period_colors.get(periodo, 'blue')
-                ax_mov.hlines(
-                    y=1.0,
-                    xmin=startF / fs,
-                    xmax=endF / fs,
-                    color=colorMov,
-                    linewidth=4
-                )
+                endF = mov['Fin Movimiento (Frame)']
+                color_threshold = 'red'
+                if not threshold_label_added:
+                    # Aquí usamos el label "Threshold (Durante)" y, por ejemplo, agregamos también el
+                    # conteo de movimientos threshold (ya que eso funciona bien).
+                    ax_mov.hlines(y=1.0, xmin=startF/fs, xmax=endF/fs, color=color_threshold, linewidth=2,
+                                label='Threshold (Durante)')
+                    threshold_label_added = True
+                else:
+                    ax_mov.hlines(y=1.0, xmin=startF/fs, xmax=endF/fs, color=color_threshold, linewidth=2)
+                idx_peak = np.argmax(vel[startF:endF+1])
+                peak_time = (startF + idx_peak) / fs
+                ax_mov.plot(peak_time, 1.0, 'o', color=color_threshold, markersize=4)
+
+            # 2. Modelo Minimum Jerk:
+            # En este bloque se dibujan las curvas del modelo Minimum Jerk.
+            # Calculamos el total de submovimientos (por ejemplo, la cantidad de elementos en la lista 'submovements').
+            n_submov_total = len(submovements) if submovements is not None else 0
+            for i_sub, subm in enumerate(submovements):
+                c = cm.tab10(i_sub % 10)
+                if 't_segment' in subm and 'v_sm' in subm:
+                    t_model = subm['t_segment']
+                    v_sm = subm['v_sm']
+                    if i_sub == 0:
+                        # Agregamos al label el conteo total de submovimientos para el ensayo
+                        label_minjerk = f"MinJerk ({n_submov_total} submovs)"
+                        ax_mov.hlines(y=0.94, xmin=t_model[0], xmax=t_model[-1], color=c,
+                                    linewidth=1.5, linestyle='--', label=label_minjerk)
+                    else:
+                        ax_mov.hlines(y=0.94, xmin=t_model[0], xmax=t_model[-1], color=c,
+                                    linewidth=1.5, linestyle='--')
+                    # Marcar el pico del modelo Minimum Jerk
+                    t_peak_minjerk = t_model[np.argmax(v_sm)]
+                    ax_mov.plot(t_peak_minjerk, 0.94, 'o', color=c, markersize=4)
+
+            # 3. Modelo Gaussian:
+            # Aquí, si deseas también sumar la cantidad total de gaussianas (por ejemplo, la suma de los
+            # elementos 'gaussians' en cada submovimiento), puedes hacerlo:
+            total_gaussians = sum(len(subm.get('gaussians', [])) for subm in submovements) if submovements else 0
+            gauss_mult_colors = sns.color_palette("Set2", n_colors=3)
+            gauss_label_added = False
+            for i_sub, subm in enumerate(submovements):
+                gauss_list = subm.get('gaussians', [])
+                for j, g in enumerate(gauss_list):
+                    A_g = g['A_gauss']
+                    mu_g = g['mu_gauss']
+                    sigma_g = g['sigma_gauss']
+                    left_g = mu_g - 3 * sigma_g
+                    right_g = mu_g + 3 * sigma_g
+                    color_gauss = gauss_mult_colors[j % len(gauss_mult_colors)]
+                    if not gauss_label_added:
+                        label_gauss = f"Gaussian ({total_gaussians} submovs)"
+                        ax_mov.hlines(y=0.86, xmin=left_g, xmax=right_g, color=color_gauss,
+                                    linewidth=1.5, linestyle='-', label=label_gauss)
+                        gauss_label_added = True
+                    else:
+                        ax_mov.hlines(y=0.86, xmin=left_g, xmax=right_g, color=color_gauss,
+                                    linewidth=1.5, linestyle='-')
+                    ax_mov.plot(mu_g, 0.86, 'o', color=color_gauss, markersize=4)
+
 
             # -------------- Panel 4: Vel. + Gaussianas ---------------
             ax_submov.plot(t_vel, vel, color='darkorange', label='Vel. (px/s)')
