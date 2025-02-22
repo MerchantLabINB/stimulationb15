@@ -390,7 +390,7 @@ def fit_velocity_profile(t, observed_velocity, n_submovements):
             lambda p: sum_of_minimum_jerk(t, *p) - observed_velocity,
             x0=params_init,
             bounds=(lower_bounds, upper_bounds),
-            loss='soft_l1',  # Ajuste robusto
+            loss='huber',  # You can try 'huber' or 'cauchy'
             f_scale=0.5      # Factor de escala del error
         )
 
@@ -687,6 +687,7 @@ def plot_trials_side_by_side(
 
             # 1. Modelo Threshold-based:
             threshold_label_added = False
+            
             for mov in mov_ranges:
                 periodo = mov.get('Periodo', 'Desconocido')
                 if periodo != 'Durante Estímulo':
@@ -709,13 +710,18 @@ def plot_trials_side_by_side(
 
 
             # 2. Modelo Gaussian:
+            # 2. Gaussian model:
+            gauss_label_added = False
+          
+            total_gaussians = sum(len(subm.get('gaussians', [])) for subm in submovements)
+
             for i_sub, subm in enumerate(submovements):
                 gauss_list = subm.get('gaussians', [])
                 for j, g in enumerate(gauss_list):
                     A_g = g['A_gauss']
                     mu_g = g['mu_gauss']
                     sigma_g = g['sigma_gauss']
-                    # Usar ±2σ
+                    # Define the horizontal range for the gaussian (using ±2σ)
                     left_g = mu_g - 2 * sigma_g
                     right_g = mu_g + 2 * sigma_g
                     color_gauss = GAUSSIAN_PALETTE[j % len(GAUSSIAN_PALETTE)]
@@ -727,12 +733,15 @@ def plot_trials_side_by_side(
                     else:
                         ax_mov.hlines(y=0.94, xmin=left_g, xmax=right_g, color=color_gauss,
                                     linewidth=1.5, linestyle='-')
+                    # Plot the gaussian peak marker:
                     ax_mov.plot(mu_g, 0.94, 'o', color=color_gauss, markersize=4)
-                    # Agregar el texto del pico: en este caso, el valor máximo es A_g (la gaussiana tiene máximo A en mu)
+                    # Add the peak value annotation:
                     ax_mov.text(mu_g, 0.94 + 0.02, f"{A_g:.1f}", fontsize=4, ha='center', va='bottom')
 
 
+
             # 3. Modelo Minimum Jerk:
+            minjerk_label_added = False
             for subm in submovements:
                 if subm.get('MovementType') == 'MinimumJerk':
                     t_model = subm['t_segment_model']  # vector de tiempos del ajuste Minimum Jerk
