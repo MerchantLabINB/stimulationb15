@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import curve_fit, least_squares
 from math import sqrt
 import matplotlib
-matplotlib.use('Agg')  # Para entornos sin interfaz gráfica
+matplotlib.use('Agg')  
 
 import itertools
 
@@ -27,6 +27,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.signal import butter, filtfilt
 
 import textwrap
+import math
 
 # --- Nuevo para ANOVA:
 from statsmodels.formula.api import ols
@@ -50,6 +51,7 @@ console.setLevel(logging.DEBUG)  # Cambiado a DEBUG para más detalles en consol
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
 # Añadir la ruta a Stimulation.py
 stimulation_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\scripts\GUI_pattern_generator'
@@ -72,10 +74,10 @@ except ImportError as e:
     sys.exit(f'Error al importar la función estimulo: {e}')
 
 # Directorios
-stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information.csv'
-segmented_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\informacion_archivos_segmentados.csv'
+stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information_expanded.csv'
+
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\ht_240.6'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\ht_24newcsv'
 
 # Asegurarse de que el directorio de salida existe
 if not os.path.exists(output_comparisons_dir):
@@ -98,7 +100,7 @@ def verificar_archivo(path, nombre_archivo):
 
 # Verificar la existencia de los archivos CSV
 verificar_archivo(stimuli_info_path, 'Stimuli_information.csv')
-verificar_archivo(segmented_info_path, 'informacion_archivos_segmentados.csv')
+# verificar_archivo(segmented_info_path, 'informacion_archivos_segmentados.csv')
 
 # Cargar archivos CSV
 print(f"Cargando Stimuli_information desde: {stimuli_info_path}")
@@ -112,16 +114,6 @@ except Exception as e:
     print(f'Error al cargar Stimuli_information.csv: {e}')
     sys.exit(f'Error al cargar Stimuli_information.csv: {e}')
 
-print(f"Cargando informacion_archivos_segmentados desde: {segmented_info_path}")
-logging.info(f"Cargando informacion_archivos_segmentados desde: {segmented_info_path}")
-try:
-    segmented_info = pd.read_csv(segmented_info_path)
-    logging.info(f"'informacion_archivos_segmentados.csv' cargado con {len(segmented_info)} filas.")
-    print(f"'informacion_archivos_segmentados.csv' cargado con {len(segmented_info)} filas.")
-except Exception as e:
-    logging.error(f'Error al cargar informacion_archivos_segmentados.csv: {e}')
-    print(f'Error al cargar informacion_archivos_segmentados.csv: {e}')
-    sys.exit(f'Error al cargar informacion_archivos_segmentados.csv: {e}')
 
 # Filtrar entradas donde 'Descartar' es 'No'
 print("Filtrando entradas donde 'Descartar' es 'No'")
@@ -715,7 +707,15 @@ def plot_trials_side_by_side(
             ax_disp.set_xlabel('Tiempo (s)')
             ax_disp.set_xlim(0, max_time)
             csv_name = trial.get('csv_filename', 'Archivo desconocido')
-            ax_disp.set_title(f"Ensayo {trial.get('trial_index', 0) + 1}\nCSV: {csv_name}")
+            if csv_name != 'Archivo desconocido':
+                # Extraemos la llave que contiene fecha, hora y el frame de inicio usando regex.
+                m = re.search(r'(\d{8}_\d{9}_\d+)', csv_name)
+                key = m.group(1) if m else csv_name
+            else:
+                key = csv_name
+            ax_disp.set_title(f"Ensayo {trial.get('trial_index', 0) + 1}\n{key}")
+
+
             if idx_col == 0:
                 ax_disp.legend(fontsize=8)
 
@@ -961,7 +961,63 @@ print("Conversión de Distancia Intracortical completada.")
 
 grouped_data = stimuli_info.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical'])
 
-submovement_summary_all = []
+def extract_submovement_metrics(submovement_details):
+    """
+    Extrae un DataFrame con las métricas de cada submovimiento (solo durante el estímulo)
+    de forma unificada para los tres modelos.
+    """
+    rows = []
+    for rec in submovement_details:
+        mt = rec.get('MovementType', '')
+        common_data = {
+            'Ensayo': rec.get('Ensayo'),
+            'Dia experimental': rec.get('Dia experimental'),
+            'body_part': rec.get('body_part'),
+            'Estímulo': rec.get('Estímulo'),
+            'MovementType': mt,
+            'Coordenada_x': rec.get('Coordenada_x'),
+            'Coordenada_y': rec.get('Coordenada_y'),
+            'Distancia Intracortical': rec.get('Distancia Intracortical')
+        }
+        if mt == 'Threshold-based':
+            inicio = rec.get('Latencia al Inicio (s)')
+            dur_total = rec.get('Duración Total (s)')
+            common_data.update({
+                'Inicio (s)': inicio,
+                'Fin (s)': inicio + dur_total if dur_total is not None else np.nan,
+                'Duración (s)': dur_total,
+                'Valor Pico (velocidad)': rec.get('Valor Pico (velocidad)'),
+                'Latencia Pico (s)': rec.get('Latencia al Pico (s)')
+            })
+        elif mt == 'Gaussian-based':
+            mu = rec.get('mu_gauss')
+            sigma = rec.get('sigma_gauss')
+            inicio = mu - 2 * sigma if (mu is not None and sigma is not None) else np.nan
+            fin = mu + 2 * sigma if (mu is not None and sigma is not None) else np.nan
+            duracion = 4 * sigma if sigma is not None else np.nan
+            common_data.update({
+                'Inicio (s)': inicio,
+                'Fin (s)': fin,
+                'Duración (s)': duracion,
+                'Valor Pico (velocidad)': rec.get('A_gauss'),
+                'Centro (s)': mu
+            })
+        elif mt == 'MinimumJerk':
+            t_start = rec.get('t_start')
+            t_end = rec.get('t_end')
+            common_data.update({
+                'Inicio (s)': t_start,
+                'Fin (s)': t_end,
+                'Duración (s)': t_end - t_start if (t_start is not None and t_end is not None) else np.nan,
+                'Valor Pico (velocidad)': rec.get('valor_pico'),
+                'Tiempo Pico (s)': rec.get('t_peak')
+            })
+        rows.append(common_data)
+    return pd.DataFrame(rows)
+
+
+# Lista global para almacenar los detalles de cada submovimiento (de todos los modelos)
+submovement_details = []   # <--- NUEVA lista global en la función collect_velocity_threshold_data()
 
 def collect_velocity_threshold_data():
     logging.info("Iniciando la recopilación de datos de umbral de velocidad.")
@@ -972,17 +1028,23 @@ def collect_velocity_threshold_data():
     processed_combinations = set()
     movement_ranges_all = []
 
+    # Lista para guardar los detalles de cada submovimiento (por ensayo y modelo)
+    global submovement_details  
+    submovement_details = []
+
+    # Agrupamos usando las claves del CSV expandido
+    grouped_data = stimuli_info.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical'])
+
     for (dia_experimental, coord_x, coord_y, dist_ic), day_df in grouped_data:
         print(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
         logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
         print(f'Número de ensayos en este grupo: {len(day_df)}')
         logging.info(f'Número de ensayos en este grupo: {len(day_df)}')
 
-        # Aseguramos que la forma de pulso sea minúscula y reiniciamos el índice
+        # Asegurarse de que "Forma del Pulso" esté en minúsculas
         day_df['Forma del Pulso'] = day_df['Forma del Pulso'].str.lower()
-        day_df = day_df.reset_index(drop=True)
-        # Asignamos un orden (este valor servirá para construir el estímulo)
-        day_df['Order'] = day_df.index + 1
+        if 'trial_number' not in day_df.columns:
+            day_df['trial_number'] = day_df.index + 1
 
         for part in body_parts:
             logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}, Articulación {part}')
@@ -992,29 +1054,17 @@ def collect_velocity_threshold_data():
             all_stimuli_data = {}
             pre_stim_velocities = []
 
-            # -----------------------------
-            # 1) Cálculo de umbral (pre-stim)
-            # -----------------------------
-            for index, row in day_df.iterrows():
-                camara_lateral = row['Camara Lateral']
-                if pd.notna(camara_lateral):
-                    matching_segment = segmented_info[
-                        segmented_info['CarpetaPertenece'].str.contains(camara_lateral, na=False)
-                    ]
-                    if not matching_segment.empty:
-                        matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
-                        for _, segment_row in matching_segment_sorted.iterrows():
-                            nombre_segmento = segment_row['NombreArchivo'].replace('.mp4', '').replace('lateral_', '')
-                            csv_path = encontrar_csv(camara_lateral, nombre_segmento)
-                            trial_data = {}  # Creamos el diccionario para el ensayo actual
-                            if csv_path:
-                                velocidades, posiciones = calcular_velocidades(csv_path)
-                                trial_data['csv_filename'] = os.path.basename(csv_path)
-                                vel = velocidades.get(part, [])
-                                if len(vel) > 0:
-                                    vel_pre_stim = vel[:100]
-                                    vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
-                                    pre_stim_velocities.extend(vel_pre_stim)
+            # (1) Cálculo del umbral pre-estímulo
+            for _, row in day_df.iterrows():
+                csv_path = row.get('csv_path')
+                if csv_path and os.path.exists(csv_path):
+                    velocidades, posiciones = calcular_velocidades(csv_path)
+                    row['csv_filename'] = os.path.basename(csv_path)
+                    vel = velocidades.get(part, [])
+                    if len(vel) > 0:
+                        vel_pre_stim = vel[:100]
+                        vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
+                        pre_stim_velocities.extend(vel_pre_stim)
 
             if len(pre_stim_velocities) < 10:
                 logging.warning(f'Datos insuficientes para calcular umbral para {part} en Día={dia_experimental}.')
@@ -1022,7 +1072,6 @@ def collect_velocity_threshold_data():
 
             mean_vel_pre = np.nanmean(pre_stim_velocities)
             std_vel_pre  = np.nanstd(pre_stim_velocities)
-            # Filtrar outliers a ±3 std
             vel_list_filtered = [v for v in pre_stim_velocities if (mean_vel_pre - 3*std_vel_pre) <= v <= (mean_vel_pre + 3*std_vel_pre)]
             if len(vel_list_filtered) < 10:
                 logging.warning(f'Datos insuficientes tras filtrar outliers para {part}.')
@@ -1045,15 +1094,11 @@ def collect_velocity_threshold_data():
                 'num_pre_stim_values': len(vel_list_filtered)
             })
 
-            # -----------------------------
-            # 2) Procesar Estímulos
-            # -----------------------------
-            unique_stimuli = day_df.drop_duplicates(subset=['Forma del Pulso', 'Duración (ms)'], keep='first')[['Forma del Pulso', 'Duración (ms)', 'Order']]
+            # (2) Procesar estímulos agrupados por "Forma del Pulso" y "Duración (ms)"
+            unique_stimuli = day_df.drop_duplicates(subset=['Forma del Pulso', 'Duración (ms)'], keep='first')[['Forma del Pulso', 'Duración (ms)', 'trial_number']]
             for _, stim in unique_stimuli.iterrows():
-                forma_pulso  = stim['Forma del Pulso'].lower()
-                duracion_ms  = stim.get('Duración (ms)', None)
-                order        = stim['Order']
-                # Usamos como estímulo la concatenación de forma y duración
+                forma_pulso = stim['Forma del Pulso'].lower()
+                duracion_ms = stim.get('Duración (ms)', None)
                 stimulus_key = f"{forma_pulso.capitalize()}, {duracion_ms} ms"
 
                 if duracion_ms is not None:
@@ -1073,56 +1118,36 @@ def collect_velocity_threshold_data():
                     total_trials_part = 0
                     max_velocities = []
 
-                    for index, rowAmp in amplitude_trials.iterrows():
-                        camara_lateral = rowAmp['Camara Lateral']
-                        if pd.notna(camara_lateral):
-                            matching_segment = segmented_info[
-                                segmented_info['CarpetaPertenece'].str.contains(camara_lateral, na=False)
-                            ]
-                            if not matching_segment.empty:
-                                matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
-                                compensar = False if duracion_ms == 1000 else True
-                                amplitude_list, duration_list = generar_estimulo_desde_parametros(
-                                    rowAmp['Forma del Pulso'],
-                                    amplitude * 1000,
-                                    (duracion_ms*1000 if duracion_ms else 1000000),
-                                    rowAmp['Frecuencia (Hz)'],
-                                    200,
-                                    compensar=compensar
-                                )
-                                start_frame   = 100
-                                current_frame = int(start_frame + sum(duration_list))
-                                for _, segRow in matching_segment_sorted.iterrows():
-                                    nombre_segmento = segRow['NombreArchivo'].replace('.mp4','').replace('lateral_','')
-                                    csv_path = encontrar_csv(camara_lateral, nombre_segmento)
-                                    if csv_path:
-                                        velocidades, posiciones = calcular_velocidades(csv_path)
-                                        vel = velocidades.get(part, [])
-                                        if len(vel) == 0:
-                                            continue
-                                        vel_pre_stim = vel[:start_frame]
-                                        vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
-                                        if len(vel_pre_stim) == 0:
-                                            logging.warning("Trial sin datos pre-stim.")
-                                            continue
-                                        mean_vel_pre_trial = np.nanmean(vel_pre_stim)
-                                        if mean_vel_pre_trial > mean_vel_pre + 3*std_vel_pre:
-                                            logging.info("Descartando trial por exceso pre-stim.")
-                                            continue
+                    for _, rowAmp in amplitude_trials.iterrows():
+                        csv_path = rowAmp.get('csv_path')
+                        if csv_path and os.path.exists(csv_path):
+                            velocidades, posiciones = calcular_velocidades(csv_path)
+                            vel = velocidades.get(part, [])
+                            if len(vel) == 0:
+                                continue
+                            start_frame = 100
+                            vel_pre_stim = vel[:start_frame]
+                            vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
+                            if len(vel_pre_stim) == 0:
+                                logging.warning("Trial sin datos pre-stim.")
+                                continue
+                            mean_vel_pre_trial = np.nanmean(vel_pre_stim)
+                            if mean_vel_pre_trial > mean_vel_pre + 3*std_vel_pre:
+                                logging.info("Descartando trial por exceso pre-stim.")
+                                continue
 
-                                        total_trials_part += 1
-                                        frames_vel = np.arange(len(vel))
-                                        above_threshold = (vel > threshold)
-                                        indices_above = frames_vel[above_threshold]
-                                        if len(indices_above) > 0:
-                                            segments = np.split(indices_above, np.where(np.diff(indices_above)!=1)[0]+1)
-                                            for seg_above in segments:
-                                                movement_start = seg_above[0]
-                                                movement_end = seg_above[-1]
-                                                if start_frame <= movement_start <= current_frame:
-                                                    movement_trials += 1
-                                        maxVel = np.max(vel)
-                                        max_velocities.append(maxVel)
+                            total_trials_part += 1
+                            frames_vel = np.arange(len(vel))
+                            above_threshold = (vel > threshold)
+                            indices_above = frames_vel[above_threshold]
+                            if len(indices_above) > 0:
+                                segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
+                                for seg_above in segments:
+                                    if start_frame <= seg_above[0]:
+                                        movement_trials += 1
+                            maxVel = np.max(vel)
+                            max_velocities.append(maxVel)
+                            rowAmp['trial_number'] = rowAmp.get('trial_number', rowAmp.name + 1)
                     prop_movement = 1 if movement_trials > 0 else 0
 
                     amplitude_movement_counts[amplitude] = {
@@ -1137,7 +1162,7 @@ def collect_velocity_threshold_data():
                         'Forma del Pulso': forma_pulso,
                         'Duración (ms)': duracion_ms,
                         'Amplitud (microA)': amplitude,
-                        'Order': order,
+                        'trial_number': rowAmp.get('trial_number'),
                         'movement_trials': movement_trials,
                         'total_trials': total_trials_part,
                         'no_movement_trials': total_trials_part - movement_trials,
@@ -1145,7 +1170,7 @@ def collect_velocity_threshold_data():
                     })
 
                 if not amplitude_movement_counts:
-                    logging.debug(f"No hay amplitudes con mov. para {part}, día {dia_experimental}, {forma_pulso} {duracion_ms}ms.")
+                    logging.debug(f"No hay amplitudes con movimiento para {part}, día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
                     continue
 
                 max_proportion = max(mdata['proportion_movement'] for mdata in amplitude_movement_counts.values())
@@ -1175,192 +1200,197 @@ def collect_velocity_threshold_data():
                 group_positions = {'x': [], 'y': []}
                 group_trial_indices = []
                 trial_counter = 0
-                movement_ranges = []
-                trials_data = []
+                movement_ranges = []  # Para movimientos Threshold-based
+                trials_data = []  # Datos por ensayo
 
-                # -------------------------------------------------------
-                # Detección de submovimientos Threshold / Gauss / MinJerk
-                # -------------------------------------------------------
-                for index, rowStim in selected_trials.iterrows():
-                    camara_lateral = rowStim['Camara Lateral']
-                    if pd.notna(camara_lateral):
-                        matching_segment = segmented_info[
-                            segmented_info['CarpetaPertenece'].str.contains(camara_lateral, na=False)
-                        ]
-                        if not matching_segment.empty:
-                            matching_segment_sorted = matching_segment.sort_values(by='NumeroOrdinal')
-                            compensar = False if duracion_ms == 1000 else True
+                for _, rowStim in selected_trials.iterrows():
+                    csv_path = rowStim.get('csv_path')
+                    if csv_path and os.path.exists(csv_path):
+                        velocidades, posiciones = calcular_velocidades(csv_path)
+                        if part in velocidades:
+                            vel = velocidades[part]
+                            pos = posiciones[part]
+                            if len(vel) == 0:
+                                continue
+                            start_frame = 100
                             amplitude_list, duration_list = generar_estimulo_desde_parametros(
                                 rowStim['Forma del Pulso'],
                                 rowStim['Amplitud (microA)'] * 1000,
                                 (duracion_ms*1000 if duracion_ms else 1000000),
-                                (rowStim['Frecuencia (Hz)'] if frequency is None else frequency),
+                                rowStim['Frecuencia (Hz)'] if frequency is None else frequency,
                                 200,
-                                compensar=compensar
+                                compensar=False if duracion_ms == 1000 else True
                             )
-                            start_frame = 100
                             current_frame = int(start_frame + sum(duration_list))
-                            for _, segRow in matching_segment_sorted.iterrows():
-                                nombre_segmento = segRow['NombreArchivo'].replace('.mp4','').replace('lateral_','')
-                                csv_path = encontrar_csv(camara_lateral, nombre_segmento)
-                                if csv_path:
-                                    velocidades, posiciones = calcular_velocidades(csv_path)
-                                    if part in velocidades:
-                                        vel = velocidades[part]
-                                        pos = posiciones[part]
-                                        if len(vel) == 0:
+                            vel_pre_stim = vel[:start_frame]
+                            vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
+                            if len(vel_pre_stim) == 0:
+                                logging.warning(f"Trial {trial_counter} sin datos pre-stim.")
+                                continue
+                            mean_vel_pre_trial = np.nanmean(vel_pre_stim)
+                            if mean_vel_pre_trial > mean_vel_pre + 3*std_vel_pre:
+                                logging.info(f"Descartado trial {trial_counter} por pre-stim alto.")
+                                continue
+
+                            if np.any(vel[start_frame:current_frame] > threshold):
+                                movement_trials_in_selected += 1
+                            group_velocities.append(vel)
+                            group_positions['x'].append(pos['x'])
+                            group_positions['y'].append(pos['y'])
+                            group_trial_indices.append(trial_counter)
+
+                            frames_vel = np.arange(len(vel))
+                            above_threshold = (vel > threshold)
+                            indices_above = frames_vel[above_threshold]
+                            submovements = []  # Aquí se almacenarán submovimientos de otros modelos
+                            if len(indices_above) > 0:
+                                segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
+                                # Dentro del bucle que procesa cada segmento detectado:
+                                for seg_above in segments:
+                                    movement_start = seg_above[0]
+                                    movement_end = seg_above[-1]
+                                    # Descartar si inicia antes de 30 ms (3 frames) después del estímulo
+                                    if movement_start < start_frame + 3:
+                                        continue
+                                    if (movement_end - movement_start) < 3:
+                                        continue
+                                    # Definir el período (Threshold-based)
+                                    if movement_start < start_frame:
+                                        periodo = 'Pre-Estímulo'
+                                    elif start_frame <= movement_start <= current_frame:
+                                        periodo = 'Durante Estímulo'
+                                    else:
+                                        periodo = 'Post-Estímulo'
+                                    
+                                    movement_data = {
+                                        'Ensayo': trial_counter + 1,
+                                        'Dia experimental': dia_experimental,
+                                        'body_part': part,
+                                        'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                                        'MovementType': 'Threshold-based',
+                                        'Periodo': periodo,
+                                        'Inicio Movimiento (Frame)': movement_start,
+                                        'Fin Movimiento (Frame)': movement_end,
+                                        'Latencia al Inicio (s)': (movement_start - start_frame) / 100.0,
+                                        'Latencia al Pico (s)': (movement_start + np.argmax(vel[movement_start:movement_end+1]) - start_frame) / 100.0,
+                                        'Valor Pico (velocidad)': float(vel[movement_start + np.argmax(vel[movement_start:movement_end+1])]),
+                                        'Duración Total (s)': (movement_end - movement_start) / 100.0,
+                                        'Duración durante Estímulo (s)': max(0, min(movement_end, current_frame) - max(movement_start, start_frame)) / 100.0,
+                                        'Coordenada_x': coord_x,
+                                        'Coordenada_y': coord_y,
+                                        'Distancia Intracortical': dist_ic
+                                    }
+                                    movement_ranges.append(movement_data)
+                                    movement_ranges_all.append(movement_data)
+                                    if periodo == 'Durante Estímulo':
+                                        submovement_details.append(movement_data)
+                                    
+                                    # Solo si el movimiento ocurre durante el estímulo se procesan submovimientos internos
+                                    if periodo == 'Durante Estímulo':
+                                        t_segment = np.arange(movement_start, movement_end+1) / 100.0
+                                        # Descarta submovimientos que inicien antes de 30 ms después del estímulo
+                                        if t_segment[0] < (start_frame/100.0 + 0.03):
                                             continue
-                                        vel_pre_stim = vel[:start_frame]
-                                        vel_pre_stim = vel_pre_stim[~np.isnan(vel_pre_stim)]
-                                        if len(vel_pre_stim) == 0:
-                                            logging.warning(f"Trial {trial_counter} sin pre-stim.")
-                                            continue
-                                        mean_vel_pre_trial = np.nanmean(vel_pre_stim)
-                                        if mean_vel_pre_trial > mean_vel_pre + 3*std_vel_pre:
-                                            logging.info(f"Descartado trial {trial_counter} por pre-stim alto.")
-                                            continue
-                                        trial_passed = np.any(vel[start_frame:current_frame] > threshold)
-                                        if trial_passed:
-                                            movement_trials_in_selected += 1
-                                        group_velocities.append(vel)
-                                        group_positions['x'].append(pos['x'])
-                                        group_positions['y'].append(pos['y'])
-                                        group_trial_indices.append(trial_counter)
-                                        frames_vel = np.arange(len(vel))
-                                        above_threshold = (vel > threshold)
-                            
-                                        # Inicializamos la lista de submovimientos para el trial actual
-                                        submovements = []  
-
-                                        indices_above = frames_vel[above_threshold]
-                                        if len(indices_above) > 0:
-                                            segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
-                                            for seg_above in segments:
-                                                movement_start = seg_above[0]
-                                                movement_end = seg_above[-1]
-                                                if (movement_end - movement_start) < 3:
-                                                    continue
-                                                # Determinar el período (Pre, Durante, Post)
-                                                if movement_start < start_frame:
-                                                    periodo = 'Pre-Estímulo'
-                                                elif start_frame <= movement_start <= current_frame:
-                                                    periodo = 'Durante Estímulo'
-                                                else:
-                                                    periodo = 'Post-Estímulo'
-                                                # Calcular métricas básicas del movimiento (Threshold-based)
-                                                segment_velocities = vel[movement_start:movement_end+1]
-                                                idx_peak = np.argmax(segment_velocities)
-                                                peak_frame = movement_start + idx_peak
-                                                latency2peak = (peak_frame - start_frame) / 100.0
-                                                peak_velocity = segment_velocities[idx_peak]
-                                                total_dur_sec = (movement_end - movement_start) / 100.0
-                                                onset_lat_sec = (movement_start - start_frame) / 100.0
-
-                                                movement_data = {
-                                                    'Ensayo': trial_counter+1,
-                                                    'Inicio Movimiento (Frame)': movement_start,
-                                                    'Fin Movimiento (Frame)': movement_end,
-                                                    'Latencia al Inicio (s)': onset_lat_sec,
-                                                    'Latencia al Pico (s)': latency2peak,
-                                                    'Valor Pico (velocidad)': peak_velocity,
-                                                    'Duración Total (s)': total_dur_sec,
-                                                    'Duración durante Estímulo (s)': max(0, min(movement_end, current_frame) - max(movement_start, start_frame)) / 100.0,
-                                                    'body_part': part,
-                                                    'Dia experimental': dia_experimental,
-                                                    'Order': order,
-                                                    # <---- Aquí se cambia el separador de guion bajo a coma y espacio
-                                                    'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
-                                                    'Periodo': periodo,
-                                                    'Forma del Pulso': forma_pulso.capitalize(),
-                                                    'Duración (ms)': duracion_ms,
-                                                    'MovementType': 'Threshold-based'
-                                                }
-                                                movement_ranges.append(movement_data)
-                                                movement_ranges_all.append(movement_data)
-                                                fs = 100.0
-                                                stim_start = start_frame / fs
-                                                # Solo procesamos submovimientos si el segmento está DURANTE el estímulo
-                                                # Dentro del bucle que procesa cada trial, justo donde ya tienes:
-                                                if periodo == 'Durante Estímulo':
-                                                    t_segment = np.arange(movement_start, movement_end+1) / 100.0
-                                                    vel_segment = vel[movement_start:movement_end+1]
-                                                    vel_segment_filtrada = aplicar_moving_average(vel_segment, window_size=10)
-                                                    
-                                                    # Modelo Gaussiano (ya existente)
-                                                    submov_peak_indices = detectar_submovimientos_en_segmento(vel_segment_filtrada, threshold)
-                                                    if len(submov_peak_indices) > 0:
-                                                        gaussians = fit_gaussians_submovement(t_segment, vel_segment_filtrada, threshold, stim_start)
-                                                        if gaussians:
-                                                            submovements.append({'gaussians': gaussians, 'MovementType': 'Gaussian-based'})
-                                                    
-                                                    # --- Nuevo: Modelo Minimum Jerk ---
-                                                    # (Asegúrate de que las funciones 'fit_velocity_profile' y 'sum_of_minimum_jerk' estén definidas y disponibles)
-                                                    n_submovimientos = len(submov_peak_indices)  # o asigna un valor adecuado
-                                                    result_minjerk = robust_fit_velocity_profile(t_segment, vel_segment, n_submovimientos)
-                                                    if result_minjerk is not None:
-                                                        params_minjerk = result_minjerk.x
-                                                        # Calcula la velocidad modelo sumando las contribuciones de cada submovimiento
-                                                        v_minjerk = sum_of_minimum_jerk(t_segment, *params_minjerk)
-                                                        # Almacena el resultado en la lista de submovimientos
-                                                        submovements.append({'t_segment_model': t_segment, 'v_sm': v_minjerk, 'MovementType': 'MinimumJerk'})
-
-
-
-
-
-
-                                        trial_data = {
-                                            'velocity': vel,
-                                            'positions': pos,
-                                            'trial_index': trial_counter,
-                                            'submovements': submovements,   # Aquí se integra la lista completa y organizada
-                                            'movement_ranges': [md for md in movement_ranges if md['Ensayo'] == (trial_counter+1)],
-                                            'amplitude_list': amplitude_list,
-                                            'duration_list': duration_list,
-                                            'start_frame': start_frame,
-                                            'current_frame': current_frame,
-                                            'threshold': threshold,
-                                            'mean_vel_pre': mean_vel_pre,
-                                            'std_vel_pre': std_vel_pre,
+                                        vel_segment = vel[movement_start:movement_end+1]
+                                        vel_segment_filtrada = aplicar_moving_average(vel_segment, window_size=10)
+                                        submov_peak_indices = detectar_submovimientos_en_segmento(vel_segment_filtrada, threshold)
+                                        # Modelo Gaussian-based
+                                        if len(submov_peak_indices) > 0:
+                                            gaussians = fit_gaussians_submovement(t_segment, vel_segment_filtrada, threshold, start_frame/100.0)
+                                            if gaussians:
+                                                for g in gaussians:
+                                                    rec = {
+                                                        'Ensayo': trial_counter + 1,
+                                                        'Dia experimental': dia_experimental,
+                                                        'body_part': part,
+                                                        'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                                                        'MovementType': 'Gaussian-based',
+                                                        'A_gauss': g.get('A_gauss'),
+                                                        'mu_gauss': g.get('mu_gauss'),
+                                                        'sigma_gauss': g.get('sigma_gauss'),
+                                                        'Coordenada_x': coord_x,
+                                                        'Coordenada_y': coord_y,
+                                                        'Distancia Intracortical': dist_ic
+                                                    }
+                                                    submovement_details.append(rec)
+                                                submovements.append({'gaussians': gaussians, 'MovementType': 'Gaussian-based'})
+                                        # Modelo MinimumJerk
+                                        n_submovimientos = len(submov_peak_indices)
+                                        result_minjerk = robust_fit_velocity_profile(t_segment, vel_segment, n_submovimientos)
+                                        if result_minjerk is not None:
+                                            params_minjerk = result_minjerk.x
+                                            v_minjerk = sum_of_minimum_jerk(t_segment, *params_minjerk)
+                                            idx_peak = int(np.argmax(v_minjerk))
+                                            rec = {
                                             'Ensayo': trial_counter + 1,
-                                            'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms"
+                                            'Dia experimental': dia_experimental,
+                                            'body_part': part,
+                                            'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                                            'MovementType': 'MinimumJerk',
+                                            't_start': t_segment[0],
+                                            't_end': t_segment[-1],
+                                            't_peak': t_segment[idx_peak],
+                                            'valor_pico': float(v_minjerk[idx_peak]),
+                                            'Coordenada_x': coord_x,
+                                            'Coordenada_y': coord_y,
+                                            'Distancia Intracortical': dist_ic
                                         }
-                                        # Agregar el conteo de submovimientos del modelo Minimum Jerk
-                                        trial_data['minjerk_count'] = sum(1 for s in submovements if s.get('MovementType') == 'MinimumJerk')
-                                        trials_data.append(trial_data)
-                                        trial_counter += 1
+                                            submovement_details.append(rec)
+                                            submovements.append({'t_segment_model': t_segment, 'v_sm': v_minjerk, 'MovementType': 'MinimumJerk'})
+
+
+                            trial_data = {
+                                'velocity': vel,
+                                'positions': pos,
+                                'trial_index': trial_counter,
+                                'submovements': submovements,
+                                'movement_ranges': [md for md in movement_ranges if md['Ensayo'] == (trial_counter + 1)],
+                                'amplitude_list': amplitude_list,
+                                'duration_list': duration_list,
+                                'start_frame': start_frame,
+                                'current_frame': current_frame,
+                                'threshold': threshold,
+                                'mean_vel_pre': mean_vel_pre,
+                                'std_vel_pre': std_vel_pre,
+                                'Ensayo': trial_counter + 1,
+                                'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                                'csv_filename': rowStim.get('csv_filename', 'Archivo desconocido')
+                            }
+                            trial_data['minjerk_count'] = sum(1 for s in submovements if s.get('MovementType') == 'MinimumJerk')
+                            trials_data.append(trial_data)
+                            trial_counter += 1
 
                 if len(trials_data) == 0:
-                    logging.debug(f"No hay datos de veloc. para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
-                    print(f"No hay datos de veloc. para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                    logging.debug(f"No hay datos de velocidad para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                    print(f"No hay datos de velocidad para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
                     continue
 
                 all_stimuli_data[stimulus_key] = {
-                            'velocities': group_velocities,
-                            'positions': group_positions,
-                            'threshold': threshold,
-                            'amplitude_list': amplitude_list,
-                            'duration_list': duration_list,
-                            'start_frame': start_frame,
-                            'current_frame': current_frame,
-                            'mean_vel_pre': mean_vel_pre,
-                            'std_vel_pre': std_vel_pre,
-                            'amplitud_real': selected_amplitudes,
-                            'y_max_velocity': y_max_velocity,
-                            'trial_indices': group_trial_indices,
-                            'form': forma_pulso.capitalize(),
-                            'duration_ms': duracion_ms,
-                            'frequency': frequency,
-                            'movement_ranges': movement_ranges,
-                            'movement_trials': movement_trials_in_selected,
-                            'total_trials': len(trials_data),
-                            'trials_passed': trials_passed,
-                            'Order': order,
-                            # Aquí también se usa el formato consistente:
-                            'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
-                            'trials_data': trials_data
-                        }
+                    'velocities': group_velocities,
+                    'positions': group_positions,
+                    'threshold': threshold,
+                    'amplitude_list': amplitude_list,
+                    'duration_list': duration_list,
+                    'start_frame': start_frame,
+                    'current_frame': current_frame,
+                    'mean_vel_pre': mean_vel_pre,
+                    'std_vel_pre': std_vel_pre,
+                    'amplitud_real': selected_amplitudes,
+                    'y_max_velocity': y_max_velocity,
+                    'trial_indices': group_trial_indices,
+                    'form': forma_pulso.capitalize(),
+                    'duration_ms': duracion_ms,
+                    'frequency': frequency,
+                    'movement_ranges': movement_ranges,
+                    'movement_trials': movement_trials_in_selected,
+                    'total_trials': len(trials_data),
+                    'trials_passed': trials_passed,
+                    'Order': stim.get('trial_number'),
+                    'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                    'trials_data': trials_data
+                }
 
+            # Llamamos a la función de graficación para cada estímulo
             for stimulus_key, dataSt in all_stimuli_data.items():
                 plot_trials_side_by_side(
                     stimulus_key=stimulus_key,
@@ -1372,6 +1402,8 @@ def collect_velocity_threshold_data():
                     coord_y=coord_y,
                     dist_ic=dist_ic
                 )
+
+    # Guardamos los resultados generales
     counts_df = pd.DataFrame(all_movement_data)
     counts_path = os.path.join(output_comparisons_dir, 'movement_counts_summary.csv')
     counts_df.to_csv(counts_path, index=False)
@@ -1387,13 +1419,19 @@ def collect_velocity_threshold_data():
     movement_ranges_df.to_csv(movement_ranges_path, index=False)
     print(f"Datos de movement_ranges guardados en: {movement_ranges_path}")
 
-    if submovement_summary_all:
-        submovement_df = pd.DataFrame(submovement_summary_all)
-        submovement_path = os.path.join(output_comparisons_dir, 'submovement_summary.csv')
+    # Guardar la tabla detallada de submovimientos (ya se hace en la función)
+    if submovement_details:
+        submovement_df = pd.DataFrame(submovement_details)
+        submovement_path = os.path.join(output_comparisons_dir, 'submovement_detailed_summary.csv')
         submovement_df.to_csv(submovement_path, index=False)
-        print(f"Datos de submovimientos guardados en: {submovement_path}")
+        print(f"Datos detallados de submovimientos guardados en: {submovement_path}")
 
-    plot_summary_movement_data(movement_ranges_df, output_comparisons_dir)
+    # EXTRA: Extraer métricas unificadas y guardarlas en un CSV
+    submovement_metrics_df = extract_submovement_metrics(submovement_details)
+    submovement_metrics_path = os.path.join(output_comparisons_dir, 'submovement_metrics_summary.csv')
+    submovement_metrics_df.to_csv(submovement_metrics_path, index=False)
+    print(f"Métricas unificadas de submovimientos guardadas en: {submovement_metrics_path}")
+
 
     print("Combinaciones procesadas:")
     for combo in processed_combinations:
@@ -1403,109 +1441,6 @@ def collect_velocity_threshold_data():
     return counts_df
 
 
-
-
-
-
-
-
-
-
-
-def plot_summary_movement_data(movement_ranges_df, output_dir):
-    logging.info("Generando gráficos comparativos de movimientos (Resumen Global).")
-    print("Generando gráficos comparativos de movimientos (Resumen Global).")
-    
-    # Agregamos las métricas extendidas y agrupamos por Estímulo
-    agg_df = aggregate_trial_metrics_extended(movement_ranges_df)
-    grouped = agg_df.groupby('Estímulo')
-    
-    metrics_dict = {
-        "lat_inicio_ms": "Lat. Inicio (ms)",
-        "lat_primer_pico_ms": "Lat. Primer Pico (ms)",
-        "lat_pico_max_ms": "Lat. Pico Máx. (ms)",
-        "dur_total_ms": "Duración Total (ms)",
-        "valor_pico_inicial": "Valor Pico Inicial",
-        "valor_pico_max": "Valor Pico Máx.",
-        "num_movs": "N° Movimientos",
-        "lat_inicio_mayor_ms": "Lat. Inicio Mayor (ms)",
-        "lat_pico_mayor_ms": "Lat. Pico Mayor (ms)",
-        "delta_valor_pico": "Delta Valor Pico"
-    }
-    metric_keys = list(metrics_dict.keys())
-    n_metrics = len(metric_keys)
-    
-    # Usamos 2 filas de paneles
-    import math
-    n_cols = math.ceil(n_metrics / 2)
-    fig_size = (n_cols * 4, 2 * 4)
-    
-    # Diccionario de offsets
-    offset_dict = {
-        'Threshold-based': 0,
-        'Gaussian-based': 0.5,
-        'MinimumJerk': 1.0
-    }
-    width = 0.6
-    gap_between = 1.5
-
-    for est, df_est in grouped:
-        fig, axs = plt.subplots(2, n_cols, figsize=fig_size, squeeze=False)
-        # Iterar sobre cada métrica
-        for idx, metric_key in enumerate(metric_keys):
-            row = idx // n_cols
-            col = idx % n_cols
-            ax = axs[row, col]
-            
-            boxplot_data = []
-            x_positions = []
-            group_centers = []
-            labels = []
-            current_pos = 0
-            movement_types = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
-            for mtype in movement_types:
-                data = df_est[df_est['MovementType'] == mtype][metric_key].dropna().values
-                if len(data) == 0:
-                    continue
-                boxplot_data.append(data)
-                pos = current_pos + offset_dict[mtype]
-                x_positions.append(pos)
-            if x_positions:
-                group_center = np.mean(x_positions)
-                group_centers.append(group_center)
-                labels.append(est)
-                current_pos = max(x_positions) + gap_between
-            if not boxplot_data:
-                ax.text(0.5, 0.5, "Sin datos", ha='center', va='center')
-                continue
-            bp = ax.boxplot(boxplot_data, positions=x_positions, widths=width/2.2,
-                            patch_artist=True, showfliers=False, whis=(0, 100))
-            for patch in bp['boxes']:
-                patch.set_facecolor("lightblue")
-                patch.set_edgecolor('black')
-            ax.set_xticks(group_centers)
-            ax.set_xticklabels(labels, rotation=45, ha='right')
-            ax.set_xlabel("Estímulo")
-            ax.set_ylabel(metrics_dict[metric_key])
-            ax.set_title(metrics_dict[metric_key])
-            y_lims = ax.get_ylim()
-            ax.set_ylim(y_lims[0], y_lims[1] + (y_lims[1]-y_lims[0])*0.35)
-            
-            # Anotaciones de significancia (valores de ejemplo)
-            for idx_m, mtype in enumerate(movement_types):
-                p_val_model = 0.03 if mtype == "Threshold-based" else (0.07 if mtype == "Gaussian-based" else 0.01)
-                ax.text(0.5, 0.95 - 0.05 * idx_m,
-                        f"{mtype}: p = {p_val_model:.2f}",
-                        transform=ax.transAxes,
-                        ha='center', va='top', fontsize=10,
-                        color="darkblue" if p_val_model < 0.05 else "gray")
-        fig.suptitle(f"Resumen Global - Estímulo: {est}", fontsize=16)
-        plt.tight_layout(rect=[0, 0.03, 1, 0.90])
-        fname = f"global_summary_{sanitize_filename(est)}.png"
-        out_path = os.path.join(output_dir, fname)
-        plt.savefig(out_path, dpi=150)
-        plt.close()
-        print(f"[Plot] Resumen Global para {est} guardado en {out_path}")
 
 
 
@@ -1571,7 +1506,6 @@ def plot_summary_movement_data_by_bodypart(movement_ranges_df, output_dir):
             }
             metric_keys = list(metrics_dict.keys())
             n_metrics = len(metric_keys)
-            import math
             n_cols = math.ceil(n_metrics / 2)
             fig, axs = plt.subplots(2, n_cols, figsize=(n_cols * 5, 2 * 5), squeeze=False)
             
@@ -1605,7 +1539,7 @@ def plot_summary_movement_data_by_bodypart(movement_ranges_df, output_dir):
                     ax.text(0.5, 0.5, "Sin datos", ha='center', va='center')
                     continue
                 bp_obj = ax.boxplot(boxplot_data, positions=x_positions, widths=0.6/2.2,
-                                    patch_artist=True, showfliers=False, whis=(0, 100))
+                                    patch_artist=True, showfliers=False, whis=(0, 0))
                 box_colors = sns.color_palette("Set3", n_colors=len(x_positions))
                 for patch, color in zip(bp_obj['boxes'], box_colors):
                     patch.set_facecolor(color)
@@ -1636,219 +1570,6 @@ def plot_summary_movement_data_by_bodypart(movement_ranges_df, output_dir):
             print(f"[Plot] Resumen por body_part para {body_part} en día {day} guardado en {out_path}")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def analyze_best_bodyparts_and_stimuli(counts_df):
-    logging.info("Iniciando análisis de las mejores articulaciones y estímulos.")
-    print("Iniciando análisis de las mejores articulaciones y estímulos.")
-
-    counts_df['Estímulo'] = counts_df['Forma del Pulso'].str.capitalize() + ', ' + counts_df['Duración (ms)'].astype(str) + ' ms'
-    counts_df['Estímulo_label'] = counts_df['Forma del Pulso'].str.capitalize() + '\n' + counts_df['Duración (ms)'].astype(str) + ' ms'
-
-    sorted_df = counts_df.sort_values(by='proportion_movement', ascending=False)
-
-    top_bodyparts = sorted_df.groupby('body_part')['proportion_movement'].mean().sort_values(ascending=False)
-    logging.info("Top articulaciones con mayor proporción de movimiento:")
-    logging.info(top_bodyparts.head(5))
-    print("Top articulaciones con mayor proporción de movimiento:")
-    print(top_bodyparts.head(5))
-
-    top_stimuli = sorted_df.groupby('Estímulo')['proportion_movement'].mean().sort_values(ascending=False)
-    logging.info("\nTop estímulos con mayor proporción de movimiento:")
-    logging.info(top_stimuli.head(5))
-    print("\nTop estímulos con mayor proporción de movimiento:")
-    print(top_stimuli.head(5))
-
-    top_bodyparts_path = os.path.join(output_comparisons_dir, 'top_bodyparts.csv')
-    top_stimuli_path = os.path.join(output_comparisons_dir, 'top_stimuli.csv')
-    top_bodyparts.to_csv(top_bodyparts_path)
-    top_stimuli.to_csv(top_stimuli_path)
-    logging.info(f"Top articulaciones guardadas en {top_bodyparts_path}")
-    logging.info(f"Top estímulos guardados en {top_stimuli_path}")
-    print(f"Top articulaciones guardadas en {top_bodyparts_path}")
-    print(f"Top estímulos guardadas en {top_stimuli_path}")
-
-def plot_heatmap(counts_df):
-    logging.info("Iniciando generación del heatmap.")
-    print("Iniciando generación del heatmap.")
-
-    # Creamos una nueva columna combinando 'Dia experimental' y 'Estímulo'
-    counts_df['Dia_Estimulo'] = counts_df['Dia experimental'].astype(str) + "\n" + (
-        counts_df['Forma del Pulso'].str.capitalize() + ', ' +
-        counts_df['Duración (ms)'].astype(str) + ' ms'
-    )
-
-    # Pivot table para la proporción de movimiento (media)
-    try:
-        pivot_prop = counts_df.pivot_table(
-            index='body_part',
-            columns='Dia_Estimulo',
-            values='proportion_movement',
-            aggfunc='mean'
-        )
-        logging.debug("Pivot table para proporción de movimiento creada.")
-    except Exception as e:
-        logging.error(f'Error al pivotear datos para proporción de movimiento: {e}')
-        print(f'Error al pivotear datos para proporción de movimiento: {e}')
-        return
-
-    # Pivot tables para ensayos de movimiento y total (para anotaciones)
-    try:
-        pivot_movement = counts_df.pivot_table(
-            index='body_part',
-            columns='Dia_Estimulo',
-            values='movement_trials',
-            aggfunc='sum'
-        )
-        pivot_total = counts_df.pivot_table(
-            index='body_part',
-            columns='Dia_Estimulo',
-            values='total_trials',
-            aggfunc='sum'
-        )
-        logging.debug("Pivot tables para movement_trials y total_trials creadas.")
-    except Exception as e:
-        logging.error(f'Error al pivotear datos para movement_trials y total_trials: {e}')
-        print(f'Error al pivotear datos para movement_trials y total_trials: {e}')
-        return
-
-    # Reindexamos para llenar celdas faltantes
-    common_index = pivot_prop.index.union(pivot_movement.index).union(pivot_total.index)
-    common_columns = pivot_prop.columns.union(pivot_movement.columns).union(pivot_total.columns)
-    pivot_prop = pivot_prop.reindex(index=common_index, columns=common_columns)
-    pivot_movement = pivot_movement.reindex(index=common_index, columns=common_columns)
-    pivot_total = pivot_total.reindex(index=common_index, columns=common_columns)
-    logging.debug("Reindexación completada en pivot tables.")
-
-    # Creamos una matriz de anotación: movement_trials / total_trials
-    annot_matrix = pivot_movement.fillna(0).astype(int).astype(str) + '/' + \
-                   pivot_total.fillna(0).astype(int).astype(str)
-
-    # ----- Heatmap 2D -----
-    plt.figure(figsize=(20, 15))
-    try:
-        sns.heatmap(pivot_prop, annot=annot_matrix, fmt='', cmap='viridis')
-        logging.debug("Heatmap 2D generado con éxito.")
-    except Exception as e:
-        logging.error(f'Error al generar el heatmap 2D: {e}')
-        print(f'Error al generar el heatmap 2D: {e}')
-        return
-
-    plt.title('Proporción de Movimiento por Articulación\n(Día y Estímulo Combinados)')
-    plt.xlabel('Día y Estímulo')
-    plt.ylabel('Articulación')
-    plt.tight_layout()
-
-    heatmap_path = os.path.join(output_comparisons_dir, 'heatmap_bodypart_day_stimulus.png')
-    try:
-        plt.savefig(heatmap_path, dpi=150)
-        logging.info(f'Heatmap 2D guardado en {heatmap_path}')
-        print(f'Gráfico heatmap_bodypart_day_stimulus.png guardado en {heatmap_path}.')
-    except Exception as e:
-        logging.error(f'Error al guardar el heatmap 2D: {e}')
-        print(f'Error al guardar el heatmap 2D: {e}')
-    plt.close()
-
-    # ----- Gráfico 3D de Barras -----
-    try:
-        from mpl_toolkits.mplot3d import Axes3D  # Import necesario para 3D
-
-        fig = plt.figure(figsize=(20, 15))
-        ax = fig.add_subplot(111, projection='3d')
-
-        # Usamos pivot_prop para los valores de z
-        x_labels = list(pivot_prop.columns)
-        y_labels = list(pivot_prop.index)
-        xpos, ypos = np.meshgrid(np.arange(len(x_labels)), np.arange(len(y_labels)))
-        xpos = xpos.flatten()
-        ypos = ypos.flatten()
-        zpos = np.zeros_like(xpos)
-
-        # Alturas de las barras (proporción de movimiento, reemplazando NaN por 0)
-        dz = np.nan_to_num(pivot_prop.values).flatten()
-
-        # Ancho y profundidad de las barras
-        dx = 0.8 * np.ones_like(zpos)
-        dy = 0.8 * np.ones_like(zpos)
-
-        # Colores basados en los valores (usando colormap 'viridis')
-        cmap = plt.get_cmap("viridis")
-        max_dz = dz.max() if dz.max() > 0 else 1
-        colors = [cmap(val / max_dz) for val in dz]
-
-        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=colors, shade=True)
-
-        # Configuramos las etiquetas de los ejes
-        ax.set_xticks(np.arange(len(x_labels)) + 0.4)
-        ax.set_xticklabels(x_labels, rotation=90, fontsize=8)
-        ax.set_yticks(np.arange(len(y_labels)) + 0.4)
-        ax.set_yticklabels(y_labels, fontsize=8)
-        ax.set_zlabel("Proporción de Movimiento")
-
-        ax.set_title("3D Comparación de Proporción de Movimiento\npor Articulación y Día/Estímulo")
-        plt.tight_layout()
-
-        heatmap3d_path = os.path.join(output_comparisons_dir, 'heatmap3d_bodypart_day_stimulus.png')
-        plt.savefig(heatmap3d_path, dpi=150)
-        plt.close()
-        logging.info(f'Heatmap 3D guardado en {heatmap3d_path}')
-        print(f'Gráfico heatmap3d_bodypart_day_stimulus.png guardado en {heatmap3d_path}.')
-    except Exception as e:
-        logging.error(f'Error al generar o guardar el heatmap 3D: {e}')
-        print(f'Error al generar o guardar el heatmap 3D: {e}')
-
-
-
-def plot_effectiveness_over_time(counts_df):
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    logging.info("Generando gráficos cronológicos de efectividad de la estimulación por Día experimental.")
-    print("Generando gráficos cronológicos de efectividad de la estimulación por Día experimental.")
-
-    counts_df['Order'] = counts_df['Order'].astype(int)
-    counts_df = counts_df.sort_values(by=['Dia experimental', 'Order'])
-
-    dias_experimentales = counts_df['Dia experimental'].unique()
-    for dia in dias_experimentales:
-        df_dia = counts_df[counts_df['Dia experimental'] == dia]
-        plt.figure(figsize=(12, 6))
-        sns.lineplot(
-            x='Order',
-            y='proportion_movement',
-            hue='body_part',
-            data=df_dia,
-            marker='o'
-        )
-        plt.title(f'Efectividad de la Estimulación a lo largo del Día {dia}')
-        plt.xlabel('Orden del Estímulo')
-        plt.ylabel('Proporción de Movimiento')
-        plt.legend(title='Articulación', bbox_to_anchor=(1.05, 1), loc='upper left')
-        plt.tight_layout()
-
-        stimulus_labels = df_dia.groupby('Order')['Estímulo_label'].first()
-        plt.xticks(df_dia['Order'].unique(), stimulus_labels, rotation=45, ha='right')
-
-        output_path = os.path.join(output_comparisons_dir, f'efectividad_dia_{sanitize_filename(str(dia))}.png')
-        plt.savefig(output_path)
-        logging.info(f"Gráfico de efectividad guardado en {output_path}")
-        print(f"Gráfico de efectividad guardado en {output_path}")
-        plt.close()
 
 # -------------------------------------------------------------------
 # 1) FUNCIÓN NUEVA PARA PRUEBAS DE HIPÓTESIS:
@@ -2339,38 +2060,39 @@ def plot_boxplot_metric_with_posthoc(data_metric, metric, factor_name, tukey_df,
 def aggregate_trial_metrics_extended(movement_ranges_df):
     """
     Agrupa los movimientos para cada ensayo y cada modelo (MovementType) y calcula las métricas:
-      - lat_inicio_ms: latencia al inicio del primer movimiento (en ms)
+      - lat_inicio_ms: latencia al inicio del primer submovimiento (en ms)
       - lat_primer_pico_ms: latencia del primer pico (en ms)
       - lat_pico_max_ms: latencia del pico máximo (en ms)
-      - dur_total_ms: para Threshold-based y MinimumJerk se suma la Duración Total;
-                      para Gaussian-based se calcula la diferencia entre el inicio del primero y el fin del último (en ms)
-      - valor_pico_inicial: valor del pico del movimiento con la menor latencia de inicio
+      - dur_total_ms: duración total calculada como el tiempo (en ms) entre el inicio del primer submovimiento y el final del último
+      - valor_pico_inicial: valor del pico del submovimiento con la menor latencia de inicio
       - valor_pico_max: valor máximo del pico en el grupo
-      - num_movs: número de movimientos (o submovimientos) detectados
-      - lat_inicio_mayor_ms: latencia del movimiento con el valor pico máximo (en ms)
-      - lat_pico_mayor_ms: latencia del pico del movimiento con el valor pico máximo (en ms)
+      - num_movs: número de submovimientos detectados
+      - lat_inicio_mayor_ms: latencia (en ms) del submovimiento cuyo pico es el máximo
+      - lat_pico_mayor_ms: latencia (en ms) del pico máximo
       - delta_valor_pico: diferencia entre el valor pico máximo y el inicial
-    Además, se agrupa también por "Dia experimental" y "body_part".
+    Se agrupa además por 'Ensayo', 'Estímulo', 'MovementType', 'Dia experimental' y 'body_part'.
     """
     fs = 100.0  # Frecuencia de muestreo (frames/s)
     
     def agg_func(group):
+        # Las latencias se calculan de forma similar en todos los modelos:
         lat_inicio_ms = group['Latencia al Inicio (s)'].min() * 1000
         lat_primer_pico_ms = group['Latencia al Pico (s)'].min() * 1000
         lat_pico_max_ms = group['Latencia al Pico (s)'].max() * 1000
 
-        mt = group['MovementType'].iloc[0]
-        if mt in ['Threshold-based', 'MinimumJerk']:
-            dur_total_ms = group['Duración Total (s)'].sum() * 1000
-        elif mt == 'Gaussian-based':
-            dur_total_ms = ((group['Fin Movimiento (Frame)'].max() - group['Inicio Movimiento (Frame)'].min()) / fs) * 1000
-        else:
-            dur_total_ms = np.nan
+        # *Nuevo*: La duración total se define como el intervalo entre el inicio del primer
+        # submovimiento y el final del último, en lugar de sumar duraciones individuales.
+        dur_total_ms = ((group['Fin Movimiento (Frame)'].max() - group['Inicio Movimiento (Frame)'].min()) / fs) * 1000
 
+        # Para los picos, se escoge el submovimiento con la latencia de inicio mínima para obtener el valor pico inicial
         idx_min = group['Latencia al Inicio (s)'].idxmin()
         valor_pico_inicial = group.loc[idx_min, 'Valor Pico (velocidad)']
+
+        # El valor pico máximo se obtiene de todo el grupo
         valor_pico_max = group['Valor Pico (velocidad)'].max()
         num_movs = len(group)
+
+        # Se determina el submovimiento que tiene el pico máximo para extraer sus latencias
         idx_max = group['Valor Pico (velocidad)'].idxmax()
         lat_inicio_mayor_ms = group.loc[idx_max, 'Latencia al Inicio (s)'] * 1000
         lat_pico_mayor_ms = group.loc[idx_max, 'Latencia al Pico (s)'] * 1000
@@ -2389,24 +2111,13 @@ def aggregate_trial_metrics_extended(movement_ranges_df):
             "lat_pico_mayor_ms": lat_pico_mayor_ms,
             "delta_valor_pico": delta_valor_pico
         })
-    
-    # Agrupar por Ensayo, Estímulo, MovementType, Día experimental y body_part.
+
     aggregated = movement_ranges_df.groupby(
         ['Ensayo', 'Estímulo', 'MovementType', 'Dia experimental', 'body_part']
     ).apply(agg_func).reset_index()
     return aggregated
 
 
-
-
-
-
-
-
-
-import math
-
-import math
 
 def plot_global_summary_with_significance_all_extended(movement_ranges_df, output_dir):
     """
@@ -2511,8 +2222,8 @@ def plot_global_summary_with_significance_all_extended(movement_ranges_df, outpu
                 if not boxplot_data:
                     ax.text(0.5, 0.5, "Sin datos", ha='center', va='center')
                     continue
-                bp_obj = ax.boxplot(boxplot_data, positions=x_positions, widths=width/2.2,
-                                    patch_artist=True, showfliers=False, whis=(0, 100))
+                bp_obj = ax.boxplot(boxplot_data, positions=x_positions, widths=width/2.2, patch_artist=True, showfliers=False, whis=(0, 0))
+
                 # Usamos paleta "Set3" para colores consistentes
                 box_colors = sns.color_palette("Set3", n_colors=len(x_positions))
                 for patch, color in zip(bp_obj['boxes'], box_colors):
@@ -2627,10 +2338,6 @@ if __name__ == "__main__":
     print("Counts DataFrame after collection:", counts_df.shape)
     print(counts_df.head())
 
-    analyze_best_bodyparts_and_stimuli(counts_df)
-    plot_heatmap(counts_df)
-    plot_effectiveness_over_time(counts_df)
-
     # Pruebas de hipótesis ANOVA + Friedman
     movement_ranges_df_path = os.path.join(output_comparisons_dir, 'movement_ranges_summary.csv')
     if not os.path.exists(movement_ranges_df_path):
@@ -2641,8 +2348,6 @@ if __name__ == "__main__":
 
     plot_summary_movement_data_by_bodypart(movement_ranges_df, output_comparisons_dir)
   
-    # plot_global_summary_with_significance_all_extended(movement_ranges_df, output_comparisons_dir)
-
     do_significance_tests(movement_ranges_df, output_dir=output_comparisons_dir)
     # Y en el bloque principal, después de hacer todos los resúmenes parciales, llamas:
     plot_global_summary_with_significance_all_extended(movement_ranges_df, output_comparisons_dir)
