@@ -779,17 +779,17 @@ if __name__ == "__main__":
         print("Tabla agregada de métricas guardada en 'aggregated_metrics.csv'")
         
         # ETAPA 2: Pruebas de hipótesis
-        #do_significance_tests_aggregated(aggregated_df, output_dir=output_comparisons_dir)
+        do_significance_tests_aggregated(aggregated_df, output_dir=output_comparisons_dir)
         
         # ETAPA 3: Generar gráficos summary con distintos niveles de agrupación
         # 1. Por día y por body_part (cada grupo separado)
-        #plot_summary_by_bodypart(aggregated_df, output_comparisons_dir)
+        plot_summary_by_bodypart(aggregated_df, output_comparisons_dir)
         
         # 2. Por día y coordenadas (integrando todos los body_parts)
-        #plot_summary_by_day_coord(aggregated_df, output_comparisons_dir)
+        plot_summary_by_day_coord(aggregated_df, output_comparisons_dir)
         
         # 3. Global (todos los datos integrados)
-        #plot_global_summary(aggregated_df, output_comparisons_dir)
+        plot_global_summary(aggregated_df, output_comparisons_dir)
 
         # Generar gráficos 3D para el modelo Gaussian-based, por día y coordenadas
         for (dia, coord_x, coord_y), group in aggregated_df.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y']):

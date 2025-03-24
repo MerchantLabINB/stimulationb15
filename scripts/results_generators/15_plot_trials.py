@@ -2,7 +2,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-from scipy.optimize import least_squares, curve_fit
+from scipy.optimize import curve_fit, least_squares
 from math import sqrt
 import matplotlib
 matplotlib.use('Agg')  
@@ -24,7 +24,7 @@ import shutil
 import glob  # Importar el módulo glob
 
 from statsmodels.nonparametric.smoothers_lowess import lowess
-from scipy.signal import butter, filtfilt, peak_widths
+from scipy.signal import butter, filtfilt
 
 import textwrap
 import math
@@ -198,9 +198,9 @@ def detectar_submovimientos_en_segmento(vel_segment, threshold):
     usando find_peaks, asegurando duración mínima.
     """
     # Suavizar el segmento con SavGol
-    # vel_suav_seg = suavizar_velocidad_savgol(vel_segment)
-    vel_suav_seg = vel_segment
-    peak_indices, _ = find_peaks(vel_suav_seg, height=threshold)
+    vel_suav_seg = suavizar_velocidad_savgol(vel_segment)
+    
+    peak_indices, _ = find_peaks(vel_suav_seg, height=threshold*0.2)
 
     valid_peaks = []
     for pk in peak_indices:
@@ -220,86 +220,30 @@ body_parts = list(body_parts_specific_colors.keys())
 def gaussian(x, A, mu, sigma):
     return A * np.exp(-((x - mu)**2) / (2 * sigma**2))
 
-def robust_gaussian_residuals(params, t, v, weight_peak,
-                              t_peak=None, v_peak=None, alpha_peak=0.0):
-    """
-    Residual = weighted mismatch over entire time series
-               + optional mismatch penalty at the real peak.
-    If t_peak is None or alpha_peak=0, no extra penalty is added.
-    """
-    A, mu, sigma = params
-    
-    # Weighted mismatch across the timeline
-    weights = 1 + (weight_peak / 2.0) * np.exp(-((t - mu)**2) / (2 * sigma**2))
-    residuals_t = (gaussian(t, A, mu, sigma) - v)
-    weighted_resid = weights * residuals_t
-
-    # Optional peak-penalty term
-    if t_peak is not None and alpha_peak > 0.0:
-        model_peak_val = gaussian(t_peak, A, mu, sigma)
-        penalty = alpha_peak * (model_peak_val - v_peak)
-        return np.concatenate([weighted_resid, [penalty]])
-    else:
-        return weighted_resid
-
-
-
-
-def robust_fit_gaussian(t, v, p0, bounds, weight_peak=10.0,
-                        t_peak=None, v_peak=None, alpha_peak=0.0,
-                        loss='soft_l1', f_scale=0.1):
-    """
-    Performs a robust Gaussian fit with an optional peak penalty.
-    If t_peak and v_peak are given (and alpha_peak>0), 
-    the fitter penalizes mismatch at (t_peak, v_peak).
-    """
-    p0 = np.array(p0)
-    lb, ub = bounds
-    lb = np.array(lb)
-    ub = np.array(ub)
-    p0 = np.clip(p0, lb, ub)
-
-    # Provide t_peak, v_peak, and alpha_peak to the residual function
-    res = least_squares(
-        robust_gaussian_residuals,
-        p0,
-        args=(t, v, weight_peak, t_peak, v_peak, alpha_peak),
-        bounds=(lb, ub),
-        loss=loss,
-        f_scale=f_scale
-    )
-    return res
-
-
 
 def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_limit):
     """
-    Ajusta gaussianas a un segmento de velocidad usando robust_fit_gaussian
-    con penalización en el pico. La función:
-      - Detecta picos en v_segment.
-      - Define una ventana y parámetros iniciales (A_init, mu_init, sigma_init).
-      - Rechaza gaussianas cuyo inicio (mu - 2σ) esté antes de stim_start+0.03 o 
-        cuyo 4σ exceda 0.8.
-      - Llama a robust_fit_gaussian con t_peak, v_peak y un alpha_peak elevado.
-      - Reescala la amplitud para que el pico del modelo se alinee con el observado.
-      - Filtra gaussianas solapadas.
+    Ajusta gaussianas al segmento. Se descartan aquellas cuyo inicio (mu - 2*sigma)
+    ocurra antes de stim_start + 0.03 (30 ms después del inicio del estímulo) o cuya
+    duración (4*sigma) exceda 0.8 s.
     """
+    from scipy.optimize import curve_fit
+    from scipy.signal import find_peaks
+
     logging.debug(f"Inicio de fit_gaussians_submovement con peak_limit={peak_limit}")
 
-    # Detectar picos en v_segment
     peaks, _ = find_peaks(v_segment, height=threshold)
     if len(peaks) == 0:
         logging.warning("No se detectaron picos en el segmento para ajustar gaussianas.")
         return []
 
     gaussians = []
-    dt = t_segment[1] - t_segment[0]
     max_sigma = 0.5 * (t_segment[-1] - t_segment[0])
-    # Limitar peak_limit para evitar valores extremos
+    # Opcional: limitar peak_limit al valor máximo real en el segmento
     peak_limit_used = min(peak_limit, np.percentile(v_segment, 95))
-    logging.debug(f"peak_limit_used = {peak_limit_used} (np.max(v_segment) = {np.max(v_segment)})")
 
-    # Iterar sobre cada pico
+    logging.debug(f"peak_limit_used = {peak_limit_used} (np.max(v_segment) = {np.max(v_segment)})")
+    
     for peak in peaks:
         window_size = max(3, int(len(t_segment) * 0.1))
         start_idx = max(0, peak - window_size)
@@ -313,61 +257,46 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
         mu_init = t_segment[peak]
         sigma_init = (t_win[-1] - t_win[0]) / 2.0 if len(t_win) > 1 else 0.01
 
-        # Descarta gaussianas que inician demasiado temprano o que sean demasiado anchas
+        # Condición: inicio de la gaussiana debe ser 30 ms después del estímulo
         if (mu_init - 2 * sigma_init) < (stim_start + 0.03):
-            logging.info(f"Gaussiana descartada: inicio {mu_init - 2*sigma_init:.3f}s < {stim_start+0.03:.3f}s")
+            logging.info(f"Gaussiana descartada: inicio {mu_init - 2*sigma_init:.3f}s < {stim_start + 0.03:.3f}s")
             continue
+
         if 4 * sigma_init > 0.8:
             logging.info(f"Gaussiana descartada: duración {4*sigma_init:.3f}s > 0.8s")
             continue
 
-        # Inicialización de parámetros y límites
         p0 = [A_init, mu_init, sigma_init]
         lb = [0, t_win[0], 1e-4]
+        # Usamos peak_limit_used en lugar de peak_limit
         ub = [peak_limit_used, t_win[-1], max_sigma]
-
         try:
-            # Incrementar el penalty para el pico (alpha_peak) a 20.0 para forzar mejor el pico
-            alpha_peak_val = 30.0  
-            res = robust_fit_gaussian(
-                t_win,
-                v_win,
-                p0,
-                bounds=(lb, ub),
-                weight_peak=10.0,
-                t_peak=mu_init,
-                v_peak=A_init,
-                alpha_peak=alpha_peak_val,
-                loss='cauchy',     # or 'cauchy'
-                f_scale=10       # or 0.2, 1.0, etc. – experiment
-            )
+            popt, _ = curve_fit(gaussian, t_win, v_win, p0=p0, bounds=(lb, ub))
+            modelo_pico = gaussian(mu_init, *popt)
+            epsilon = 1e-6  # Para evitar división por cero
+            scale = v_segment[peak] / (modelo_pico + epsilon)
+            popt[0] *= scale
 
+            if (popt[1] - 2 * popt[2]) < (stim_start + 0.03):
+                logging.info(f"Gaussiana descartada tras ajuste: inicio {popt[1]-2*popt[2]:.3f}s < {stim_start+0.03:.3f}s")
+                continue
+            if 4 * popt[2] > 0.8:
+                logging.info(f"Gaussiana descartada tras ajuste: duración {4*popt[2]:.3f}s > 0.8s")
+                continue
 
-            if res.success:
-                popt = res.x
-                # Reescala la amplitud para que el modelo se alinee con el pico observado
-                modelo_pico = gaussian(mu_init, *popt)
-                epsilon = 1e-6
-                scale = v_segment[peak] / (modelo_pico + epsilon)
-                popt[0] *= scale
-
-                # Verificar restricciones post-ajuste
-                if (popt[1] - 2*popt[2]) < (stim_start + 0.03):
-                    logging.info(f"Gaussiana descartada tras ajuste: inicio {popt[1]-2*popt[2]:.3f}s < {stim_start+0.03:.3f}s")
-                    continue
-                if 4 * popt[2] > 0.8:
-                    logging.info(f"Gaussiana descartada tras ajuste: duración {4*popt[2]:.3f}s > 0.8s")
-                    continue
-
-                gaussians.append({'A_gauss': popt[0],
-                                  'mu_gauss': popt[1],
-                                  'sigma_gauss': popt[2]})
-            else:
-                logging.warning(f"Fallo robust_fit_gaussian en pico={peak}")
+            gaussians.append({'A_gauss': popt[0], 'mu_gauss': popt[1], 'sigma_gauss': popt[2]})
         except Exception as e:
-            logging.warning(f"Fallo robust_fit_gaussian en pico={peak}: {e}")
+            logging.warning(f"Fallo en curve_fit para pico en índice {peak}: {e}. Usando aproximación simple.")
+            sigma_simple = sigma_init if sigma_init <= max_sigma else max_sigma
+            if (mu_init - 2 * sigma_simple) < (stim_start + 0.03):
+                logging.info(f"Gaussiana descartada en aproximación simple: inicio {mu_init-2*sigma_simple:.3f}s < {stim_start+0.03:.3f}s")
+                continue
+            if 4 * sigma_simple > 0.8:
+                logging.info(f"Gaussiana descartada en aproximación simple: duración {4*sigma_simple:.3f}s > 0.8s")
+                continue
+            gaussians.append({'A_gauss': A_init, 'mu_gauss': mu_init, 'sigma_gauss': sigma_simple})
 
-    # Filtrar gaussianas solapadas usando la lógica previa
+    # Filtrado de solapamientos
     gaussians = sorted(gaussians, key=lambda g: g['mu_gauss'])
     filtered_gaussians = []
     skip_next = False
@@ -377,89 +306,30 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
             continue
         current = gaussians[i]
         if i < len(gaussians) - 1:
-            nxt = gaussians[i + 1]
-            overlap_crit = 0.6 * (current['sigma_gauss'] + nxt['sigma_gauss'])
-            if abs(nxt['mu_gauss'] - current['mu_gauss']) < overlap_crit:
-                bigger = current if current['A_gauss'] >= nxt['A_gauss'] else nxt
-                filtered_gaussians.append(bigger)
+            next_g = gaussians[i+1]
+            if abs(next_g['mu_gauss'] - current['mu_gauss']) < 0.5 * (current['sigma_gauss'] + next_g['sigma_gauss']):
+                # Si se solapan, nos quedamos con la de mayor amplitud
+                if current['A_gauss'] >= next_g['A_gauss']:
+                    filtered_gaussians.append(current)
+                else:
+                    filtered_gaussians.append(next_g)
                 skip_next = True
             else:
                 filtered_gaussians.append(current)
         else:
             filtered_gaussians.append(current)
-
     return filtered_gaussians
 
-def fit_beta_minjerk(t, v, stim_start, peak_limit):
-    if len(t) < 2:
-        return None
 
-    peak_idx = np.argmax(v)
-    t_peak = t[peak_idx]
-    v_peak = v[peak_idx]
-
-    dt = t[1] - t[0]
-    widths_result = peak_widths(v, [peak_idx], rel_height=0.5)
-    if len(widths_result[0]) == 0:
-        return None
-
-    T_init = widths_result[0][0]*dt
-    t0_init = t_peak - (T_init/2)
-    A_init = (v_peak*T_init)/1.875
-
-    if t0_init < (stim_start + 0.03):
-        return None
-    if 4*T_init > 0.8:
-        return None
-
-    p0 = np.array([A_init, t0_init, T_init])
-    lb = np.array([0, stim_start+0.03, 0.05])
-    ub = np.array([peak_limit, t[-1], t[-1]-t[0]])
-    if np.any(lb >= ub):
-        return None
-    p0 = np.clip(p0, lb, ub)
-
-    def minjerk_residuals(params, t, v, t_peak, v_peak, alpha):
-        A, t0, T = params
-        base_resid = minimum_jerk_velocity(t, A, t0, T) - v
-        pred_peak_val = minimum_jerk_velocity(np.array([t_peak]), A, t0, T)[0]
-        penalty = alpha*(pred_peak_val - v_peak)
-        return np.concatenate([base_resid, [penalty]])
-
-    alpha_peak = 30.0
-    res = least_squares(
-        minjerk_residuals,
-        x0=p0,
-        args=(t, v, t_peak, v_peak, alpha_peak),
-        bounds=(lb, ub),
-        loss='huber',   # changed from 'soft_l1'
-        f_scale=0.5      # was 0.1
-    )
-
-    if res.success:
-        A_fit, t0_fit, T_fit = res.x
-        if t0_fit < (stim_start+0.03) or 4*T_fit > 0.8:
-            return None
-        return {
-            "A_minjerk": A_fit,
-            "t0": t0_fit,
-            "T": T_fit
-        }
-    else:
-        return None
-
-
-def minimum_jerk_velocity(t, A, t0, T, minjerk_factor=1.0):
-    """Perfil mínimo-jerk estándar con un factor de escala para ajustar la amplitud del pico."""
+def minimum_jerk_velocity(t, A, t0, T):
+    """Standard minimum-jerk velocity profile."""
     if T <= 0:
         return np.zeros_like(t)
     tau = (t - t0) / T
     valid_idx = (tau >= 0) & (tau <= 1)
     v = np.zeros_like(t)
-    # Se aplica un factor minjerk_factor para reducir (o aumentar) la magnitud del pico
-    v[valid_idx] = (minjerk_factor * 30 * A / T) * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
+    v[valid_idx] = (30 * A / T) * (tau[valid_idx]**2) * (1 - tau[valid_idx])**2
     return v
-
 
 def sum_of_minimum_jerk(t, *params):
     """Sum of multiple minimum-jerk submovements."""
@@ -472,210 +342,176 @@ def sum_of_minimum_jerk(t, *params):
         v_total += minimum_jerk_velocity(t, A, t0, T)
     return v_total
 
-# Set a minimum amplitude value for each submovement
-MIN_AMPLITUDE = 1e-3  # adjust as needed
+def regularized_residuals(p, t, observed_velocity, lambda_reg, A_target):
+    """Compute residuals with a penalty on amplitudes."""
+    residual = sum_of_minimum_jerk(t, *p) - observed_velocity
+    amplitudes = p[0::3]
+    penalty = np.sqrt(lambda_reg) * (amplitudes - A_target)
+    return np.concatenate([residual, penalty])
 
-def multi_minjerk_residual(params, t, observed_velocity, alpha_reg=0.0, amp_penalty_weight=100.0):
+def robust_fit_velocity_profile(t, observed_velocity, n_submovements,
+                                n_restarts=5,
+                                lambda_reg=0.1, loss='soft_l1', f_scale=0.5, peak_limit=np.inf):
     """
-    Residual function that sums up all submovements from `sum_of_minimum_jerk`,
-    then subtracts the observed velocity.
-
-    If alpha_reg > 0, we add a mild amplitude penalty to all amplitudes.
-    Also, if any amplitude is below MIN_AMPLITUDE, add an extra penalty
-    to discourage zero (or negative) amplitude solutions.
+    Robustly fits a sum of minimum jerk profiles to an observed velocity profile.
+    
+    To help avoid solutions that capture only the onset (or offset), we modify the initial
+    guess for the onset (t₀) and, importantly, we enforce a minimum duration for the submovement.
+    Here, the lower bound for T is set as:
+    
+       min_T = max(0.05, 0.5 * (t[-1] - t[0]))
+    
+    This forces each minimum-jerk submovement to have a duration that is at least half the total
+    segment duration (or 50 ms, whichever is larger).
+    
+    Parameters:
+      t : array_like
+          Time vector (seconds).
+      observed_velocity : array_like
+          The observed velocity profile.
+      n_submovements : int
+          Number of submovements to fit.
+      n_restarts : int, optional
+          Number of random restarts for robustness.
+      lambda_reg, loss, f_scale : parameters for the least_squares call.
+      peak_limit : float
+          Maximum allowed amplitude.
+    
+    Returns:
+      best_result : OptimizeResult
+          The least_squares optimization result with the lowest cost.
     """
-    # 1) The main residual: difference between modeled velocity and observed_velocity
-    modeled = sum_of_minimum_jerk(t, *params)
-    resid_main = modeled - observed_velocity  # shape (n_timepoints,)
-
-    # 2) Build a list of scalar penalties
-    penalty_terms = []
-    n_sub = len(params) // 3
-    A_vals = params[0::3]  # amplitudes
-
-    # (A) amplitude penalty if alpha_reg>0
-    if alpha_reg > 0.0:
-        # Instead of appending the entire vector, we do a loop
-        for A in A_vals:
-            penalty_terms.append(alpha_reg * (A**2))  # single scalar
-
-    # (B) extra penalty for amplitudes below a threshold
-    for A in A_vals:
-        if A < MIN_AMPLITUDE:
-            penalty_terms.append(amp_penalty_weight * (MIN_AMPLITUDE - A))  # single scalar
-
-    # 3) Combine everything
-    # If penalty_terms is empty, just return resid_main
-    if len(penalty_terms) == 0:
-        return resid_main
-
-    # If we have penalties, we make them a 1D array of scalars
-    penalty_array = np.array(penalty_terms, dtype=float)  # shape (some_number_of_penalties,)
-
-    # Then we concatenate with resid_main (which is shape (n_timepoints,))
-    # => final shape: (n_timepoints + some_number_of_penalties,)
-    return np.concatenate([resid_main, penalty_array])
-
-
-MIN_AMPLITUDE = 1e-3  # O el valor mínimo que quieras
-
-def fit_multi_minjerk_submovements(
-    t_segment, 
-    v_segment, 
-    threshold, 
-    max_submov=5,
-    alpha_reg=0.01, 
-    robust_loss='huber', 
-    f_scale=1.0, 
-    amp_penalty_weight=1000.0,
-    min_improvement=0.02
-):
-    """
-    Ajusta varios submovimientos MinJerk a un segmento de velocidad (v_segment) mediante un método paso a paso.
-    Devuelve: (lista_final, v_model, num_final) donde num_final es el conteo de submovimientos agrupados.
-    """
-    def compute_sse(params):
-        v_fit = sum_of_minimum_jerk(t_segment, *params)
-        return np.sum((v_segment - v_fit)**2)
-
-    def fit_given_submovs(submov_list):
-        guess = []
-        for (A, t0, T) in submov_list:
-            guess.extend([A, t0, T])
-        n_sub = len(submov_list)
-        lb = []
-        ub = []
-        for _ in range(n_sub):
-            lb.extend([MIN_AMPLITUDE, 0.0, 0.01])
-            ub.extend([np.inf, t_segment[-1], np.inf])
-        lb = np.array(lb)
-        ub = np.array(ub)
-        if np.any(lb >= ub):
-            return None
+    def initial_fit(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale, peak_limit):
+        # Find peaks in the observed velocity.
+        peak_indices, _ = find_peaks(observed_velocity, height=np.mean(observed_velocity), distance=10)
+        if len(peak_indices) == 0:
+            peak_times = np.array([(t[0] + t[-1]) / 2])
+            peak_amplitudes = np.array([np.max(observed_velocity)])
+        else:
+            peak_times = t[peak_indices]
+            peak_amplitudes = observed_velocity[peak_indices]
+    
+        # If not enough peaks, add extra guesses evenly over the time interval.
+        if len(peak_amplitudes) < n_submovements:
+            extras = n_submovements - len(peak_amplitudes)
+            extra_times = np.linspace(t[0], t[-1], extras)
+            extra_amplitudes = np.full(extras, np.max(observed_velocity) / n_submovements)
+            peak_times = np.concatenate([peak_times, extra_times])
+            peak_amplitudes = np.concatenate([peak_amplitudes, extra_amplitudes])
+        else:
+            # Choose the largest n_submovements peaks.
+            top_indices = np.argsort(peak_amplitudes)[-n_submovements:]
+            peak_times = peak_times[top_indices]
+            peak_amplitudes = peak_amplitudes[top_indices]
+    
+        total_time = t[-1] - t[0]
+        delta = 0.1 * total_time  # 10% of the total time.
+        midpoint = (t[0] + t[-1]) / 2
+        # Adjust peak times if they are too close to boundaries.
+        adjusted_peak_times = np.array([
+            pt if (pt >= t[0] + delta and pt <= t[-1] - delta) else midpoint
+            for pt in peak_times
+        ])
+    
+        params_init = []
+        for i in range(n_submovements):
+            A_init = peak_amplitudes[i]
+            t0_init = adjusted_peak_times[i]
+            # Use the equal split as initial guess for T.
+            T_init = total_time / n_submovements
+            params_init.extend([A_init, t0_init, T_init])
+    
+        lower_bounds = []
+        upper_bounds = []
+        epsilon = 1e-3
+        segment_duration = total_time
+        # Enforce a minimum T that is at least half the segment duration or 50 ms.
+        min_T = max(0.05, 0.5 * segment_duration)
+        for i in range(n_submovements):
+            lower_bounds.extend([epsilon, t[0] + delta, min_T])
+            upper_bounds.extend([peak_limit, t[-1] - delta, segment_duration])
+    
+        params_init = np.maximum(params_init, lower_bounds)
+        params_init = np.minimum(params_init, upper_bounds)
+    
+        A_target = np.max(observed_velocity)
+        if A_target < epsilon:
+            A_target = epsilon
+    
         try:
-            res = least_squares(
-                multi_minjerk_residual,
-                x0=guess,
-                args=(t_segment, v_segment, alpha_reg, amp_penalty_weight),
-                bounds=(lb, ub),
-                loss=robust_loss,
+            result = least_squares(
+                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target),
+                x0=params_init,
+                bounds=(lower_bounds, upper_bounds),
+                loss=loss,
                 f_scale=f_scale
             )
-            return res
         except ValueError as e:
-            logging.debug(f"ValueError en least_squares: {e}")
+            logging.error(f"Initial fitting failed: {e}")
             return None
+        return result
 
-    current_submovs = []
-    best_params = np.array([])
-    best_v_model = np.zeros_like(v_segment)
-    best_sse = np.sum((v_segment - best_v_model)**2)
-
-    # Fase de ajuste paso a paso (como ya teníamos)
-    for k in range(max_submov):
-        if current_submovs:
-            temp_params = []
-            for (A, t0, T) in current_submovs:
-                temp_params.extend([A, t0, T])
-            v_current_fit = sum_of_minimum_jerk(t_segment, *temp_params)
-        else:
-            v_current_fit = np.zeros_like(v_segment)
-        residual = v_segment - v_current_fit
-        pk_idx = np.argmax(np.abs(residual))
-        if pk_idx < 0 or pk_idx >= len(residual):
-            break
-        pk_val = residual[pk_idx]
-        pk_time = t_segment[pk_idx]
-        A_init = pk_val
-        t0_init = max(pk_time - 0.05, 0.0)
-        T_init = 0.2
-        if t0_init + T_init > t_segment[-1]:
-            T_init = t_segment[-1] - t0_init
-            if T_init < 0.01:
-                logging.debug(f"Descartando submov por falta de espacio: t0={t0_init:.3f}, T={T_init:.3f}")
-                continue
-        if np.abs(A_init) < MIN_AMPLITUDE:
-            logging.debug(f"Descartando submov por amplitud < MIN_AMPLITUDE: A_init={A_init:.4f}")
-            continue
-        new_submov_list = current_submovs.copy()
-        new_submov_list.append((A_init, t0_init, T_init))
-        res = fit_given_submovs(new_submov_list)
-        if (res is None) or (not res.success):
-            logging.debug(f"Descartando submov. res.success={False if res is None else res.success}")
-            continue
-        new_params = res.x
-        new_sse = compute_sse(new_params)
-        improvement = (best_sse - new_sse) / best_sse if best_sse > 1e-12 else 0.0
-        if improvement < min_improvement:
-            logging.debug(f"Descartando submov por mejora insuficiente: {improvement:.3f} < {min_improvement}")
-            continue
-        else:
-            best_sse = new_sse
-            best_params = new_params
-            temp_submov_list = []
-            for i in range(0, len(best_params), 3):
-                temp_submov_list.append((best_params[i], best_params[i+1], best_params[i+2]))
-            current_submovs = temp_submov_list
-            best_v_model = sum_of_minimum_jerk(t_segment, *best_params)
-
-    if not current_submovs:
+    base_result = initial_fit(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale, peak_limit)
+    if base_result is None:
+        logging.error("Initial fitting failed.")
         return None
+    best_result = base_result
+    best_cost = base_result.cost
 
-    # Filtramos submovimientos con amplitud menor al 5% del pico final
-    A_vals = [sm[0] for sm in current_submovs]
-    A_max = max(A_vals) if A_vals else 0
-    filtered = [sm for sm in current_submovs if sm[0] >= 0.05*A_max] if A_max > 0 else current_submovs
-    if len(filtered) < len(current_submovs):
-        res2 = fit_given_submovs(filtered)
-        if (res2 is not None) and res2.success:
-            best_params = res2.x
-            best_sse = compute_sse(best_params)
-            best_v_model = sum_of_minimum_jerk(t_segment, *best_params)
-            submov_list_raw = []
-            for i in range(0, len(best_params), 3):
-                submov_list_raw.append({
-                    'A_minjerk': best_params[i],
-                    't0': best_params[i+1],
-                    'T': best_params[i+2]
-                })
-    else:
-        submov_list_raw = []
-        for i in range(0, len(best_params), 3):
-            submov_list_raw.append({
-                'A_minjerk': best_params[i],
-                't0': best_params[i+1],
-                'T': best_params[i+2]
-            })
+    epsilon = 1e-3
+    for i in range(n_restarts):
+        perturbation = np.random.uniform(0.9, 1.1, size=len(base_result.x))
+        perturbed_init = base_result.x * perturbation
+        perturbed_init = np.maximum(perturbed_init, epsilon)
+        try:
+            result = least_squares(
+                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target=np.max(observed_velocity)),
+                x0=perturbed_init,
+                bounds=(
+                    [epsilon for _ in base_result.x],
+                    [peak_limit if j % 3 == 0 else np.inf for j in range(len(base_result.x))]
+                ),
+                loss=loss,
+                f_scale=f_scale
+            )
+            if result.cost < best_cost:
+                best_cost = result.cost
+                best_result = result
+        except Exception as e:
+            logging.warning(f"Restart {i} failed: {e}")
+            continue
 
-    # Fase final: agrupar submovimientos que se solapan
-    def agrupar_submovimientos(submovs, overlap_factor=2.0):
-        # Ordenamos por t0
-        submovs = sorted(submovs, key=lambda s: s['t0'])
-        agrupados = []
-        grupo_actual = [submovs[0]]
-        for sub in submovs[1:]:
-            t0_actual = grupo_actual[-1]['t0']
-            T_actual = grupo_actual[-1]['T']
-            limite = t0_actual + overlap_factor * T_actual
-            if sub['t0'] <= limite:
-                grupo_actual.append(sub)
+    logging.info(f"Robust fit result: cost = {best_cost}")
+    logging.info(f"Fitted parameters: {best_result.x}")
+    return best_result
+
+def filter_overlapping_minjerk(segments, overlap_threshold=0.5):
+    """
+    Filtra una lista de submovimientos MinimumJerk eliminando aquellos que se solapan en más
+    del porcentaje dado (por defecto 50% de la duración del segmento más corto). Se conserva
+    el segmento que tenga mayor pico (máximo valor en 'v_sm').
+    """
+    if not segments:
+        return segments
+    segments_sorted = sorted(segments, key=lambda s: s['t_segment_model'][0])
+    filtered = [segments_sorted[0]]
+    for seg in segments_sorted[1:]:
+        last_seg = filtered[-1]
+        last_start, last_end = last_seg['t_segment_model'][0], last_seg['t_segment_model'][-1]
+        seg_start, seg_end = seg['t_segment_model'][0], seg['t_segment_model'][-1]
+        # Calcular el solapamiento
+        overlap = max(0, min(last_end, seg_end) - max(last_start, seg_start))
+        # Duración del segmento más corto
+        min_duration = min(last_end - last_start, seg_end - seg_start)
+        if min_duration > 0 and (overlap / min_duration) > overlap_threshold:
+            # Conservar el que tenga mayor pico
+            if max(last_seg['v_sm']) >= max(seg['v_sm']):
+                continue  # descartar seg
             else:
-                # Seleccionamos el del grupo con mayor amplitud
-                mejor = max(grupo_actual, key=lambda s: s['A_minjerk'])
-                agrupados.append(mejor)
-                grupo_actual = [sub]
-        if grupo_actual:
-            mejor = max(grupo_actual, key=lambda s: s['A_minjerk'])
-            agrupados.append(mejor)
-        return agrupados
-
-    submov_list_final = agrupar_submovimientos(submov_list_raw)
-    num_final = len(submov_list_final)
-    return (submov_list_final, best_v_model, num_final)
-
-
-
-
+                filtered[-1] = seg  # reemplazar
+        else:
+            filtered.append(seg)
+    return filtered
 
 
 
@@ -774,25 +610,6 @@ def calcular_velocidades(csv_path):
     except Exception as e:
         logging.error(f'Error al calcular velocidades para CSV: {csv_path}, Error: {e}')
         return {}, {}
-
-def detectar_picos_submovimiento(vel_suav_segment, threshold):
-    if len(vel_suav_segment) == 0:
-        return []
-    peak_indices, peak_props = find_peaks(vel_suav_segment, height=threshold*0.2, distance=10)
-
-    valid_peaks = []
-    for pk in peak_indices:
-        start_pk = pk
-        while start_pk > 0 and vel_suav_segment[start_pk] > threshold:
-            start_pk -= 1
-        end_pk = pk
-        while end_pk < len(vel_suav_segment)-1 and vel_suav_segment[end_pk] > threshold:
-            end_pk += 1
-        segment_length = end_pk - start_pk
-        if segment_length >= 3:
-            valid_peaks.append(pk)
-
-    return valid_peaks
 
 
 def us_to_frames(duracion_us):
@@ -960,101 +777,127 @@ def plot_trials_side_by_side(
             if idx_col == 0:
                 ax_vel.legend(fontsize=7)
 
-                        # Panel 3: Rango de Movimientos
+            # Panel 3: Rango de Movimientos
             ax_mov.set_xlabel('Tiempo (s)')
             ax_mov.set_ylabel('Modelos')
             ax_mov.set_xlim(0, max_time)
             ax_mov.set_ylim(0.8, 1.2)
             ax_mov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # --- Modelo Threshold-based (igual que antes) ---
+            # Calcular número total de segmentos (Threshold) durante el estímulo
+            n_threshold_segments = len([mov for mov in mov_ranges if mov.get('Periodo','') == 'Durante Estímulo'])
+
+            # 1. Modelo Threshold-based:
             threshold_label_added = False
+            
             for mov in mov_ranges:
-                if mov.get('Periodo','') != 'Durante Estímulo':
+                periodo = mov.get('Periodo', 'Desconocido')
+                if periodo != 'Durante Estímulo':
                     continue
                 startF = mov['Inicio Movimiento (Frame)']
                 endF = mov['Fin Movimiento (Frame)']
                 color_threshold = 'red'
                 if not threshold_label_added:
-                    label_thresh = f"Threshold: {len([m for m in mov_ranges if m.get('Periodo','')=='Durante Estímulo'])} movs"
+                    label_thresh = f"Threshold: {n_threshold_segments} movs"
                     ax_mov.hlines(y=1.0, xmin=startF/fs, xmax=endF/fs, color=color_threshold, linewidth=2,
                                   label=label_thresh)
                     threshold_label_added = True
                 else:
                     ax_mov.hlines(y=1.0, xmin=startF/fs, xmax=endF/fs, color=color_threshold, linewidth=2)
                 idx_peak = np.argmax(vel[startF:endF+1])
-                t_peak = (startF + idx_peak) / fs
-                ax_mov.plot(t_peak, 1.0, 'o', color=color_threshold, markersize=4)
+                peak_time = (startF + idx_peak) / fs
+                ax_mov.plot(peak_time, 1.0, 'o', color=color_threshold, markersize=4)
                 peak_value = vel[startF + idx_peak]
-                ax_mov.text(t_peak, 1.0 + 0.02, f"{peak_value:.1f}", fontsize=4, ha='center', va='bottom')
+                ax_mov.text(peak_time, 1.0 + 0.02, f"{peak_value:.1f}", fontsize=4, ha='center', va='bottom')
 
-            # --- Modelo Gaussian (igual que antes) ---
+
+            # 2. Modelo Gaussian:
+            # 2. Gaussian model:
             gauss_label_added = False
+          
             total_gaussians = sum(len(subm.get('gaussians', [])) for subm in submovements)
+
             for i_sub, subm in enumerate(submovements):
-                for j, g in enumerate(subm.get('gaussians', [])):
+                gauss_list = subm.get('gaussians', [])
+                for j, g in enumerate(gauss_list):
                     A_g = g['A_gauss']
                     mu_g = g['mu_gauss']
                     sigma_g = g['sigma_gauss']
+                    # Define the horizontal range for the gaussian (using ±2σ)
                     left_g = mu_g - 2 * sigma_g
                     right_g = mu_g + 2 * sigma_g
                     color_gauss = GAUSSIAN_PALETTE[j % len(GAUSSIAN_PALETTE)]
                     if not gauss_label_added:
                         label_gauss = f"Gaussian: {total_gaussians} submovs"
                         ax_mov.hlines(y=0.94, xmin=left_g, xmax=right_g, color=color_gauss,
-                                      linewidth=1.5, linestyle='-', label=label_gauss)
+                                    linewidth=1.5, linestyle='-', label=label_gauss)
                         gauss_label_added = True
                     else:
                         ax_mov.hlines(y=0.94, xmin=left_g, xmax=right_g, color=color_gauss,
-                                      linewidth=1.5, linestyle='-')
+                                    linewidth=1.5, linestyle='-')
+                    # Plot the gaussian peak marker:
                     ax_mov.plot(mu_g, 0.94, 'o', color=color_gauss, markersize=4)
+                    # Add the peak value annotation:
                     ax_mov.text(mu_g, 0.94 + 0.02, f"{A_g:.1f}", fontsize=4, ha='center', va='bottom')
 
-            # --- Modelo MultiMinJerk: dibujamos cada segmento como unidad ---
-            minjerk_segments = [s for s in submovements if s.get('MovementType') == 'MultiMinJerk']
-            # Para Panel 3: dibujar cada segmento con su pico
-            # Para Panel 3: dibujar cada segmento MultiMinJerk con su pico
-            for seg in minjerk_segments:
-                t_model = seg['t_segment_model']
-                v_sm = seg['v_sm']
-                peak_idx = np.argmax(v_sm)
-                t_peak = t_model[peak_idx]
-                peak_val = v_sm[peak_idx]
-                # Aquí usamos el número final de submovimientos obtenido
-                label_seg = f"MinJerk ({seg.get('num_submov', '?')} submovs)"
-
-                ax_mov.hlines(y=0.86, xmin=t_model[0], xmax=t_model[-1], color='lightgreen', linewidth=1.5,
-                            linestyle='-', label=label_seg)
-                ax_mov.plot(t_peak, 0.86, 'o', color='lightgreen', markersize=4)
-                ax_mov.text(t_peak, 0.86 + 0.02, f"{peak_val:.1f}", fontsize=4, ha='center', va='bottom')
 
 
-
-            # Para Panel 4: dibujar la curva modelada de MultiMinJerk y en la leyenda indicar el número de segmentos
-            if len(minjerk_segments) > 0:
-                label_minjerk = f"MinJerk ({len(minjerk_segments)} segs)"
-                first = True
-                for seg in minjerk_segments:
-                    t_model = seg['t_segment_model']
-                    v_sm = seg['v_sm']
-                    if first:
-                        ax_submov.plot(t_model, v_sm, ls=':', color='lightgreen', alpha=0.9, label=label_minjerk)
-                        first = False
+            # 3. Modelo Minimum Jerk:
+            minjerk_label_added = False
+            for subm in submovements:
+                if subm.get('MovementType') == 'MinimumJerk':
+                    t_model = subm['t_segment_model']  # vector de tiempos del ajuste Minimum Jerk
+                    v_sm = subm['v_sm']               # velocidad del ajuste Minimum Jerk
+                    t_start = t_model[0]
+                    t_end = t_model[-1]
+                    peak_idx = np.argmax(v_sm)
+                    t_peak = t_model[peak_idx]
+                    # Dibujar el marcador
+                    ax_mov.plot(t_peak, 0.86, 'o', color='lightgreen', markersize=4)
+                    # Agregar el texto con el valor del pico del modelo Minimum Jerk
+                    peak_value_minjerk = v_sm[peak_idx]
+                    ax_mov.text(t_peak, 0.86 + 0.02, f"{peak_value_minjerk:.1f}", fontsize=4, ha='center', va='bottom')
+                    # También dibujar la línea horizontal representativa
+                    if not minjerk_label_added:
+                        minjerk_count = sum(1 for s in submovements if s.get('MovementType') == 'MinimumJerk')
+                        label_minjerk = f"MinJerk: {minjerk_count} submovs"
+                        ax_mov.hlines(y=0.86, xmin=t_start, xmax=t_end, color='lightgreen',
+                                    linewidth=1.5, linestyle='-', label=label_minjerk)
+                        minjerk_label_added = True
                     else:
-                        ax_submov.plot(t_model, v_sm, ls=':', color='lightgreen', alpha=0.9)
-            # --- Fin MultiMinJerk ---
+                        ax_mov.hlines(y=0.86, xmin=t_start, xmax=t_end, color='lightgreen',
+                                    linewidth=1.5, linestyle='-')
+
 
             handles, labels = ax_mov.get_legend_handles_labels()
             unique = dict(zip(labels, handles))
             ax_mov.legend(unique.values(), unique.keys(), fontsize=9, loc='upper right')
 
-            # Panel 4: Velocidad observada + Modelo Minimum Jerk (resto igual)
+            # Panel 4: Velocidad observada + Modelo Minimum Jerk
+            
+            # Panel 4: Velocidad observada + Modelo Minimum Jerk
             ax_submov.plot(t_vel, vel, color=VELOCITY_COLOR, label='Velocidad')
             ax_submov.axhline(threshold, color='k', ls='--', label='Umbral')
             ax_submov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1, label='Estim. window')
-            # Si hubieran otros ajustes para Gaussians se mantienen
+
+            # Usamos directamente los MinimumJerk filtrados ya guardados
+            minjerk_submovs = trial.get('minjerk_submovs', [])
+            for i, subm in enumerate(minjerk_submovs):
+                t_model = subm['t_segment_model']
+                v_sm = subm['v_sm']
+                if i == 0:
+                    label_minjerk = f"MinJerk ({len(minjerk_submovs)} submovs)"
+                    ax_submov.plot(t_model, v_sm, ls=':', color='lightgreen', alpha=0.9, label=label_minjerk)
+                else:
+                    ax_submov.plot(t_model, v_sm, ls=':', color='lightgreen', alpha=0.9)
+
+
+
+
+
             for i_sub, subm in enumerate(submovements):
-                for j, g in enumerate(subm.get('gaussians', [])):
+                gauss_list = subm.get('gaussians', [])
+                for j, g in enumerate(gauss_list):
                     A_g = g['A_gauss']
                     mu_g = g['mu_gauss']
                     sigma_g = g['sigma_gauss']
@@ -1062,16 +905,26 @@ def plot_trials_side_by_side(
                     right_g = mu_g + 3 * sigma_g
                     t_gm = np.linspace(left_g, right_g, 200)
                     gauss_curve = gaussian(t_gm, A_g, mu_g, sigma_g)
+                    # Usar el mismo color de la paleta global:
                     color_gauss = GAUSSIAN_PALETTE[j % len(GAUSSIAN_PALETTE)]
                     ax_submov.plot(t_gm, gauss_curve, '--', color=color_gauss, alpha=0.7,
-                                   label='Gauss' if (i_sub==0 and j==0) else "")
+                                label='Gauss' if (i_sub==0 and j==0) else "")
+                    """
+                # En Panel 4, después de dibujar el modelo Minimum Jerk (si existe)
+                for subm in submovements:
+                    if subm.get('MovementType') == 'MinimumJerk':
+                        ax_submov.plot(subm['t_segment_model'], subm['v_sm'], ':', color='lightgreen',
+                                    label='MinJerk' if 'MinJerk' not in [l.get_label() for l in ax_submov.lines] else "")
+    
+                    """
+                
             ax_submov.set_xlabel('Tiempo (s)')
             ax_submov.set_ylabel('Vel. (px/s)')
             ax_submov.set_xlim(0, max_time)
             ax_submov.set_ylim(0, max_vel + 5)
             ax_submov.legend(fontsize=8, loc='upper right')
 
-            # Panel 5: Perfil del Estímulo (igual que antes)
+            # Panel 5: Perfil del Estímulo
             ax_stim.set_xlabel('Tiempo (s)')
             ax_stim.set_ylabel('Amplitud (µA)')
             ax_stim.set_xlim(0, max_time)
@@ -1310,8 +1163,14 @@ def collect_velocity_threshold_data():
                 max_velocities = []
                 for ampSel in selected_amplitudes:
                     data_amp = amplitude_movement_counts.get(ampSel, {})
-                    max_velocities.extend(data_amp.get('max_velocities', []))
-                y_max_velocity = np.percentile(max_velocities, 95) if max_velocities else 50
+                    max_velocities.extend(data_amp.get('max_velocities', []))                
+                logging.debug(f"max_velocities para {stimulus_key}: {max_velocities}")
+
+
+                y_max_velocity = np.percentile(max_velocities, 90) if max_velocities else 50
+                y_max_velocity = min(y_max_velocity, 640)  # e.g., some_max_cap = 200
+                logging.debug(f"y_max_velocity para {stimulus_key}: {y_max_velocity}")
+
 
                 frequencies = selected_trials['Frecuencia (Hz)'].unique()
                 if len(frequencies) == 1:
@@ -1444,52 +1303,42 @@ def collect_velocity_threshold_data():
                                                     }
                                                     submovement_details.append(rec)
                                                 submovements.append({'gaussians': gaussians, 'MovementType': 'Gaussian-based'})
-                                        
-                                        trial_data = {}  # Initialize the dictionary for this trial
 
-                                        # Llamamos a la optimización para el segmento completo
-                                        result = fit_multi_minjerk_submovements(t_segment, vel_segment_filtrada, threshold, max_submov=5, alpha_reg=0.01, robust_loss='huber', f_scale=1.0, amp_penalty_weight=1000.0)
-                                        if result is not None:
-                                            submov_list, v_model, num_final = result
-                                            trial_data['minjerk_count'] = num_final  # para usar en el CSV y en la leyenda
+                                        # Y para los submovimientos ajustados por MinimumJerk:
+                                        for rep_peak in submov_peak_indices:
+                                            window = 5  # Puedes ajustar este valor según tus datos
+                                            local_start = max(0, rep_peak - window)
+                                            local_end = min(len(t_segment) - 1, rep_peak + window)
+                                            t_local = t_segment[local_start: local_end + 1]
+                                            vel_local = vel_segment[local_start: local_end + 1]
+                                            if len(t_local) >= 3:
+                                                result_local = robust_fit_velocity_profile(t_local, vel_local, 1, peak_limit=y_max_velocity)
 
-
-                                            # Filtrar submovimientos con amplitud > MIN_AMPLITUDE
-                                            submov_list = [sub for sub in submov_list if sub['A_minjerk'] > MIN_AMPLITUDE]
-                                            if not submov_list:
-                                                # Si se descartaron todos, no incluimos este segmento
-                                                pass
-                                            else:
-                                                # Crear un único registro para este segmento MultiMinJerk
-                                                seg_dict = {
-                                                    'MovementType': 'MultiMinJerk',
-                                                    't_segment_model': t_segment,
-                                                    'v_sm': v_model,
-                                                    'num_submov': len(submov_list),  # Número real de submovimientos en este segmento
-                                                    'submovements': submov_list
-                                                }
-                                                submovements.append(seg_dict)
-
-                                                # Registrar cada submovimiento en el CSV detallado (opcional)
-                                                for sub in submov_list:
+                                                if result_local is not None:
+                                                    params_local = result_local.x
+                                                    v_minjerk_local = minimum_jerk_velocity(t_local, params_local[0], params_local[1], params_local[2])
+                                                    local_peak_index = int(np.argmax(v_minjerk_local))
                                                     rec = {
                                                         'Ensayo_Key': ensayo_key,
                                                         'Ensayo': trial_counter + 1,
                                                         'Dia experimental': dia_experimental,
                                                         'body_part': part,
                                                         'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
-                                                        'MovementType': 'MultiMinJerk',
-                                                        'A_minjerk': sub['A_minjerk'],
-                                                        't0': sub['t0'],
-                                                        'T': sub['T'],
-                                                        'Coordenada_x': coord_x,
-                                                        'Coordenada_y': coord_y,
-                                                        'Distancia Intracortical': dist_ic
+                                                        'MovementType': 'MinimumJerk',
+                                                        't_start': t_local[0],
+                                                        't_end': t_local[-1],
+                                                        't_peak': t_local[local_peak_index],
+                                                        'valor_pico': float(v_minjerk_local[local_peak_index]),
+                                                        'Coordenada_x': coord_x,          # Aseguramos incluir esta clave
+                                                        'Coordenada_y': coord_y,          # Igual para Y
+                                                        'Distancia Intracortical': dist_ic  # Y la distancia
                                                     }
                                                     submovement_details.append(rec)
-
-
-                                                    
+                                                    submovements.append({
+                                                        't_segment_model': t_local,
+                                                        'v_sm': v_minjerk_local,
+                                                        'MovementType': 'MinimumJerk'
+                                                    })
 
                             trial_data = {
                                 'velocity': vel,
@@ -1508,7 +1357,28 @@ def collect_velocity_threshold_data():
                                 'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
                                 'csv_filename': rowStim.get('csv_filename', 'Archivo desconocido')
                             }
-                            trial_data['minjerk_count'] = sum(1 for s in submovements if s.get('MovementType') == 'MultiMinJerk')
+
+                            # Procesar y generar los submovimientos (incluyendo los de MinimumJerk)...
+                            # (Aquí ya has ido construyendo la lista "submovements")
+
+                            # Una vez que ya se han agregado todos los submovimientos al ensayo,
+                            # aplicamos el filtrado de MinimumJerk una sola vez:
+                            minjerk_submovs = filter_overlapping_minjerk(
+                                [s for s in submovements if s.get('MovementType') == 'MinimumJerk'],
+                                overlap_threshold=0.7
+                            )
+                            # Guardamos la lista filtrada en una nueva clave
+                            trial_data['minjerk_submovs'] = minjerk_submovs
+
+                            # También, si lo deseas, puedes actualizar la lista completa de submovimientos
+                            # para que incluya los MinimumJerk filtrados en lugar de los originales:
+                            trial_data['submovements'] = [s for s in submovements if s.get('MovementType') != 'MinimumJerk'] + minjerk_submovs
+
+                            # Actualizamos el conteo de MinimumJerk con la cantidad filtrada
+                            trial_data['minjerk_count'] = len(minjerk_submovs)
+
+
+
                             trials_data.append(trial_data)
                             trial_counter += 1
 
@@ -1518,8 +1388,8 @@ def collect_velocity_threshold_data():
                     continue
 
                 all_stimuli_data[stimulus_key] = {
-                    'Dia experimental': dia_experimental,   
-                    'body_part': part,                          
+                    'Dia experimental': dia_experimental,     # <-- add this
+                    'body_part': part,                          # <-- add this
                     'velocities': group_velocities,
                     'positions': group_positions,
                     'threshold': threshold,
@@ -1571,16 +1441,16 @@ def collect_velocity_threshold_data():
     # Luego, si all_stimuli_data existe, se hace el merge usando la columna 'Estímulo' ya estandarizada
         # Luego, si all_stimuli_data existe, se hace el merge usando la columna 'Estímulo' ya estandarizada
     if all_stimuli_data:
-        counts_df['Estímulo'] = counts_df['Estímulo'].str.strip()
+        counts_df['Estímulo'] = counts_df['Estímulo'].str.strip().str.lower()
+        
         stimuli_df = pd.DataFrame(list(all_stimuli_data.values()))
-        stimuli_df['Estímulo'] = stimuli_df['Estímulo'].str.strip()
+        stimuli_df['Estímulo'] = stimuli_df['Estímulo'].str.strip().str.lower()
+
+        counts_df['body_part'] = counts_df['body_part'].str.strip().str.lower()
+        stimuli_df['body_part'] = stimuli_df['body_part'].str.strip().str.lower()
         
-        # VERIFICACIÓN: imprimir valores únicos de 'Estímulo'
-        print("Unique 'Estímulo' en counts_df:")
-        print(counts_df['Estímulo'].unique())
-        print("Unique 'Estímulo' en stimuli_df:")
-        print(stimuli_df['Estímulo'].unique())
-        
+        print("Valores de y_max_velocity:", stimuli_df['y_max_velocity'].unique())
+
                 
         counts_df = pd.merge(
             counts_df,
@@ -1910,7 +1780,7 @@ def aggregate_trial_metrics_extended(submovements_df):
          - lat_pico_mayor_ms: Latencia del pico máximo.
          - delta_valor_pico: Diferencia entre el valor pico máximo y el mínimo.
       Se hacen cálculos análogos para "Gaussian-based" (usando mu_gauss, sigma y A_gauss)
-      y para "MultiMinJerk" (usando t_start, t_peak, t_end y valor_pico).
+      y para "MinimumJerk" (usando t_start, t_peak, t_end y valor_pico).
 
     Devuelve un DataFrame con las columnas:
        Ensayo_Key, Ensayo, Estímulo, MovementType, Dia experimental, body_part,
@@ -1973,7 +1843,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             agg_metrics = agg_threshold(group)
         elif movement_type == 'Gaussian-based':
             agg_metrics = agg_gaussian(group)
-        elif movement_type == 'MultiMinJerk':
+        elif movement_type == 'MinimumJerk':
             agg_metrics = agg_minjerk(group)
         else:
             agg_metrics = pd.Series({k: np.nan for k in [
@@ -1999,7 +1869,7 @@ def plot_summary_movement_data_by_bodypart(submovements_df, output_dir):
     """
     Para cada combinación de Día experimental y body_part, genera un gráfico resumen con subplots.
     Cada subplot corresponde a una métrica y muestra, por cada estímulo, tres boxplots (Threshold-based,
-    Gaussian-based y MultiMinJerk) dispuestos con un pequeño offset; el color de cada grupo se asigna
+    Gaussian-based y MinimumJerk) dispuestos con un pequeño offset; el color de cada grupo se asigna
     según el estímulo. Se añade un subtítulo con los p‑valores (p_shape, p_dur y p_int) por cada modelo.
     """
     # Agregar las métricas extendidas
@@ -2021,8 +1891,8 @@ def plot_summary_movement_data_by_bodypart(submovements_df, output_dir):
     ordered_stimuli = [f"{shape}, {dur} ms" for shape, durations in pulse_duration_dict.items() for dur in durations]
     
     # Fijamos el orden de los modelos y sus offsets para el gráfico
-    movement_types = ['Threshold-based', 'Gaussian-based', 'MultiMinJerk']
-    offset_dict = {'Threshold-based': 0, 'Gaussian-based': 0.5, 'MultiMinJerk': 0.75}
+    movement_types = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
+    offset_dict = {'Threshold-based': 0, 'Gaussian-based': 0.5, 'MinimumJerk': 0.75}
     gap_between = 1.5
     metrics_dict = {
         'lat_inicio_ms': "Lat. Inicio (ms)",
@@ -2111,9 +1981,9 @@ def plot_summary_movement_data_by_bodypart(submovements_df, output_dir):
             f"Gaussian: p_shape={model_pvals['Gaussian-based'][0]:.3f}, "
             f"p_dur={model_pvals['Gaussian-based'][1]:.3f}, "
             f"p_int={model_pvals['Gaussian-based'][2]:.3f}\n"
-            f"MinJerk: p_shape={model_pvals['MultiMinJerk'][0]:.3f}, "
-            f"p_dur={model_pvals['MultiMinJerk'][1]:.3f}, "
-            f"p_int={model_pvals['MultiMinJerk'][2]:.3f}"
+            f"MinJerk: p_shape={model_pvals['MinimumJerk'][0]:.3f}, "
+            f"p_dur={model_pvals['MinimumJerk'][1]:.3f}, "
+            f"p_int={model_pvals['MinimumJerk'][2]:.3f}"
         )
         ax.text(0.95, 0.05, subtitle_text, transform=ax.transAxes, fontsize=8,
                 verticalalignment='bottom', horizontalalignment='right',
@@ -2203,14 +2073,14 @@ def get_tukey_pvals_for_stimulus(agg_df, stim, metric):
 
 def compute_model_pvals(agg_df, metric):
     """
-    Para cada modelo (Threshold-based, Gaussian-based, MultiMinJerk), se calcula la ANOVA 
+    Para cada modelo (Threshold-based, Gaussian-based, MinimumJerk), se calcula la ANOVA 
     con dos factores (Forma del Pulso y Duración (ms)) sobre la métrica dada y se extraen:
       - p_shape: p-value para la forma
       - p_dur: p-value para la duración
       - p_int: p-value para la interacción
     Devuelve un diccionario con 3 valores por modelo.
     """
-    models = ['Threshold-based', 'Gaussian-based', 'MultiMinJerk']
+    models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
     pvals = {}
     for mt in models:
         df_model = agg_df[agg_df['MovementType'] == mt]
