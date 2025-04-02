@@ -8,7 +8,6 @@ import matplotlib
 matplotlib.use('Agg')  
 
 import itertools
-
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import logging
@@ -35,23 +34,23 @@ from statsmodels.stats.anova import anova_lm
 from scipy.stats import friedmanchisquare
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
-
 # Configuración del logging
 refactored_log_file_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
 logging.basicConfig(
     filename=refactored_log_file_path,
-    level=logging.DEBUG,  # Cambiado a DEBUG para más detalles
+    level=logging.DEBUG,  # DEBUG para información detallada
     format='%(asctime)s - %(levelname)s - %(message)s',
-    filemode='w'  # 'w' para sobrescribir el archivo cada vez
+    filemode='w'
 )
 
 # Añadir un StreamHandler para ver los logs en la consola
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)  # Cambiado a DEBUG para más detalles en consola
+console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
-logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
+# Reducir la verbosidad de los logs de fuentes:
+logging.getLogger('matplotlib.font_manager').setLevel(logging.ERROR)
 
 # Añadir la ruta a Stimulation.py
 stimulation_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\scripts\GUI_pattern_generator'
@@ -63,7 +62,6 @@ sys.path.append(stimulation_path)
 logging.info(f"Ruta añadida al PATH: {stimulation_path}")
 print(f"Ruta añadida al PATH: {stimulation_path}")
 
-# Importar la función estimulo de Stimulation.py
 try:
     from Stimulation import estimulo
     logging.info("Función 'estimulo' importada correctamente.")
@@ -75,11 +73,9 @@ except ImportError as e:
 
 # Directorios
 stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information_expanded.csv'
-
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
 output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials'
 
-# Asegurarse de que el directorio de salida existe
 if not os.path.exists(output_comparisons_dir):
     os.makedirs(output_comparisons_dir)
     logging.info(f"Directorio de salida creado: {output_comparisons_dir}")
@@ -99,9 +95,8 @@ def verificar_archivo(path, nombre_archivo):
         print(f"Archivo encontrado: {path}")
 
 # Verificar la existencia de los archivos CSV
-verificar_archivo(stimuli_info_path, 'Stimuli_information.csv')
+verificar_archivo(stimuli_info_path, 'Stimuli_information_extended.csv')
 
-# Cargar archivos CSV
 print(f"Cargando Stimuli_information desde: {stimuli_info_path}")
 logging.info(f"Cargando Stimuli_information desde: {stimuli_info_path}")
 try:
@@ -113,7 +108,6 @@ except Exception as e:
     print(f'Error al cargar Stimuli_information.csv: {e}')
     sys.exit(f'Error al cargar Stimuli_information.csv: {e}')
 
-# Filtrar entradas donde 'Descartar' es 'No'
 print("Filtrando entradas donde 'Descartar' es 'No'")
 logging.info("Filtrando entradas donde 'Descartar' es 'No'")
 if 'Descartar' not in stimuli_info.columns:
@@ -124,7 +118,6 @@ stimuli_info = stimuli_info[stimuli_info['Descartar'] == 'No']
 logging.info(f"'Stimuli_information.csv' después del filtrado tiene {len(stimuli_info)} filas.")
 print(f"'Stimuli_information.csv' después del filtrado tiene {len(stimuli_info)} filas.")
 
-# Normalizar 'Forma del Pulso' a minúsculas y crear la columna 'Estímulo' de forma estandarizada
 print("Normalizando 'Forma del Pulso' y generando la columna 'Estímulo'")
 logging.info("Normalizando 'Forma del Pulso' y generando la columna 'Estímulo'")
 if 'Forma del Pulso' not in stimuli_info.columns:
@@ -137,19 +130,16 @@ stimuli_info['Estímulo'] = stimuli_info.apply(
               if pd.notnull(r['Forma del Pulso']) and pd.notnull(r['Duración (ms)']) else None,
     axis=1
 )
-
 logging.info("Columna 'Estímulo' creada y estandarizada.")
 print("Columna 'Estímulo' creada y estandarizada.")
 
-# Verificar si stimuli_info no está vacío
 if stimuli_info.empty:
-    logging.error("El DataFrame stimuli_info está vacío después de filtrar por 'Descartar' == 'No'. Verifica el archivo CSV.")
-    print("El DataFrame stimuli_info está vacío después de filtrar por 'Descartar' == 'No'. Verifica el archivo CSV.")
+    logging.error("El DataFrame stimuli_info está vacío después del filtrado.")
+    print("El DataFrame stimuli_info está vacío después del filtrado.")
     sys.exit("El DataFrame stimuli_info está vacío. No hay datos para procesar.")
 logging.info("El DataFrame stimuli_info no está vacío después del filtrado.")
 print("El DataFrame stimuli_info no está vacío después del filtrado.")
 
-# Diccionario de colores específicos para cada articulación
 body_parts_specific_colors = {
     'Frente': 'blue',
     'Hombro': 'orange',
@@ -158,7 +148,6 @@ body_parts_specific_colors = {
     'Braquiradial': 'grey',
     'Bicep': 'brown'
 }
-# Definir la paleta de colores global para las formas del pulso
 PULSE_SHAPE_COLORS = {
     'Rectangular': sns.color_palette('tab10')[0],
     'Rombo': sns.color_palette('tab10')[1],
@@ -200,7 +189,7 @@ def detectar_submovimientos_en_segmento(vel_segment, threshold):
     # Suavizar el segmento con SavGol
     vel_suav_seg = suavizar_velocidad_savgol(vel_segment)
     
-    peak_indices, _ = find_peaks(vel_suav_seg, height=threshold*0.2)
+    peak_indices, _ = find_peaks(vel_suav_seg, height=threshold)
 
     valid_peaks = []
     for pk in peak_indices:
@@ -222,16 +211,10 @@ def gaussian(x, A, mu, sigma):
 
 
 def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_limit):
-    """
-    Ajusta gaussianas al segmento. Se descartan aquellas cuyo inicio (mu - 2*sigma)
-    ocurra antes de stim_start + 0.03 (30 ms después del inicio del estímulo) o cuya
-    duración (4*sigma) exceda 0.8 s.
-    """
     from scipy.optimize import curve_fit
     from scipy.signal import find_peaks
 
     logging.debug(f"Inicio de fit_gaussians_submovement con peak_limit={peak_limit}")
-
     peaks, _ = find_peaks(v_segment, height=threshold)
     if len(peaks) == 0:
         logging.warning("No se detectaron picos en el segmento para ajustar gaussianas.")
@@ -239,9 +222,7 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
 
     gaussians = []
     max_sigma = 0.5 * (t_segment[-1] - t_segment[0])
-    # Opcional: limitar peak_limit al valor máximo real en el segmento
     peak_limit_used = min(peak_limit, np.percentile(v_segment, 95))
-
     logging.debug(f"peak_limit_used = {peak_limit_used} (np.max(v_segment) = {np.max(v_segment)})")
     
     for peak in peaks:
@@ -257,9 +238,9 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
         mu_init = t_segment[peak]
         sigma_init = (t_win[-1] - t_win[0]) / 2.0 if len(t_win) > 1 else 0.01
 
-        # Condición: inicio de la gaussiana debe ser 30 ms después del estímulo
-        if (mu_init - 2 * sigma_init) < (stim_start + 0.03):
-            logging.info(f"Gaussiana descartada: inicio {mu_init - 2*sigma_init:.3f}s < {stim_start + 0.03:.3f}s")
+        # Cambiado: ahora se descarta si la gaussiana inicia antes de 20 ms después del estímulo
+        if (mu_init - 2 * sigma_init) < (stim_start + 0.02):
+            logging.info(f"Gaussiana descartada: inicio {mu_init - 2*sigma_init:.3f}s < {stim_start + 0.02:.3f}s")
             continue
 
         if 4 * sigma_init > 0.8:
@@ -268,17 +249,17 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
 
         p0 = [A_init, mu_init, sigma_init]
         lb = [0, t_win[0], 1e-4]
-        # Usamos peak_limit_used en lugar de peak_limit
         ub = [peak_limit_used, t_win[-1], max_sigma]
         try:
             popt, _ = curve_fit(gaussian, t_win, v_win, p0=p0, bounds=(lb, ub))
             modelo_pico = gaussian(mu_init, *popt)
-            epsilon = 1e-6  # Para evitar división por cero
+            epsilon = 1e-6
             scale = v_segment[peak] / (modelo_pico + epsilon)
             popt[0] *= scale
 
-            if (popt[1] - 2 * popt[2]) < (stim_start + 0.03):
-                logging.info(f"Gaussiana descartada tras ajuste: inicio {popt[1]-2*popt[2]:.3f}s < {stim_start+0.03:.3f}s")
+            # Actualizado: permitir inicio a 20 ms en lugar de 30 ms
+            if (popt[1] - 2 * popt[2]) < (stim_start + 0.02):
+                logging.info(f"Gaussiana descartada tras ajuste: inicio {popt[1]-2*popt[2]:.3f}s < {stim_start+0.02:.3f}s")
                 continue
             if 4 * popt[2] > 0.8:
                 logging.info(f"Gaussiana descartada tras ajuste: duración {4*popt[2]:.3f}s > 0.8s")
@@ -288,15 +269,15 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
         except Exception as e:
             logging.warning(f"Fallo en curve_fit para pico en índice {peak}: {e}. Usando aproximación simple.")
             sigma_simple = sigma_init if sigma_init <= max_sigma else max_sigma
-            if (mu_init - 2 * sigma_simple) < (stim_start + 0.03):
-                logging.info(f"Gaussiana descartada en aproximación simple: inicio {mu_init-2*sigma_simple:.3f}s < {stim_start+0.03:.3f}s")
+            if (mu_init - 2 * sigma_simple) < (stim_start + 0.02):
+                logging.info(f"Gaussiana descartada en aproximación simple: inicio {mu_init-2*sigma_simple:.3f}s < {stim_start+0.02:.3f}s")
                 continue
             if 4 * sigma_simple > 0.8:
                 logging.info(f"Gaussiana descartada en aproximación simple: duración {4*sigma_simple:.3f}s > 0.8s")
                 continue
             gaussians.append({'A_gauss': A_init, 'mu_gauss': mu_init, 'sigma_gauss': sigma_simple})
 
-    # Filtrado de solapamientos
+    # Filtrado de solapamientos (sin cambios en esta parte)
     gaussians = sorted(gaussians, key=lambda g: g['mu_gauss'])
     filtered_gaussians = []
     skip_next = False
@@ -308,7 +289,6 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
         if i < len(gaussians) - 1:
             next_g = gaussians[i+1]
             if abs(next_g['mu_gauss'] - current['mu_gauss']) < 0.5 * (current['sigma_gauss'] + next_g['sigma_gauss']):
-                # Si se solapan, nos quedamos con la de mayor amplitud
                 if current['A_gauss'] >= next_g['A_gauss']:
                     filtered_gaussians.append(current)
                 else:
@@ -319,6 +299,7 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
         else:
             filtered_gaussians.append(current)
     return filtered_gaussians
+
 
 
 def minimum_jerk_velocity(t, A, t0, T):
@@ -1006,11 +987,27 @@ def compute_thresholds_by_day_bodypart(stimuli_info):
 # Función principal: recopilar datos de velocidad y submovimientos
 # =====================================================
 def collect_velocity_threshold_data():
+    """
+    Recolecta y procesa los datos de velocidad y submovimientos a partir del CSV de información
+    de estímulos (stimuli_info). Se filtran los ensayos (Descartar == 'No'), se agrupan por día y
+    coordenadas, se calcula el threshold (umbral) para cada parte del cuerpo y se extrae la
+    información detallada de cada ensayo. Los registros generados se usan para crear el CSV
+    'expanded_trials_detailed.csv' y otros resúmenes.
+
+    Devuelve:
+       counts_df: DataFrame con resumen de movimientos (para su posterior análisis).
+    """
     logging.info("Iniciando la recopilación de datos de umbral de velocidad.")
     print("Iniciando la recopilación de datos de umbral de velocidad.")
 
-    # --- CALCULO DEL THRESHOLD (UMBRAL) GLOBAL POR DÍA Y BODY PART ---
-    thresholds_by_day = compute_thresholds_by_day_bodypart(stimuli_info)
+    # Cargar el CSV original y filtrar ensayos donde 'Descartar' es 'No'
+    df_all = pd.read_csv(stimuli_info_path)
+    logging.info(f"Archivo original cargado con {len(df_all)} filas.")
+    df_filter = df_all[df_all['Descartar'] == 'No'].copy()
+    logging.info(f"Ensayos a procesar (Descartar == 'No'): {len(df_filter)} filas.")
+
+    # Calcular thresholds globales por día y parte del cuerpo
+    thresholds_by_day = compute_thresholds_by_day_bodypart(df_filter)
 
     all_movement_data = []
     thresholds_data = []
@@ -1018,40 +1015,37 @@ def collect_velocity_threshold_data():
     movement_ranges_all = []
     global submovement_details  
     submovement_details = []
+    expanded_trials = []  # Aquí se guardarán todos los registros detallados
 
-    # Se agrupa según la agrupación original (incluye la "Distancia Intracortical")
-    grouped_data = stimuli_info.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical'])
+    # Agrupar por día, coordenadas y distancia intracortical
+    grouped_data = df_filter.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical'])
+    global_stimuli_data = {}
 
     for (dia_experimental, coord_x, coord_y, dist_ic), day_df in grouped_data:
-        print(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
-        logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}')
-        print(f'Número de ensayos en este grupo: {len(day_df)}')
-        logging.info(f'Número de ensayos en este grupo: {len(day_df)}')
-
-        # Asegurarse de que "Forma del Pulso" esté en minúsculas y asignar trial_number
+        logging.info(f"Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}. Ensayos: {len(day_df)}")
         day_df['Forma del Pulso'] = day_df['Forma del Pulso'].str.lower()
         if 'trial_number' not in day_df.columns:
             day_df['trial_number'] = day_df.index + 1
 
+        # Iterar por cada parte del cuerpo
         for part in body_parts:
-            logging.info(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}, Articulación {part}')
-            print(f'Procesando: Día {dia_experimental}, X={coord_x}, Y={coord_y}, Dist={dist_ic}, Articulación {part}')
-            processed_combinations.add((dia_experimental, coord_x, coord_y, dist_ic, 'All_Stimuli', part))
+            current_part = part  # Valor explícito de la parte del cuerpo
+            logging.info(f"Procesando: Día {dia_experimental} - Articulación: {current_part}")
+            print(f"Procesando: Día {dia_experimental} - Articulación: {current_part}")
+            processed_combinations.add((dia_experimental, coord_x, coord_y, dist_ic, 'All_Stimuli', current_part))
 
-            # --- USAR EL THRESHOLD GLOBAL CALCULADO POR DÍA Y BODY PART ---
-            threshold_data = thresholds_by_day.get((dia_experimental, part))
+            # Obtener el threshold global para la parte actual
+            threshold_data = thresholds_by_day.get((dia_experimental, current_part))
             if threshold_data is None or threshold_data['threshold'] is None:
-                logging.warning(f"No se pudo calcular threshold para {part} en día {dia_experimental}. Se omite este body part.")
+                logging.warning(f"No se pudo calcular threshold para {current_part} en día {dia_experimental}. Se omite este body part.")
                 continue
             threshold = threshold_data['threshold']
-            global_median = threshold_data['median']  # Calculado con np.median
+            global_median = threshold_data['median']
             global_mad = threshold_data['mad']
+            logging.info(f"Threshold para {current_part} en día {dia_experimental}: {threshold:.4f}")
 
-            logging.info(f"Utilizando threshold para {part} en día {dia_experimental}: {threshold:.4f}")
-
-            # Almacenar estos valores en thresholds_data para referencia en resúmenes
             thresholds_data.append({
-                'body_part': part,
+                'body_part': current_part,
                 'Dia experimental': dia_experimental,
                 'Coordenada_x': coord_x,
                 'Coordenada_y': coord_y,
@@ -1060,27 +1054,25 @@ def collect_velocity_threshold_data():
                 'mad_pre_stim': global_mad
             })
 
-            # ----- Procesar cada estímulo para este grupo y body part -----
-            all_stimuli_data = {}
-            group_velocities = []
-            group_positions = {'x': [], 'y': []}
-            group_trial_indices = []
+            key_global = (dia_experimental, current_part)
+            if key_global not in global_stimuli_data:
+                global_stimuli_data[key_global] = {}
+            all_stimuli_data = global_stimuli_data[key_global]
+
             movement_trials_in_selected = 0
-            trials_passed = []
             trial_counter = 0
 
+            # Obtener estímulos únicos (combinación de Forma del Pulso y Duración)
             unique_stimuli = day_df.drop_duplicates(subset=['Forma del Pulso', 'Duración (ms)'], keep='first')[['Forma del Pulso', 'Duración (ms)', 'trial_number']]
             for _, stim in unique_stimuli.iterrows():
                 forma_pulso = stim['Forma del Pulso'].lower()
                 duracion_ms = stim.get('Duración (ms)', None)
                 stimulus_key = f"{forma_pulso.capitalize()}, {int(round(float(duracion_ms), 0))} ms"
 
-
                 if duracion_ms is not None:
                     stim_df = day_df[(day_df['Forma del Pulso'] == forma_pulso) & (day_df['Duración (ms)'] == duracion_ms)]
                 else:
                     stim_df = day_df[day_df['Forma del Pulso'] == forma_pulso]
-
                 if stim_df.empty:
                     continue
 
@@ -1097,40 +1089,40 @@ def collect_velocity_threshold_data():
                         csv_path = rowAmp.get('csv_path')
                         if csv_path and os.path.exists(csv_path):
                             velocidades, posiciones = calcular_velocidades(csv_path)
-                            if part not in velocidades or len(velocidades[part]) == 0:
+                            # Usar la parte del cuerpo actual de forma explícita
+                            if current_part not in velocidades or len(velocidades[current_part]) == 0:
                                 continue
                             start_frame = 100
-                            # Usamos los primeros 100 frames de cada trial
-                            vel_pre = velocidades[part][:start_frame]
+                            vel_pre = velocidades[current_part][:start_frame]
                             vel_pre = vel_pre[~np.isnan(vel_pre)]
                             if len(vel_pre) == 0:
                                 logging.warning("Trial sin datos pre-stim.")
                                 continue
-                            # Aquí usamos la media global (global_median) para filtrar outliers
                             if np.nanmedian(vel_pre) > global_median + 3 * global_mad:
                                 logging.info("Descartando trial por exceso pre-stim robusto.")
                                 continue
 
-
                             total_trials_part += 1
-                            frames = np.arange(len(velocidades[part]))
-                            above_thresh = (velocidades[part] > threshold)
-                            indices_above = frames[above_thresh]
+                            frames = np.arange(len(velocidades[current_part]))
+                            amp_list, time_list = generar_estimulo_desde_parametros(
+                                rowAmp['Forma del Pulso'],
+                                rowAmp['Amplitud (microA)'] * 1000,
+                                (duracion_ms * 1000 if duracion_ms else 1000000),
+                                rowAmp['Frecuencia (Hz)'],
+                                200,
+                                compensar=False if duracion_ms == 1000 else True
+                            )
+                            stim_duration_frames = int(sum(time_list))
+                            current_frame = start_frame + stim_duration_frames
 
-                            trial_has_movement = 0
-                            if len(indices_above) > 0:
-                                segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
-                                for seg in segments:
-                                    if start_frame <= seg[0]:
-                                        trial_has_movement = 1
-                                        break  # Se cuenta solo una vez por trial
-                            # Luego:
+                            indices_above = frames[velocidades[current_part] > threshold]
+                            trial_has_movement = 1 if len(indices_above) > 0 else 0
                             movement_trials += trial_has_movement
-
-                            maxVel = np.max(velocidades[part])
+                            maxVel = np.max(velocidades[current_part])
                             max_velocities.append(maxVel)
                             rowAmp['trial_number'] = rowAmp.get('trial_number', rowAmp.name + 1)
-                    prop_movement = 1 if movement_trials > 0 else 0
+
+                    prop_movement = movement_trials / total_trials_part if total_trials_part > 0 else np.nan
                     amplitude_movement_counts[amplitude] = {
                         'movement_trials': movement_trials,
                         'total_trials': total_trials_part,
@@ -1138,40 +1130,33 @@ def collect_velocity_threshold_data():
                         'proportion_movement': prop_movement
                     }
                     all_movement_data.append({
-                        'body_part': part,
+                        'Ensayo_Key': rowAmp.get('Ensayo_Key', rowAmp.get('csv_filename', 'Desconocido')),
                         'Dia experimental': dia_experimental,
+                        'body_part': current_part,
                         'Forma del Pulso': forma_pulso,
                         'Duración (ms)': duracion_ms,
                         'Amplitud (microA)': amplitude,
-                        'trial_number': rowAmp.get('trial_number'),
                         'movement_trials': movement_trials,
                         'total_trials': total_trials_part,
-                        'no_movement_trials': total_trials_part - movement_trials,
-                        'proportion_movement': prop_movement
+                        'proportion_movement': prop_movement,
                     })
 
                 if not amplitude_movement_counts:
-                    logging.debug(f"No hay amplitudes con movimiento para {part}, día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                    logging.debug(f"No hay amplitudes con movimiento para {current_part}, día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
                     continue
 
                 max_proportion = max(mdata['proportion_movement'] for mdata in amplitude_movement_counts.values())
                 selected_amplitudes = [amp for amp, mdata in amplitude_movement_counts.items() if mdata['proportion_movement'] == max_proportion]
                 selected_trials = stim_df[stim_df['Amplitud (microA)'].isin(selected_amplitudes)]
-                print(f"Amplitudes selec. {selected_amplitudes} => prop mov={max_proportion:.2f} para {part}, día={dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                print(f"Amplitudes selec. {selected_amplitudes} => prop mov={max_proportion:.2f} para {current_part}, día={dia_experimental}, {forma_pulso} {duracion_ms} ms.")
                 logging.info(f"Amplitudes selec. {selected_amplitudes} con prop mov={max_proportion:.2f}")
 
                 max_velocities = []
                 for ampSel in selected_amplitudes:
                     data_amp = amplitude_movement_counts.get(ampSel, {})
-                    max_velocities.extend(data_amp.get('max_velocities', []))                
-                logging.debug(f"max_velocities para {stimulus_key}: {max_velocities}")
-
-
+                    max_velocities.extend(data_amp.get('max_velocities', []))
                 y_max_velocity = np.percentile(max_velocities, 90) if max_velocities else 50
-                y_max_velocity = min(y_max_velocity, 640)  # e.g., some_max_cap = 200
-                logging.debug(f"y_max_velocity para {stimulus_key}: {y_max_velocity}")
-
-
+                y_max_velocity = min(y_max_velocity, 640)
                 frequencies = selected_trials['Frecuencia (Hz)'].unique()
                 if len(frequencies) == 1:
                     frequency = frequencies[0]
@@ -1182,10 +1167,6 @@ def collect_velocity_threshold_data():
                     frequency = None
 
                 movement_trials_in_selected = 0
-                trials_passed = []
-                group_velocities = []
-                group_positions = {'x': [], 'y': []}
-                group_trial_indices = []
                 trial_counter = 0
                 movement_ranges = []
                 trials_data = []
@@ -1194,13 +1175,13 @@ def collect_velocity_threshold_data():
                     csv_path = rowStim.get('csv_path')
                     if csv_path and os.path.exists(csv_path):
                         velocidades, posiciones = calcular_velocidades(csv_path)
-                        if part in velocidades:
-                            vel = velocidades[part]
-                            pos = posiciones[part]
+                        if current_part in velocidades:
+                            vel = velocidades[current_part]
+                            pos = posiciones[current_part]
                             if len(vel) == 0:
                                 continue
                             start_frame = 100
-                            amplitude_list, duration_list = generar_estimulo_desde_parametros(
+                            amp_list, duration_list = generar_estimulo_desde_parametros(
                                 rowStim['Forma del Pulso'],
                                 rowStim['Amplitud (microA)'] * 1000,
                                 (duracion_ms * 1000 if duracion_ms else 1000000),
@@ -1216,19 +1197,29 @@ def collect_velocity_threshold_data():
                                 continue
                             if np.nanmedian(vel_pre) > global_median + 3 * global_mad:
                                 logging.info(f"Descartado trial {trial_counter} por exceso pre-stim robusto.")
+                                trial_data = {
+                                    'csv_filename': rowStim.get('csv_filename', 'Archivo desconocido'),
+                                    'trial_index': trial_counter + 1,
+                                    'start_frame': start_frame,
+                                    'current_frame': current_frame,
+                                    'threshold': threshold,
+                                    'median_vel_pre': global_median,
+                                    'mad_vel_pre': global_mad,
+                                    'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
+                                    'Dia experimental': dia_experimental,
+                                    'body_part': current_part,
+                                    'csv_path': csv_path,
+                                    'Descartar': 'Sí'
+                                }
+                                trials_data.append(trial_data)
+                                expanded_trials.append(trial_data)
+                                trial_counter += 1
                                 continue
-
 
                             if np.any(vel[start_frame:current_frame] > threshold):
                                 movement_trials_in_selected += 1
-                            group_velocities.append(vel)
-                            group_positions['x'].append(pos['x'])
-                            group_positions['y'].append(pos['y'])
-                            group_trial_indices.append(trial_counter)
-
                             frames_vel = np.arange(len(vel))
-                            above_threshold = (vel > threshold)
-                            indices_above = frames_vel[above_threshold]
+                            indices_above = frames_vel[vel > threshold]
                             submovements = []
                             if len(indices_above) > 0:
                                 segments = np.split(indices_above, np.where(np.diff(indices_above) != 1)[0] + 1)
@@ -1246,16 +1237,14 @@ def collect_velocity_threshold_data():
                                     else:
                                         periodo = 'Post-Estímulo'
 
-                                    # Extraer la llave del ensayo
                                     match_key = re.search(r'(\d{8}_\d{9}_\d+)', csv_path)
                                     ensayo_key = match_key.group(1) if match_key else csv_path
 
-                                    # REGISTRO para modelo Threshold-based (ya incluye las coordenadas y distancia)
                                     movement_data = {
                                         'Ensayo_Key': ensayo_key,
                                         'Ensayo': trial_counter + 1,
                                         'Dia experimental': dia_experimental,
-                                        'body_part': part,
+                                        'body_part': current_part,
                                         'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
                                         'MovementType': 'Threshold-based',
                                         'Periodo': periodo,
@@ -1275,45 +1264,43 @@ def collect_velocity_threshold_data():
                                     if periodo == 'Durante Estímulo':
                                         submovement_details.append(movement_data)
                                     
+                                    # Procesar submovimientos (por Gaussian y MinimumJerk)
                                     if periodo == 'Durante Estímulo':
                                         t_segment = np.arange(movement_start, movement_end + 1) / 100.0
                                         if t_segment[0] < (start_frame/100.0 + 0.03):
                                             continue
                                         vel_segment = vel[movement_start:movement_end+1]
-                                        vel_segment_filtrada = aplicar_moving_average(vel_segment, window_size=10)
-                                        submov_peak_indices = detectar_submovimientos_en_segmento(vel_segment_filtrada, threshold)
-                                        # Más adelante, para los submovimientos del modelo Gaussian-based:
+                                        # vel_segment_filtrada = aplicar_moving_average(vel_segment, window_size=10)
+                                        submov_peak_indices = detectar_submovimientos_en_segmento(vel_segment, threshold)
                                         if len(submov_peak_indices) > 0:
-                                            gaussians = fit_gaussians_submovement(t_segment, vel_segment_filtrada, threshold, start_frame/100.0, y_max_velocity)
+                                            gaussians = fit_gaussians_submovement(t_segment, vel_segment, threshold, start_frame/100.0, y_max_velocity)
                                             if gaussians:
                                                 for g in gaussians:
                                                     rec = {
                                                         'Ensayo_Key': ensayo_key,
                                                         'Ensayo': trial_counter + 1,
                                                         'Dia experimental': dia_experimental,
-                                                        'body_part': part,
+                                                        'body_part': current_part,
                                                         'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
                                                         'MovementType': 'Gaussian-based',
                                                         'A_gauss': g.get('A_gauss'),
                                                         'mu_gauss': g.get('mu_gauss'),
                                                         'sigma_gauss': g.get('sigma_gauss'),
-                                                        'Coordenada_x': coord_x,          # Aseguramos incluir esta clave
-                                                        'Coordenada_y': coord_y,          # Igual para Y
-                                                        'Distancia Intracortical': dist_ic  # Y la distancia
+                                                        'Coordenada_x': coord_x,
+                                                        'Coordenada_y': coord_y,
+                                                        'Distancia Intracortical': dist_ic
                                                     }
                                                     submovement_details.append(rec)
                                                 submovements.append({'gaussians': gaussians, 'MovementType': 'Gaussian-based'})
 
-                                        # Y para los submovimientos ajustados por MinimumJerk:
                                         for rep_peak in submov_peak_indices:
-                                            window = 5  # Puedes ajustar este valor según tus datos
+                                            window = 5
                                             local_start = max(0, rep_peak - window)
                                             local_end = min(len(t_segment) - 1, rep_peak + window)
                                             t_local = t_segment[local_start: local_end + 1]
                                             vel_local = vel_segment[local_start: local_end + 1]
                                             if len(t_local) >= 3:
                                                 result_local = robust_fit_velocity_profile(t_local, vel_local, 1, peak_limit=y_max_velocity)
-
                                                 if result_local is not None:
                                                     params_local = result_local.x
                                                     v_minjerk_local = minimum_jerk_velocity(t_local, params_local[0], params_local[1], params_local[2])
@@ -1322,16 +1309,16 @@ def collect_velocity_threshold_data():
                                                         'Ensayo_Key': ensayo_key,
                                                         'Ensayo': trial_counter + 1,
                                                         'Dia experimental': dia_experimental,
-                                                        'body_part': part,
+                                                        'body_part': current_part,
                                                         'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
                                                         'MovementType': 'MinimumJerk',
                                                         't_start': t_local[0],
                                                         't_end': t_local[-1],
                                                         't_peak': t_local[local_peak_index],
                                                         'valor_pico': float(v_minjerk_local[local_peak_index]),
-                                                        'Coordenada_x': coord_x,          # Aseguramos incluir esta clave
-                                                        'Coordenada_y': coord_y,          # Igual para Y
-                                                        'Distancia Intracortical': dist_ic  # Y la distancia
+                                                        'Coordenada_x': coord_x,
+                                                        'Coordenada_y': coord_y,
+                                                        'Distancia Intracortical': dist_ic
                                                     }
                                                     submovement_details.append(rec)
                                                     submovements.append({
@@ -1346,81 +1333,56 @@ def collect_velocity_threshold_data():
                                 'trial_index': trial_counter,
                                 'submovements': submovements,
                                 'movement_ranges': [md for md in movement_ranges if md['Ensayo'] == (trial_counter + 1)],
-                                'amplitude_list': amplitude_list,
+                                'amplitude_list': amp_list,
                                 'duration_list': duration_list,
                                 'start_frame': start_frame,
                                 'current_frame': current_frame,
                                 'threshold': threshold,
-                                'median_vel_pre': global_median,    # Actualizado: mediana en lugar de mean
-                                'mad_vel_pre': global_mad,            # Actualizado: MAD en lugar de std
+                                'median_vel_pre': global_median,
+                                'mad_vel_pre': global_mad,
                                 'Ensayo': trial_counter + 1,
                                 'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
-                                'csv_filename': rowStim.get('csv_filename', 'Archivo desconocido')
+                                'csv_filename': rowStim.get('csv_filename', 'Archivo desconocido'),
+                                'body_part': current_part
                             }
-
-                            # Procesar y generar los submovimientos (incluyendo los de MinimumJerk)...
-                            # (Aquí ya has ido construyendo la lista "submovements")
-
-                            # Una vez que ya se han agregado todos los submovimientos al ensayo,
-                            # aplicamos el filtrado de MinimumJerk una sola vez:
-                            minjerk_submovs = filter_overlapping_minjerk(
-                                [s for s in submovements if s.get('MovementType') == 'MinimumJerk'],
-                                overlap_threshold=0.7
-                            )
-                            # Guardamos la lista filtrada en una nueva clave
-                            trial_data['minjerk_submovs'] = minjerk_submovs
-
-                            # También, si lo deseas, puedes actualizar la lista completa de submovimientos
-                            # para que incluya los MinimumJerk filtrados en lugar de los originales:
-                            trial_data['submovements'] = [s for s in submovements if s.get('MovementType') != 'MinimumJerk'] + minjerk_submovs
-
-                            # Actualizamos el conteo de MinimumJerk con la cantidad filtrada
-                            trial_data['minjerk_count'] = len(minjerk_submovs)
-
-
+                            if not any(md.get('Periodo', '') == 'Durante Estímulo' for md in trial_data.get('movement_ranges', [])):
+                                trial_data['Descartar'] = 'Sí'
+                                logging.info(f"Trial {rowStim.get('csv_filename','Desconocido')} no tuvo modelo en el tercer panel. Marcado para descartar.")
+                            else:
+                                trial_data['Descartar'] = 'No'
 
                             trials_data.append(trial_data)
+                            expanded_trials.append(trial_data)
                             trial_counter += 1
 
                 if len(trials_data) == 0:
-                    logging.debug(f"No hay datos de velocidad para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
-                    print(f"No hay datos de velocidad para {part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                    logging.debug(f"No hay datos de velocidad para {current_part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
+                    print(f"No hay datos de velocidad para {current_part} en día {dia_experimental}, {forma_pulso} {duracion_ms} ms.")
                     continue
 
                 all_stimuli_data[stimulus_key] = {
-                    'Dia experimental': dia_experimental,     # <-- add this
-                    'body_part': part,                          # <-- add this
-                    'velocities': group_velocities,
-                    'positions': group_positions,
-                    'threshold': threshold,
-                    'amplitude_list': amplitude_list,
-                    'duration_list': duration_list,
-                    'start_frame': start_frame,
-                    'current_frame': current_frame,
-                    'median_vel_pre': global_median,
-                    'mad_vel_pre': global_mad,
-                    'amplitud_real': selected_amplitudes,
-                    'y_max_velocity': y_max_velocity,
-                    'trial_indices': group_trial_indices,
-                    'form': forma_pulso.capitalize(),
-                    'duration_ms': duracion_ms,
-                    'frequency': frequency,
-                    'movement_ranges': movement_ranges,
+                    'Ensayo_Key': f"{dia_experimental}_{current_part}_{stimulus_key}",
+                    'Dia experimental': dia_experimental,
+                    'body_part': current_part,
+                    'Forma del Pulso': forma_pulso,
+                    'Duración (ms)': duracion_ms,
+                    'Amplitud (microA)': selected_amplitudes,
                     'movement_trials': movement_trials_in_selected,
                     'total_trials': len(trials_data),
-                    'trials_passed': trials_passed,
-                    'Order': stim.get('trial_number'),
-                    'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms",
-                    'trials_data': trials_data
+                    'proportion_movement': movement_trials_in_selected / len(trials_data) if len(trials_data) > 0 else np.nan,
+                    'y_max_velocity': y_max_velocity,
+                    'threshold': threshold,
+                    'median_vel_pre': global_median,
+                    'mad_vel_pre': global_mad,
+                    'trials_data': trials_data,
+                    'Estímulo': f"{forma_pulso.capitalize()}, {duracion_ms} ms"
                 }
 
-
-                # Se puede llamar a la función de graficación para cada estímulo
                 for stimulus_key, dataSt in all_stimuli_data.items():
                     plot_trials_side_by_side(
                         stimulus_key=stimulus_key,
                         data=dataSt,
-                        body_part=part,
+                        body_part=current_part,
                         dia_experimental=dia_experimental,
                         output_dir=output_comparisons_dir,
                         coord_x=coord_x,
@@ -1428,30 +1390,26 @@ def collect_velocity_threshold_data():
                         dist_ic=dist_ic
                     )
 
-    # Al final de collect_velocity_threshold_data (después del loop principal)
+    # Guardar CSV detallado de ensayos (por parte del cuerpo)
+    expanded_df = pd.DataFrame(expanded_trials)
+    expanded_csv_path = os.path.join(output_comparisons_dir, 'expanded_trials_detailed.csv')
+    expanded_df.to_csv(expanded_csv_path, index=False)
+    print(f"CSV detallado de ensayos (por parte del cuerpo) guardado en: {expanded_csv_path}")
+
+    # Preparar counts_df a partir de all_movement_data
     counts_df = pd.DataFrame(all_movement_data)
-
-    # Crear la columna 'Estímulo' en counts_df de forma consistente
     counts_df['Estímulo'] = counts_df.apply(
-    lambda r: f"{r['Forma del Pulso'].strip().capitalize()}, {int(round(float(r['Duración (ms)']), 0))} ms",
-    axis=1
-)
+        lambda r: f"{r['Forma del Pulso'].strip().capitalize()}, {int(round(float(r['Duración (ms)']), 0))} ms",
+        axis=1
+    )
 
-
-    # Luego, si all_stimuli_data existe, se hace el merge usando la columna 'Estímulo' ya estandarizada
-        # Luego, si all_stimuli_data existe, se hace el merge usando la columna 'Estímulo' ya estandarizada
-    if all_stimuli_data:
+    if global_stimuli_data:
+        stimuli_df = pd.DataFrame([entry for subdict in global_stimuli_data.values() for entry in subdict.values()])
         counts_df['Estímulo'] = counts_df['Estímulo'].str.strip().str.lower()
-        
-        stimuli_df = pd.DataFrame(list(all_stimuli_data.values()))
         stimuli_df['Estímulo'] = stimuli_df['Estímulo'].str.strip().str.lower()
-
         counts_df['body_part'] = counts_df['body_part'].str.strip().str.lower()
         stimuli_df['body_part'] = stimuli_df['body_part'].str.strip().str.lower()
-        
         print("Valores de y_max_velocity:", stimuli_df['y_max_velocity'].unique())
-
-                
         counts_df = pd.merge(
             counts_df,
             stimuli_df[['Dia experimental', 'body_part', 'Estímulo', 'y_max_velocity']],
@@ -1459,13 +1417,9 @@ def collect_velocity_threshold_data():
             how='left'
         )
 
-
-
-
     counts_path = os.path.join(output_comparisons_dir, 'movement_counts_summary.csv')
     counts_df.to_csv(counts_path, index=False)
     print(f"Datos de movimiento (con y_max_velocity) guardados en: {counts_path}")
-
 
     thresholds_df = pd.DataFrame(thresholds_data)
     thresholds_path = os.path.join(output_comparisons_dir, 'thresholds_summary.csv')
@@ -1480,11 +1434,9 @@ def collect_velocity_threshold_data():
     if submovement_details:
         submovement_df = pd.DataFrame(submovement_details)
         submovement_df['Submov_Num'] = submovement_df.groupby(['Ensayo_Key', 'MovementType']).cumcount() + 1
-
         submovement_path = os.path.join(output_comparisons_dir, 'submovement_detailed_summary.csv')
         submovement_df.to_csv(submovement_path, index=False)
         print(f"Datos detallados de submovimientos guardados en: {submovement_path}")
-
 
     print("Combinaciones procesadas:")
     for combo in processed_combinations:
@@ -1492,6 +1444,8 @@ def collect_velocity_threshold_data():
 
     print("Finalizada la recopilación de datos de umbral de velocidad.")
     return counts_df
+
+
 
 
 
