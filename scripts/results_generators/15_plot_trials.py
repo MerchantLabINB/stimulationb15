@@ -278,10 +278,12 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
             gaussians.append({'A_gauss': A_init, 'mu_gauss': mu_init, 'sigma_gauss': sigma_simple})
 
     # Filtrado mejorado de solapamientos: agrupar gaussianas solapadas y conservar la de mayor amplitud de cada grupo.
+        # Filtrado mejorado de solapamientos: agrupar gaussianas solapadas y conservar la de mayor amplitud de cada grupo.
     gaussians = sorted(gaussians, key=lambda g: g['mu_gauss'])
+    if not gaussians:  # Si la lista está vacía, retorna una lista vacía
+        return []
     filtered_gaussians = []
     current_group = [gaussians[0]]
-
     for current in gaussians[1:]:
         last_in_group = current_group[-1]
         # Si la diferencia entre el centro de la gaussiana actual y la última del grupo es menor
@@ -293,13 +295,12 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
             best = max(current_group, key=lambda g: g['A_gauss'])
             filtered_gaussians.append(best)
             current_group = [current]
-
     # No olvidar el último grupo
     if current_group:
         best = max(current_group, key=lambda g: g['A_gauss'])
         filtered_gaussians.append(best)
-
     return filtered_gaussians
+
 
 
 
