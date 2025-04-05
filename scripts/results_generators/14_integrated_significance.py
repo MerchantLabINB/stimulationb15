@@ -75,7 +75,7 @@ except ImportError as e:
 stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information.csv'
 segmented_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\informacion_archivos_segmentados.csv'
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\ht_240.6'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\ht_24'
 
 # Asegurarse de que el directorio de salida existe
 if not os.path.exists(output_comparisons_dir):
@@ -525,7 +525,7 @@ def calcular_velocidades(csv_path):
                 logging.warning(f"Columns for {part_original} incompletas en {csv_path}.")
                 continue
 
-            df_filtered = df[df[likelihood_col] > 0.6]
+            df_filtered = df[df[likelihood_col] > 0.1]
             logging.info(f'{part_original} en {csv_path}: {len(df_filtered)}/{len(df)} frames válidos.')
 
             if df_filtered.empty:
@@ -1430,7 +1430,7 @@ def plot_summary_movement_data(movement_ranges_df, output_dir):
         "num_movs": "N° Movimientos",
         "lat_inicio_mayor_ms": "Lat. Inicio Mayor (ms)",
         "lat_pico_mayor_ms": "Lat. Pico Mayor (ms)",
-        "delta_valor_pico": "Delta Valor Pico"
+        "delta_t_pico": "Delta Valor Pico"
     }
     metric_keys = list(metrics_dict.keys())
     n_metrics = len(metric_keys)
@@ -1567,7 +1567,7 @@ def plot_summary_movement_data_by_bodypart(movement_ranges_df, output_dir):
                 'num_movs': "N° Movimientos",
                 'lat_inicio_mayor_ms': "Lat. Inicio Mayor (ms)",
                 'lat_pico_mayor_ms': "Lat. Pico Mayor (ms)",
-                'delta_valor_pico': "Delta Valor Pico"
+                'delta_t_pico': "Delta Valor Pico"
             }
             metric_keys = list(metrics_dict.keys())
             n_metrics = len(metric_keys)
@@ -2349,7 +2349,7 @@ def aggregate_trial_metrics_extended(movement_ranges_df):
       - num_movs: número de movimientos (o submovimientos) detectados
       - lat_inicio_mayor_ms: latencia del movimiento con el valor pico máximo (en ms)
       - lat_pico_mayor_ms: latencia del pico del movimiento con el valor pico máximo (en ms)
-      - delta_valor_pico: diferencia entre el valor pico máximo y el inicial
+      - delta_t_pico: diferencia entre el valor pico máximo y el inicial
     Además, se agrupa también por "Dia experimental" y "body_part".
     """
     fs = 100.0  # Frecuencia de muestreo (frames/s)
@@ -2375,7 +2375,7 @@ def aggregate_trial_metrics_extended(movement_ranges_df):
         lat_inicio_mayor_ms = group.loc[idx_max, 'Latencia al Inicio (s)'] * 1000
         lat_pico_mayor_ms = group.loc[idx_max, 'Latencia al Pico (s)'] * 1000
 
-        delta_valor_pico = valor_pico_max - valor_pico_inicial
+        delta_t_pico = valor_pico_max - valor_pico_inicial
 
         return pd.Series({
             "lat_inicio_ms": lat_inicio_ms,
@@ -2387,7 +2387,7 @@ def aggregate_trial_metrics_extended(movement_ranges_df):
             "num_movs": num_movs,
             "lat_inicio_mayor_ms": lat_inicio_mayor_ms,
             "lat_pico_mayor_ms": lat_pico_mayor_ms,
-            "delta_valor_pico": delta_valor_pico
+            "delta_t_pico": delta_t_pico
         })
     
     # Agrupar por Ensayo, Estímulo, MovementType, Día experimental y body_part.
@@ -2444,7 +2444,7 @@ def plot_global_summary_with_significance_all_extended(movement_ranges_df, outpu
         "num_movs": "N° Movimientos",
         "lat_inicio_mayor_ms": "Lat. Inicio Mayor (ms)",
         "lat_pico_mayor_ms": "Lat. Pico Mayor (ms)",
-        "delta_valor_pico": "Delta Valor Pico"
+        "delta_t_pico": "Delta Valor Pico"
     }
     metric_keys = list(metrics_dict.keys())
     n_metrics = len(metric_keys)

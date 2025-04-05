@@ -73,7 +73,7 @@ metric_labels = {
     "valor_pico_inicial": "Amplitud del Pico Inicial",
     "valor_pico_max": "Amplitud del Pico Máximo",
     "dur_total_ms": "Duración Total (ms)",
-    "delta_valor_pico": "Diferencia de Tiempo entre Primer y Pico Mayor (ms)",
+    "delta_t_pico": "Diferencia de Tiempo entre Primer y Pico Mayor (ms)",
     "num_movs": "Número de Movimientos"
 }
 
@@ -123,7 +123,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": group.loc[max_idx, "Latencia al Inicio (s)"] * 1000,
             "lat_pico_mayor_ms": group.loc[max_idx, "Latencia al Pico (s)"] * 1000,
-            "delta_valor_pico": (group.loc[max_idx, "Latencia al Pico (s)"] - group.loc[pico_idx, "Latencia al Pico (s)"]) * 1000
+            "delta_t_pico": (group.loc[max_idx, "Latencia al Pico (s)"] - group.loc[pico_idx, "Latencia al Pico (s)"]) * 1000
         })
 
     def agg_gaussian(group):
@@ -139,7 +139,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "lat_inicio_mayor_ms": ((group.apply(lambda row: row["mu_gauss"] - 2 * row["sigma_gauss"], axis=1)
                                      .loc[group["A_gauss"].idxmax()] - 1) * 1000),
             "lat_pico_mayor_ms": ((group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 1) * 1000),
-            "delta_valor_pico": (group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 
+            "delta_t_pico": (group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 
                                  group.loc[group["mu_gauss"].idxmin(), "mu_gauss"]) * 1000
         })
 
@@ -154,7 +154,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": (group.loc[group["valor_pico"].idxmax(), "t_start"] - 1) * 1000,
             "lat_pico_mayor_ms": (group.loc[group["valor_pico"].idxmax(), "t_peak"] - 1) * 1000,
-            "delta_valor_pico": (group.loc[group["valor_pico"].idxmax(), "t_peak"] -
+            "delta_t_pico": (group.loc[group["valor_pico"].idxmax(), "t_peak"] -
                                  group.loc[group["t_peak"].idxmin(), "t_peak"]) * 1000
         })
 
@@ -174,7 +174,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             agg_metrics = pd.Series({k: np.nan for k in [
                 "lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_ultimo_ms",
                 "dur_total_ms", "valor_pico_inicial", "valor_pico_max",
-                "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_valor_pico"
+                "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_t_pico"
             ]})
         for i, col in enumerate(grouping_cols):
             agg_metrics[col] = name[i]
@@ -244,7 +244,7 @@ def do_significance_tests_aggregated(aggregated_df, output_dir=None):
 
     metrics = ['lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_ultimo_ms',
                'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
-               'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_valor_pico']
+               'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_t_pico']
     grouping = ['Dia experimental', 'body_part', 'MovementType']
     results_anova = []
 
@@ -485,7 +485,7 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
 
     latency_metrics = ["lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_ultimo_ms", "lat_inicio_mayor_ms", "lat_pico_mayor_ms"]
     peak_metrics = ["valor_pico_inicial", "valor_pico_max"]
-    other_metrics = ["dur_total_ms", "delta_valor_pico", "num_movs"]
+    other_metrics = ["dur_total_ms", "delta_t_pico", "num_movs"]
     metrics_order = latency_metrics + peak_metrics + other_metrics
     ordered_stimuli = df.sort_values(["Forma_del_Pulso", "Duracion_ms"])["Estímulo"].unique().tolist()
 
@@ -635,7 +635,7 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
         return
     metrics = ["lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_ultimo_ms",
                "dur_total_ms", "valor_pico_inicial", "valor_pico_max",
-               "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_valor_pico"]
+               "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_t_pico"]
     df['Forma'] = df['Estímulo'].apply(lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else 'unknown')
     df['Duración (ms)'] = df['Estímulo'].apply(extract_duration)
     shape_order = ["rectangular", "rombo", "rampa descendente", "triple rombo", "rampa ascendente"]

@@ -1624,7 +1624,7 @@ def do_significance_tests_aggregated(aggregated_df, output_dir=None):
     metrics = [
         'lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_max_ms',
         'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
-        'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_valor_pico'
+        'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_t_pico'
     ]
     grouping = ['Dia experimental', 'body_part', 'MovementType']
     results_anova = []
@@ -1735,14 +1735,14 @@ def aggregate_trial_metrics_extended(submovements_df):
          - num_movs: Número de submovimientos.
          - lat_inicio_mayor_ms: Latencia de inicio del submov con mayor pico.
          - lat_pico_mayor_ms: Latencia del pico máximo.
-         - delta_valor_pico: Diferencia entre el valor pico máximo y el mínimo.
+         - delta_t_pico: Diferencia entre el valor pico máximo y el mínimo.
       Se hacen cálculos análogos para "Gaussian-based" (usando mu_gauss, sigma y A_gauss)
       y para "MinimumJerk" (usando t_start, t_peak, t_end y valor_pico).
 
     Devuelve un DataFrame con las columnas:
        Ensayo_Key, Ensayo, Estímulo, MovementType, Dia experimental, body_part,
        lat_inicio_ms, lat_primer_pico_ms, lat_pico_max_ms, dur_total_ms,
-       valor_pico_inicial, valor_pico_max, num_movs, lat_inicio_mayor_ms, lat_pico_mayor_ms, delta_valor_pico.
+       valor_pico_inicial, valor_pico_max, num_movs, lat_inicio_mayor_ms, lat_pico_mayor_ms, delta_t_pico.
     """
     fs = 100.0  # frecuencia de muestreo (para convertir frames a segundos)
     
@@ -1758,7 +1758,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": group.loc[group["Valor Pico (velocidad)"].idxmax(), "Latencia al Inicio (s)"] * 1000,
             "lat_pico_mayor_ms": group["Latencia al Pico (s)"].max() * 1000,
-            "delta_valor_pico": group["Valor Pico (velocidad)"].max() - group["Valor Pico (velocidad)"].min()
+            "delta_t_pico": group["Valor Pico (velocidad)"].max() - group["Valor Pico (velocidad)"].min()
         })
         
     def agg_gaussian(group):
@@ -1772,7 +1772,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": ((group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 2 * group.loc[group["A_gauss"].idxmax(), "sigma_gauss"]) * 1000),
             "lat_pico_mayor_ms": group["mu_gauss"].max() * 1000,
-            "delta_valor_pico": group["A_gauss"].max() - group["A_gauss"].min()
+            "delta_t_pico": group["A_gauss"].max() - group["A_gauss"].min()
         })
         
     def agg_minjerk(group):
@@ -1786,7 +1786,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": group.loc[group["valor_pico"].idxmax(), "t_start"] * 1000,
             "lat_pico_mayor_ms": group.loc[group["valor_pico"].idxmax(), "t_peak"] * 1000,
-            "delta_valor_pico": group["valor_pico"].max() - group["valor_pico"].min()
+            "delta_t_pico": group["valor_pico"].max() - group["valor_pico"].min()
         })
         
     # Los campos de agrupación (clave) son los de identificación del ensayo y condiciones:
@@ -1806,7 +1806,7 @@ def aggregate_trial_metrics_extended(submovements_df):
             agg_metrics = pd.Series({k: np.nan for k in [
                 "lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_max_ms",
                 "dur_total_ms", "valor_pico_inicial", "valor_pico_max",
-                "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_valor_pico"
+                "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_t_pico"
             ]})
         # Agregar los campos de clave al resultado
         for i, col in enumerate(grouping_cols):
@@ -1861,7 +1861,7 @@ def plot_summary_movement_data_by_bodypart(submovements_df, output_dir):
         'num_movs': "N° Movimientos",
         'lat_inicio_mayor_ms': "Lat. Inicio Mayor (ms)",
         'lat_pico_mayor_ms': "Lat. Pico Mayor (ms)",
-        'delta_valor_pico': "Delta Valor Pico"
+        'delta_t_pico': "Delta Valor Pico"
     }
     metric_keys = list(metrics_dict.keys())
     n_cols = math.ceil(len(metric_keys) / 2)
@@ -2081,7 +2081,7 @@ def plot_global_summary_with_significance_all_extended(aggregated_df, output_dir
         # Crear un gráfico compuesto para todas las métricas
         metrics = ['lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_max_ms',
                    'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
-                   'num_movs', 'delta_valor_pico']
+                   'num_movs', 'delta_t_pico']
         n_cols = math.ceil(len(metrics) / 2)
         fig, axs = plt.subplots(2, n_cols, figsize=(n_cols * 5, 10), squeeze=False)
         for idx, metric in enumerate(metrics):
