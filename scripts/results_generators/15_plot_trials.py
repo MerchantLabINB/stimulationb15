@@ -277,28 +277,30 @@ def fit_gaussians_submovement(t_segment, v_segment, threshold, stim_start, peak_
                 continue
             gaussians.append({'A_gauss': A_init, 'mu_gauss': mu_init, 'sigma_gauss': sigma_simple})
 
-    # Filtrado de solapamientos (sin cambios en esta parte)
+    # Filtrado mejorado de solapamientos: agrupar gaussianas solapadas y conservar la de mayor amplitud de cada grupo.
     gaussians = sorted(gaussians, key=lambda g: g['mu_gauss'])
     filtered_gaussians = []
-    skip_next = False
-    for i in range(len(gaussians)):
-        if skip_next:
-            skip_next = False
-            continue
-        current = gaussians[i]
-        if i < len(gaussians) - 1:
-            next_g = gaussians[i+1]
-            if abs(next_g['mu_gauss'] - current['mu_gauss']) < 0.5 * (current['sigma_gauss'] + next_g['sigma_gauss']):
-                if current['A_gauss'] >= next_g['A_gauss']:
-                    filtered_gaussians.append(current)
-                else:
-                    filtered_gaussians.append(next_g)
-                skip_next = True
-            else:
-                filtered_gaussians.append(current)
+    current_group = [gaussians[0]]
+
+    for current in gaussians[1:]:
+        last_in_group = current_group[-1]
+        # Si la diferencia entre el centro de la gaussiana actual y la última del grupo es menor
+        # que 0.5 veces la suma de sus sigma, la consideramos solapada.
+        if abs(current['mu_gauss'] - last_in_group['mu_gauss']) < 0.5 * (last_in_group['sigma_gauss'] + current['sigma_gauss']):
+            current_group.append(current)
         else:
-            filtered_gaussians.append(current)
+            # Termina el grupo; conservar la gaussiana con mayor amplitud
+            best = max(current_group, key=lambda g: g['A_gauss'])
+            filtered_gaussians.append(best)
+            current_group = [current]
+
+    # No olvidar el último grupo
+    if current_group:
+        best = max(current_group, key=lambda g: g['A_gauss'])
+        filtered_gaussians.append(best)
+
     return filtered_gaussians
+
 
 
 

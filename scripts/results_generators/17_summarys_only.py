@@ -15,10 +15,8 @@ from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
 
 from mpl_toolkits.mplot3d import Axes3D
-
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.interpolate import griddata
-
 from scipy.signal import savgol_filter, find_peaks, butter, filtfilt
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
@@ -30,46 +28,24 @@ import glob
 import textwrap
 import math
 
-# --- IMPORTACIÓN DE PLOTLY PARA GRÁFICOS 3D INTERACTIVOS
-
 import plotly.graph_objects as go
 
 # --- CONFIGURACIÓN DEL LOGGING
 log_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
-logging.basicConfig(filename=log_path, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s', filemode='w')
+logging.basicConfig(filename=log_path, level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s', filemode='w')
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
-# --- DIRECTORIOS Y CONFIGURACIÓN INICIAL
-stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information_expanded.csv'
-csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
+# --- DIRECTORIOS
 output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials'
 if not os.path.exists(output_comparisons_dir):
     os.makedirs(output_comparisons_dir)
 
-# Función para verificar archivos
-def verificar_archivo(path, nombre_archivo):
-    if not os.path.exists(path):
-        logging.error(f"Archivo no encontrado: {path}")
-        sys.exit(f"Archivo no encontrado: {path}")
-    else:
-        logging.info(f"Archivo encontrado: {path}")
-
-verificar_archivo(stimuli_info_path, 'Stimuli_information.csv')
-
-# Cargar stimuli_info
-try:
-    stimuli_info = pd.read_csv(stimuli_info_path)
-    stimuli_info = stimuli_info[stimuli_info['Descartar'] == 'No']
-    stimuli_info['Forma del Pulso'] = stimuli_info['Forma del Pulso'].str.lower()
-except Exception as e:
-    logging.error(f'Error al cargar Stimuli_information.csv: {e}')
-    sys.exit(f'Error al cargar Stimuli_information.csv: {e}')
-
-# Diccionarios de colores y paleta de pulse shapes
+# Diccionarios de colores
 body_parts_specific_colors = {
     'Frente': 'blue',
     'Hombro': 'orange',
@@ -78,10 +54,8 @@ body_parts_specific_colors = {
     'Braquiradial': 'grey',
     'Bicep': 'brown'
 }
-
 body_parts = list(body_parts_specific_colors.keys())
 
-# Asigna colores fijos para las formas (todo en minúsculas)
 shape_colors = {
     "rectangular": "orange",
     "rombo": "blue",
@@ -89,41 +63,70 @@ shape_colors = {
     "rampa descendente": "purple",
     "triple rombo": "red"
 }
+
+metric_labels = {
+    "lat_inicio_ms": "Latencia al Inicio (ms)",
+    "lat_primer_pico_ms": "Latencia al Primer Pico (ms)",
+    "lat_pico_ultimo_ms": "Latencia al Último Pico (ms)",
+    "lat_inicio_mayor_ms": "Latencia del Movimiento de Mayor Amplitud (ms)",
+    "lat_pico_mayor_ms": "Latencia del Pico Mayor (ms)",
+    "valor_pico_inicial": "Amplitud del Pico Inicial",
+    "valor_pico_max": "Amplitud del Pico Máximo",
+    "dur_total_ms": "Duración Total (ms)",
+    "delta_valor_pico": "Diferencia de Tiempo entre Primer y Pico Mayor (ms)",
+    "num_movs": "Número de Movimientos"
+}
+
 def sanitize_filename(filename):
-    """Elimina caracteres no permitidos en nombres de archivos."""
     return re.sub(r'[\\/*?:"<>|]', "_", filename)
 
-###############################################################################
-# ETAPA 1: AGREGACIÓN DE MÉTRICAS POR ENSAYO (CON AJUSTE DE LATENCIAS)
-###############################################################################
+# -------------------------------
+# Función para extraer la duración
+# -------------------------------
+def extract_duration(s):
+    """
+    Extrae el número de milisegundos de la cadena del estímulo.
+    Se asume un formato como: "Rectangular, 1000 ms" o "Rectangular, 1000ms".
+    """
+    try:
+        if not isinstance(s, str):
+            return np.nan
+        parts = s.split(',')
+        if len(parts) < 2:
+            return np.nan
+        dur_str = parts[1].strip().lower()
+        dur_str = dur_str.replace("ms", "").strip()
+        dur_str = dur_str.replace(",", ".")
+        return float(dur_str)
+    except Exception as e:
+        logging.error(f"Error al extraer duración de '{s}': {e}")
+        return np.nan
+
+
+# -------------------------------
+# ETAPA 1: Agregación de métricas
+# -------------------------------
 def aggregate_trial_metrics_extended(submovements_df):
-    """
-    Agrupa los submovimientos detallados por ensayo (identificados por Ensayo_Key, Ensayo, Estímulo,
-    Dia experimental y body_part) y calcula métricas en milisegundos.
-    
-    Para convertir a tiempos relativos:
-      • Threshold‑based: se asume que “Latencia al Inicio (s)” ya es (Frame-100)/100.
-      • MinimumJerk: se calcula (t_start - 1) en s.
-      • Gaussian‑based: se calcula (mu_gauss - 1) en s.
-    """
     fs = 100.0  # frames/s
 
     def agg_threshold(group):
+        inicio_idx = group["Latencia al Inicio (s)"].idxmin()
+        pico_idx = group["Latencia al Pico (s)"].idxmin()
+        max_idx  = group["Valor Pico (velocidad)"].idxmax()
         return pd.Series({
-            "lat_inicio_ms": group["Latencia al Inicio (s)"].min() * 1000,
-            "lat_primer_pico_ms": group["Latencia al Pico (s)"].min() * 1000,
+            "lat_inicio_ms": group.loc[inicio_idx, "Latencia al Inicio (s)"] * 1000,
+            "lat_primer_pico_ms": group.loc[pico_idx, "Latencia al Pico (s)"] * 1000,
             "lat_pico_ultimo_ms": group["Latencia al Pico (s)"].max() * 1000,
             "dur_total_ms": ((group["Fin Movimiento (Frame)"].max() - group["Inicio Movimiento (Frame)"].min()) / fs) * 1000,
-            "valor_pico_inicial": group["Valor Pico (velocidad)"].min(),
+            "valor_pico_inicial": group.loc[inicio_idx, "Valor Pico (velocidad)"],
             "valor_pico_max": group["Valor Pico (velocidad)"].max(),
             "num_movs": group.shape[0],
-            "lat_inicio_mayor_ms": group.loc[group["Valor Pico (velocidad)"].idxmax(), "Latencia al Inicio (s)"] * 1000,
-            "lat_pico_mayor_ms": group.loc[group["Valor Pico (velocidad)"].idxmax(), "Latencia al Pico (s)"] * 1000,
-            "delta_valor_pico": group["Valor Pico (velocidad)"].max() - group["Valor Pico (velocidad)"].min()
+            "lat_inicio_mayor_ms": group.loc[max_idx, "Latencia al Inicio (s)"] * 1000,
+            "lat_pico_mayor_ms": group.loc[max_idx, "Latencia al Pico (s)"] * 1000,
+            "delta_valor_pico": (group.loc[max_idx, "Latencia al Pico (s)"] - group.loc[pico_idx, "Latencia al Pico (s)"]) * 1000
         })
 
     def agg_gaussian(group):
-        # Convertir mu_gauss a latencia relativa restándole 1 s
         return pd.Series({
             "lat_inicio_ms": (group.apply(lambda row: (row["mu_gauss"] - 2 * row["sigma_gauss"]) - 1, axis=1).min()) * 1000,
             "lat_primer_pico_ms": (group["mu_gauss"].min() - 1) * 1000,
@@ -136,11 +139,11 @@ def aggregate_trial_metrics_extended(submovements_df):
             "lat_inicio_mayor_ms": ((group.apply(lambda row: row["mu_gauss"] - 2 * row["sigma_gauss"], axis=1)
                                      .loc[group["A_gauss"].idxmax()] - 1) * 1000),
             "lat_pico_mayor_ms": ((group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 1) * 1000),
-            "delta_valor_pico": group["A_gauss"].max() - group["A_gauss"].min()
+            "delta_valor_pico": (group.loc[group["A_gauss"].idxmax(), "mu_gauss"] - 
+                                 group.loc[group["mu_gauss"].idxmin(), "mu_gauss"]) * 1000
         })
 
     def agg_minjerk(group):
-        # Restamos 1 s a t_start y t_peak
         return pd.Series({
             "lat_inicio_ms": (group["t_start"].min() - 1) * 1000,
             "lat_primer_pico_ms": (group["t_peak"].min() - 1) * 1000,
@@ -151,12 +154,13 @@ def aggregate_trial_metrics_extended(submovements_df):
             "num_movs": group.shape[0],
             "lat_inicio_mayor_ms": (group.loc[group["valor_pico"].idxmax(), "t_start"] - 1) * 1000,
             "lat_pico_mayor_ms": (group.loc[group["valor_pico"].idxmax(), "t_peak"] - 1) * 1000,
-            "delta_valor_pico": group["valor_pico"].max() - group["valor_pico"].min()
+            "delta_valor_pico": (group.loc[group["valor_pico"].idxmax(), "t_peak"] -
+                                 group.loc[group["t_peak"].idxmin(), "t_peak"]) * 1000
         })
 
-    # Agrega las columnas 'Coordenada_x', 'Coordenada_y' y 'Distancia Intracortical'
-    grouping_cols = ['Ensayo_Key', 'Ensayo', 'Estímulo', 'MovementType', 'Dia experimental', 'body_part', 'Coordenada_x', 'Coordenada_y', 'Distancia Intracortical']
-
+    grouping_cols = ['Ensayo_Key', 'Ensayo', 'Estímulo', 'MovementType',
+                     'Dia experimental', 'body_part', 'Coordenada_x', 'Coordenada_y',
+                     'Distancia Intracortical']
     agg_list = []
     for name, group in submovements_df.groupby(grouping_cols):
         movement_type = name[3]
@@ -176,20 +180,14 @@ def aggregate_trial_metrics_extended(submovements_df):
             agg_metrics[col] = name[i]
         agg_list.append(agg_metrics)
     aggregated_df = pd.DataFrame(agg_list)
+    aggregated_df = aggregated_df.loc[:, ~aggregated_df.columns.duplicated()]
     return aggregated_df
 
-
-
-
-
-
-
-
-
-###############################################################################
-# ETAPA 2: TESTS DE HIPÓTESIS (ANOVA, Post-hoc, Friedman)
-###############################################################################
-def calc_partial_eta_sq(anova_table, factor_row='C(Q(\'Forma del Pulso\'))', resid_row='Residual'):
+# -------------------------------
+# ETAPA 2: Pruebas de hipótesis (ANOVA, Post-hoc, Friedman)
+# (Se mantiene la estructura original)
+# -------------------------------
+def calc_partial_eta_sq(anova_table, factor_row='C(Q("Forma del Pulso"))', resid_row='Residual'):
     try:
         ss_factor = anova_table.loc[factor_row, 'sum_sq']
         ss_resid = anova_table.loc[resid_row, 'sum_sq']
@@ -214,8 +212,10 @@ def do_posthoc_tests(df, metric, factor_name):
     if df_clean[factor_name].nunique() < 2:
         return None, None
     try:
-        tukey_res = pairwise_tukeyhsd(endog=df_clean[metric].values, groups=df_clean[factor_name].values, alpha=0.05)
-        tk_df = pd.DataFrame(data=tukey_res._results_table.data[1:], 
+        tukey_res = pairwise_tukeyhsd(endog=df_clean[metric].values,
+                                      groups=df_clean[factor_name].values,
+                                      alpha=0.05)
+        tk_df = pd.DataFrame(data=tukey_res._results_table.data[1:],
                              columns=tukey_res._results_table.data[0])
         tk_df = tk_df.rename(columns={'p-adj': 'p_adj'})
         factor_levels = sorted(df_clean[factor_name].unique())
@@ -226,21 +226,37 @@ def do_posthoc_tests(df, metric, factor_name):
         return None, None
 
 def do_significance_tests_aggregated(aggregated_df, output_dir=None):
-    """
-    Realiza ANOVA (con dos factores: extraídos de 'Estímulo') sobre la tabla de métricas agregadas.
-    Guarda los resultados de ANOVA, partial eta² y Friedman en archivos CSV.
-    """
     if output_dir is None:
         output_dir = output_comparisons_dir
-    # Actualizamos los nombres: usamos "lat_pico_ultimo_ms" en lugar de "lat_pico_max_ms"
-    aggregated_df['Forma del Pulso'] = aggregated_df['Estímulo'].apply(lambda s: s.split(', ')[0] if isinstance(s, str) and ', ' in s else np.nan)
-    aggregated_df['Duración (ms)'] = aggregated_df['Estímulo'].apply(lambda s: float(s.split(', ')[1].replace(' ms','')) if isinstance(s, str) and ', ' in s else np.nan)
+
+    # Aseguramos que 'Forma_del_Pulso' esté bien definida.
+    if 'Forma_del_Pulso' not in aggregated_df.columns:
+        aggregated_df['Forma_del_Pulso'] = aggregated_df['Estímulo'].apply(
+            lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
+    else:
+        aggregated_df['Forma_del_Pulso'] = aggregated_df['Forma_del_Pulso'].str.lower().str.strip()
+
+    # Convertimos Duracion_ms a categórica (cadena) para usarla como factor
+    if 'Duracion_ms' not in aggregated_df.columns:
+        aggregated_df['Duracion_ms'] = aggregated_df['Estímulo'].apply(extract_duration)
+    aggregated_df['Duracion_ms'] = aggregated_df['Duracion_ms'].apply(lambda x: str(int(x)) if not pd.isna(x) else x)
+    aggregated_df = aggregated_df.loc[:, ~aggregated_df.columns.duplicated()]
+
     metrics = ['lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_ultimo_ms',
                'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
                'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_valor_pico']
     grouping = ['Dia experimental', 'body_part', 'MovementType']
     results_anova = []
-    results_friedman = []
+
+    # Definimos fórmulas usando la variable categórica para Duracion_ms
+    # Fórmulas para los modelos:
+    formulas = {
+        "forma": lambda m: f"{m} ~ C(Forma_del_Pulso)",
+        "duracion": lambda m: f"{m} ~ C(Duracion_ms)",
+        "combinado": lambda m: f"{m} ~ C(Forma_del_Pulso) * C(Duracion_ms)"
+    }
+
+
     for (dia, bp, movtype), df_sub in aggregated_df.groupby(grouping):
         if len(df_sub) < 3:
             continue
@@ -248,89 +264,144 @@ def do_significance_tests_aggregated(aggregated_df, output_dir=None):
             data_metric = df_sub.dropna(subset=[metric])
             if len(data_metric) < 3:
                 continue
-            formula = f"Q('{metric}') ~ C(Q('Forma del Pulso')) * C(Q('Duración (ms)'))"
-            try:
-                model = ols(formula, data=data_metric).fit()
-                anova_res = anova_lm(model, typ=2)
-                for row in anova_res.index:
-                    if row == 'Residual':
-                        continue
-                    results_anova.append({
-                        'Dia experimental': dia,
-                        'body_part': bp,
-                        'MovementType': movtype,
-                        'Metric': metric,
-                        'Factor': row,
-                        'sum_sq': anova_res.loc[row, 'sum_sq'],
-                        'df': anova_res.loc[row, 'df'],
-                        'F': anova_res.loc[row, 'F'],
-                        'PR(>F)': anova_res.loc[row, 'PR(>F)'],
-                        'Partial_Eta_Sq': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
-                        'Num_observations': len(data_metric)
-                    })
-            except Exception as e:
-                logging.warning(f"Fallo ANOVA en {dia}, {bp}, {movtype}, {metric}: {e}")
+
+            # Antes de ajustar, verificamos la variabilidad en Duracion_ms:
+            if data_metric['Duracion_ms'].nunique() < 2:
+                logging.warning(f"En {dia}, {bp}, {movtype} para {metric} la variable Duracion_ms es constante. Se omite el efecto de duración.")
+                # Ajustamos un modelo solo con Forma_del_Pulso:
+                try:
+                    model = ols(f"{metric} ~ C(Forma_del_Pulso)", data=data_metric).fit()
+                    anova_res = anova_lm(model, typ=2)
+                    for row in anova_res.index:
+                        if row == 'Residual':
+                            continue
+                        results_anova.append({
+                            'Dia experimental': dia,
+                            'body_part': bp,
+                            'MovementType': movtype,
+                            'Metric': metric,
+                            'Modelo': "solo forma",
+                            'Factor': row,
+                            'sum_sq': anova_res.loc[row, 'sum_sq'],
+                            'df': anova_res.loc[row, 'df'],
+                            'F': anova_res.loc[row, 'F'],
+                            'PR(>F)': anova_res.loc[row, 'PR(>F)'],
+                            'Partial_Eta_Sq': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
+                            'Num_observations': len(data_metric)
+                        })
+                except Exception as e:
+                    logging.warning(f"Fallo ANOVA (solo forma) en {dia}, {bp}, {movtype}, {metric}: {e}")
+                # Saltamos a la siguiente métrica
                 continue
-        try:
-            metric_friedman = 'lat_inicio_ms'
-            df_sub['Condicion'] = df_sub['Forma del Pulso'] + "_" + df_sub['Duración (ms)'].astype(str)
-            pivot_f = df_sub.pivot_table(index='Ensayo', columns='Condicion', values=metric_friedman)
-            pivot_f = pivot_f.dropna(axis=1, how='all').dropna(axis=0, how='any')
-            if pivot_f.shape[1] > 1 and pivot_f.shape[0] > 2:
-                stats_result = friedmanchisquare(*[pivot_f[col] for col in pivot_f])
-                results_friedman.append({
-                    'Dia experimental': dia,
-                    'body_part': bp,
-                    'MovementType': movtype,
-                    'Metric': metric_friedman,
-                    'Friedman_statistic': stats_result.statistic,
-                    'Friedman_pvalue': stats_result.pvalue,
-                    'Num_conditions': pivot_f.shape[1],
-                    'Num_subjects': pivot_f.shape[0]
-                })
-        except Exception as e:
-            logging.warning(f"Fallo Friedman en {dia}, {bp}, {movtype}: {e}")
+
+            # Si hay variabilidad en Duracion_ms, probamos con los modelos definidos
+            for model_key, formula_func in formulas.items():
+                formula = formula_func(metric)
+                try:
+                    model = ols(formula, data=data_metric).fit()
+                    anova_res = anova_lm(model, typ=2)
+                    for row in anova_res.index:
+                        if row == 'Residual':
+                            continue
+                        results_anova.append({
+                            'Dia experimental': dia,
+                            'body_part': bp,
+                            'MovementType': movtype,
+                            'Metric': metric,
+                            'Modelo': model_key,
+                            'Factor': row,
+                            'sum_sq': anova_res.loc[row, 'sum_sq'],
+                            'df': anova_res.loc[row, 'df'],
+                            'F': anova_res.loc[row, 'F'],
+                            'PR(>F)': anova_res.loc[row, 'PR(>F)'],
+                            'Partial_Eta_Sq': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
+                            'Num_observations': len(data_metric)
+                        })
+                except Exception as e:
+                    logging.warning(f"Fallo ANOVA en {dia}, {bp}, {movtype}, {metric} ({model_key}): {e}")
+                    continue
     anova_df = pd.DataFrame(results_anova)
-    friedman_df = pd.DataFrame(results_friedman)
-    anova_df.to_csv(os.path.join(output_dir, 'anova_twofactor_results_aggregated.csv'), index=False)
-    friedman_df.to_csv(os.path.join(output_dir, 'friedman_results_aggregated.csv'), index=False)
-    print("Resultados ANOVA y Friedman (agregados) guardados.")
+    out_csv = os.path.join(output_dir, 'anova_results_aggregated.csv')
+    anova_df.to_csv(out_csv, index=False)
+    print(f"Resultados ANOVA (modelos separados por forma, duración e interacción) guardados en: {out_csv}")
 
 
 def compute_model_pvals(agg_df, metric):
     """
-    Para cada modelo (Threshold-based, Gaussian-based, MinimumJerk), se calcula la ANOVA 
-    con dos factores (Forma del Pulso y Duración (ms)) sobre la métrica dada y se extraen:
-      - p_shape: p-value para la forma
-      - p_dur: p-value para la duración
-      - p_int: p-value para la interacción
-    Devuelve un diccionario con 3 valores por modelo.
+    Calcula los p‑valores del modelo de ANOVA para cada uno de los tres modelos
+    (Threshold‑based, Gaussian‑based, MinimumJerk) usando 'Forma_del_Pulso'
+    (categórico) y 'Duracion_ms' (continua).
     """
     models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
     pvals = {}
     for mt in models:
         df_model = agg_df[agg_df['MovementType'] == mt]
-        if len(df_model) < 3:
+        if df_model.empty or len(df_model) < 3:
+            logging.warning(f"Modelo {mt} para métrica {metric}: Insuficientes datos (n={len(df_model)}).")
             pvals[mt] = (np.nan, np.nan, np.nan)
-        else:
-            try:
-                mod = ols(f"Q('{metric}') ~ C(Q('Forma del Pulso')) * C(Q('Duración (ms)'))", data=df_model).fit()
-                anova_res = anova_lm(mod, typ=2)
-                p_shape = anova_res.loc["C(Q('Forma del Pulso'))", "PR(>F)"] if "C(Q('Forma del Pulso'))" in anova_res.index else np.nan
-                p_dur = anova_res.loc["C(Q('Duración (ms)'))", "PR(>F)"] if "C(Q('Duración (ms)'))" in anova_res.index else np.nan
-                p_int = anova_res.loc["C(Q('Forma del Pulso')):C(Q('Duración (ms)'))", "PR(>F)"] if "C(Q('Forma del Pulso')):C(Q('Duración (ms)'))" in anova_res.index else np.nan
-                pvals[mt] = (p_shape, p_dur, p_int)
-            except Exception as e:
-                logging.warning(f"Error en ANOVA para modelo {mt} y métrica {metric}: {e}")
-                pvals[mt] = (np.nan, np.nan, np.nan)
+            continue
+        unique_forms = df_model["Forma_del_Pulso"].unique()
+        if len(unique_forms) < 2:
+            logging.warning(f"Modelo {mt} para métrica {metric}: 'Forma_del_Pulso' tiene un solo nivel: {unique_forms}.")
+        dur_var = df_model["Duracion_ms"].var()
+        if dur_var == 0:
+            logging.warning(f"Modelo {mt} para métrica {metric}: Varianza cero en 'Duracion_ms'. Valores: {df_model['Duracion_ms'].tolist()}")
+        try:
+            mod = ols(f"{metric} ~ C(Forma_del_Pulso) * Duracion_ms", data=df_model).fit()
+            anova_res = anova_lm(mod, typ=2)
+            p_shape = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
+            p_dur = anova_res.loc["Duracion_ms", "PR(>F)"] if "Duracion_ms" in anova_res.index else np.nan
+            p_int = anova_res.loc["C(Forma_del_Pulso):Duracion_ms", "PR(>F)"] if "C(Forma_del_Pulso):Duracion_ms" in anova_res.index else np.nan
+            if pd.isna(p_dur):
+                logging.warning(
+                    f"Modelo {mt} para métrica {metric}: p-valor de 'Duracion_ms' es NA.\nResumen: mean={df_model['Duracion_ms'].mean():.3g}, var={dur_var:.3g}, min={df_model['Duracion_ms'].min()}, max={df_model['Duracion_ms'].max()}, unique={df_model['Duracion_ms'].unique()}.\nANOVA result:\n{anova_res}"
+                )
+            pvals[mt] = (p_shape, p_dur, p_int)
+        except Exception as e:
+            logging.error(f"Error en ANOVA para modelo {mt} y métrica {metric}: {e}\nDatos: Forma_del_Pulso={df_model['Forma_del_Pulso'].unique()}, Duracion_ms={df_model['Duracion_ms'].tolist()}")
+            pvals[mt] = (np.nan, np.nan, np.nan)
     return pvals
 
+def format_stat(label, p, F):
+    """
+    Formatea una estadística: añade un asterisco si p < 0.05 y usa la etiqueta corta.
+    """
+    if pd.isna(p) or pd.isna(F):
+        return f"{label}: NA"
+    else:
+        prefix = "*" if p < 0.05 else ""
+        return f"{label}: {prefix}p={p:.3g} (F={F:.2f})"
+
+def compute_model_stats(agg_df, metric):
+    models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
+    stats = {}
+    for mt in models:
+        df_model = agg_df[agg_df['MovementType'] == mt]
+        if df_model.empty or len(df_model) < 3:
+            logging.warning(f"Modelo {mt} para {metric}: Insuficientes datos (n={len(df_model)}).")
+            stats[mt] = {'forma_p': np.nan, 'duracion_p': np.nan, 'interaccion_p': np.nan,
+                         'forma_F': np.nan, 'duracion_F': np.nan, 'interaccion_F': np.nan}
+            continue
+        try:
+            # Aquí usamos C(Duracion_ms) para que se trate como factor
+            mod = ols(f"{metric} ~ C(Forma_del_Pulso) * C(Duracion_ms)", data=df_model).fit()
+            anova_res = anova_lm(mod, typ=2)
+            p_shape = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
+            p_dur = anova_res.loc["C(Duracion_ms)", "PR(>F)"] if "C(Duracion_ms)" in anova_res.index else np.nan
+            p_int = anova_res.loc["C(Forma_del_Pulso):C(Duracion_ms)", "PR(>F)"] if "C(Forma_del_Pulso):C(Duracion_ms)" in anova_res.index else np.nan
+            F_shape = anova_res.loc["C(Forma_del_Pulso)", "F"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
+            F_dur = anova_res.loc["C(Duracion_ms)", "F"] if "C(Duracion_ms)" in anova_res.index else np.nan
+            F_int = anova_res.loc["C(Forma_del_Pulso):C(Duracion_ms)", "F"] if "C(Forma_del_Pulso):C(Duracion_ms)" in anova_res.index else np.nan
+            stats[mt] = {'forma_p': p_shape, 'duracion_p': p_dur, 'interaccion_p': p_int,
+                         'forma_F': F_shape, 'duracion_F': F_dur, 'interaccion_F': F_int}
+        except Exception as e:
+            logging.error(f"Error en ANOVA para {mt} y {metric}: {e}")
+            stats[mt] = {'forma_p': np.nan, 'duracion_p': np.nan, 'interaccion_p': np.nan,
+                         'forma_F': np.nan, 'duracion_F': np.nan, 'interaccion_F': np.nan}
+    return stats
+
+
 def get_tukey_pvals_for_stimulus(agg_df, stim, metric):
-    """
-    Para un estímulo (stim) y una métrica dada, calcula la matriz de p‐valores
-    comparando los tres MovementType usando un test de Tukey.
-    Devuelve una matriz pandas (DataFrame) o None si no hay suficientes grupos.
-    """
     df_sub = agg_df[agg_df['Estímulo'] == stim]
     if df_sub['MovementType'].nunique() < 2:
         return None
@@ -344,14 +415,9 @@ def get_tukey_pvals_for_stimulus(agg_df, stim, metric):
     pval_matrix = build_significance_matrix_from_arrays(groups, tk_df)
     return pval_matrix
 
-def add_significance_brackets(ax, pairs, p_values, box_positions,
-                              y_offset=0.02, line_height=0.03, font_size=10):
-    """
-    Dibuja brackets de significancia en un boxplot a partir del diccionario
-    de p-values (p_values) y las posiciones de cada nivel (box_positions).
-    """
+def add_significance_brackets(ax, pairs, p_values, box_positions, y_offset=0.02, line_height=0.03, font_size=10):
     y_lim = ax.get_ylim()
-    h_base = y_lim[1] + (y_lim[1] - y_lim[0]) * y_offset  # posición base un poco por encima
+    h_base = y_lim[1] + (y_lim[1] - y_lim[0]) * y_offset
     step = 0
     for (lv1, lv2) in pairs:
         key1 = (lv1, lv2)
@@ -371,25 +437,30 @@ def add_significance_brackets(ax, pairs, p_values, box_positions,
         ax.plot([x1, x1, x2, x2],
                 [h, h+0.001, h+0.001, h],
                 lw=1.5, c='k')
-        # Si p < 0.05 se añade un asterisco
-        if pval < 0.05:
-            p_text = f"* p={pval:.3g}"
-        else:
-            p_text = f"p={pval:.3g}"
+        p_text = f"* p={pval:.3g}" if pval < 0.05 else f"p={pval:.3g}"
         ax.text((x1+x2)*0.5, h+0.001, p_text, ha='center', va='bottom', fontsize=font_size)
-# ----------------------------
-# FUNCIONES DE GRÁFICOS CON FILTROS
-# ----------------------------
 
-###############################################################################
-# ETAPA 3: GRÁFICOS A PARTIR DE LAS MÉTRICAS AGREGADAS (SUMMARY)
-###############################################################################
+# -------------------------------
+# ETAPA 3: Gráficos de resumen
+# -------------------------------
+def format_stats_rows(model_stats, etiqueta):
+    """
+    Formatea los resultados de un modelo separando los p‑valores y los F en dos filas.
+    Retorna dos cadenas: una para los p y otra para los F.
+    """
+    p_vals = []
+    F_vals = []
+    for abbr, key in [('for', 'forma'), ('dur', 'duracion'), ('int', 'interaccion')]:
+        p = model_stats.get(f"{key}_p", np.nan)
+        F = model_stats.get(f"{key}_F", np.nan)
+        p_str = f"{abbr}: {'*' if not pd.isna(p) and p < 0.05 else ''}p={p:.3g}" if not pd.isna(p) else f"{abbr}: NA"
+        F_str = f"{abbr}: F={F:.2f}" if not pd.isna(F) else f"{abbr}: NA"
+        p_vals.append(p_str)
+        F_vals.append(F_str)
+    return f"{etiqueta} (p): " + ", ".join(p_vals), f"{etiqueta} (F): " + ", ".join(F_vals)
+
 def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, coord_y=None, body_part=None, title_prefix="Global Summary"):
-    """
-    Genera gráficos (boxplots) para cada métrica usando la tabla agregada.
-    Se puede filtrar por día, coordenadas y body_part.
-    Se muestran los tres boxplots (por modelo) para cada estímulo, y se fuerza que el eje y inicie en 0.
-    """
+    # Filtrar según día, coordenadas y body_part
     df = aggregated_df.copy()
     if day is not None:
         df = df[df["Dia experimental"] == day]
@@ -403,48 +474,29 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         print("No hay datos tras aplicar los filtros.")
         return
 
-    # Extraer forma y duración
-    df['Forma'] = df['Estímulo'].apply(lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
-    df['Duración (ms)'] = df['Estímulo'].apply(lambda s: float(s.split(',')[1].replace(' ms','')) if isinstance(s, str) and ',' in s else np.nan)
-    shape_order = ["rectangular", "rombo", "rampa descendente", "triple rombo", "rampa ascendente"]
-    df["Forma"] = pd.Categorical(df["Forma"], categories=shape_order, ordered=True)
+    # Crear columnas estandarizadas y ordenar según forma deseada
+    df['Forma_del_Pulso'] = df['Estímulo'].apply(lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
+    desired_forms = ["rectangular", "rombo", "triple rombo", "rampa ascendente"]
+    df = df[df["Forma_del_Pulso"].isin(desired_forms)]
+    df['Forma_del_Pulso'] = pd.Categorical(df['Forma_del_Pulso'], categories=desired_forms, ordered=True)
+    # Usar la función extract_duration para asegurar la estandarización
+    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
+    df = df.loc[:, ~df.columns.duplicated()]
 
     latency_metrics = ["lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_ultimo_ms", "lat_inicio_mayor_ms", "lat_pico_mayor_ms"]
     peak_metrics = ["valor_pico_inicial", "valor_pico_max"]
     other_metrics = ["dur_total_ms", "delta_valor_pico", "num_movs"]
     metrics_order = latency_metrics + peak_metrics + other_metrics
+    ordered_stimuli = df.sort_values(["Forma_del_Pulso", "Duracion_ms"])["Estímulo"].unique().tolist()
 
-    ordered_stimuli = df.sort_values(["Forma", "Duración (ms)"])["Estímulo"].unique().tolist()
-
-    # Definir límites globales; se fuerza el mínimo a 0
     global_latency_max = df[latency_metrics].max().max() if not df[latency_metrics].empty else None
     global_peak_max = df[peak_metrics].quantile(0.95).max() if not df[peak_metrics].empty else None
-
-    custom_cmaps = {
-        "rectangular": LinearSegmentedColormap.from_list("custom_oranges", ["#FFDAB9", "#FF8C00"]),
-        "rombo": LinearSegmentedColormap.from_list("custom_blues", ["#B0C4DE", "#00008B"]),
-        "rampa descendente": LinearSegmentedColormap.from_list("custom_purples", ["#E6E6FA", "#800080"]),
-        "triple rombo": LinearSegmentedColormap.from_list("custom_reds", ["#FFA07A", "#8B0000"]),
-        "rampa ascendente": LinearSegmentedColormap.from_list("custom_greens", ["#98FB98", "#006400"])
-    }
-    shape_durations = {}
-    for stim in ordered_stimuli:
-        shape = stim.split(',')[0].strip().lower()
-        try:
-            dur = float(stim.split(',')[1].replace(' ms','').strip())
-        except:
-            continue
-        shape_durations.setdefault(shape, []).append(dur)
-    shape_duration_limits = {s: (min(durs), max(durs)) for s, durs in shape_durations.items()}
-
-    movement_types = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
-    offset_dict = {'Threshold-based': 0, 'Gaussian-based': 0.5, 'MinimumJerk': 0.75}
-    gap_between = 1.5
 
     n_cols = math.ceil(len(metrics_order) / 2)
     fig, axs = plt.subplots(2, n_cols, figsize=(n_cols * 5, 2 * 5), squeeze=False)
     positions_by_stim = {}
 
+    # Construir boxplots por cada métrica usando datos de los 3 modelos
     for idx, metric in enumerate(metrics_order):
         ax = axs[idx // n_cols, idx % n_cols]
         boxplot_data = []
@@ -458,12 +510,17 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
             if df_stim.empty:
                 continue
             model_positions = {}
-            for mtype in movement_types:
+            for mtype in ['Threshold-based', 'Gaussian-based', 'MinimumJerk']:
                 data = df_stim[df_stim['MovementType'] == mtype][metric].dropna().values
                 if len(data) == 0:
                     continue
                 boxplot_data.append(data)
-                pos = current_pos + offset_dict[mtype]
+                if mtype == 'Threshold-based':
+                    pos = current_pos + 0.0
+                elif mtype == 'Gaussian-based':
+                    pos = current_pos + 0.5
+                else:
+                    pos = current_pos + 0.75
                 x_positions.append(pos)
                 model_positions[mtype] = pos
             if model_positions:
@@ -471,9 +528,9 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
                 group_centers.append(center)
                 labels.append(stim)
                 positions_by_stim[stim] = model_positions
-                current_pos = max(x_positions) + gap_between
+                current_pos = max(x_positions) + 1.5
             else:
-                current_pos += len(movement_types) * 0.6 + gap_between
+                current_pos += 0.6 * 3 + 1.5
 
         if not boxplot_data:
             ax.text(0.5, 0.5, "Sin datos", ha='center', va='center')
@@ -487,50 +544,57 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
+        # Asignar colores según la forma (se ignora la duración)
         for pos, patch in zip(x_positions, bp_obj['boxes']):
-            diffs = {stim: abs((positions_by_stim[stim]['Threshold-based'] if 'Threshold-based' in positions_by_stim[stim] else positions_by_stim[stim][movement_types[0]]) - pos)
+            diffs = {stim: abs((positions_by_stim[stim]['Threshold-based'] if 'Threshold-based' in positions_by_stim[stim]
+                                 else list(positions_by_stim[stim].values())[0]) - pos)
                      for stim in positions_by_stim}
             stim_key = min(diffs, key=diffs.get)
             shape = stim_key.split(',')[0].strip().lower()
             try:
-                dur = float(stim_key.split(',')[1].replace(' ms','').strip())
+                float(stim_key.split(',')[1].replace(' ms','').strip())
             except:
-                dur = 0
-            min_dur, max_dur = shape_duration_limits.get(shape, (0, 1))
-            norm_dur = (dur - min_dur) / (max_dur - min_dur) if (max_dur - min_dur) > 0 else 0.5
-            cmap = custom_cmaps.get(shape, plt.get_cmap("Greys"))
-            patch.set_facecolor(cmap(norm_dur))
+                pass
+            cmap = shape_colors.get(shape, 'gray')
+            patch.set_facecolor(cmap)
             patch.set_edgecolor('black')
 
         ax.set_xticks(group_centers)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=8)
         ax.set_xlabel("Estímulo")
         ax.set_ylabel(metric)
-        ax.set_title(metric)
-        # Fijar el mínimo del eje y a 0
+        ax.set_title(metric_labels.get(metric, metric))
         if metric in latency_metrics:
-            ax.set_ylim(0, global_latency_max)
+            ax.set_ylim(0, global_latency_max * 0.75)
         elif metric in peak_metrics:
-            ax.set_ylim(0, global_peak_max)
+            ax.set_ylim(0, global_peak_max * 0.75)
         else:
-            ax.set_ylim(0, ax.get_ylim()[1])
-    
-        model_pvals = compute_model_pvals(df, metric)
-        subtitle_text = (
-            f"Threshold: p_shape={model_pvals['Threshold-based'][0]:.3f}, p_dur={model_pvals['Threshold-based'][1]:.3f}, p_int={model_pvals['Threshold-based'][2]:.3f}\n"
-            f"Gaussian: p_shape={model_pvals['Gaussian-based'][0]:.3f}, p_dur={model_pvals['Gaussian-based'][1]:.3f}, p_int={model_pvals['Gaussian-based'][2]:.3f}\n"
-            f"MinJerk: p_shape={model_pvals['MinimumJerk'][0]:.3f}, p_dur={model_pvals['MinimumJerk'][1]:.3f}, p_int={model_pvals['MinimumJerk'][2]:.3f}"
-        )
-        ax.text(0.95, 0.95, subtitle_text, transform=ax.transAxes, fontsize=8,
+            ax.set_ylim(0, ax.get_ylim()[1] * 0.75)
+
+        model_stats = compute_model_stats(df, metric)
+        gauss_stats = model_stats.get("Gaussian-based", {})
+        if not gauss_stats:
+            gauss_line = "Gaussiana: NA"
+        else:
+            gauss_line = ("Gaussiana: for: " +
+                          (f"{'*' if not pd.isna(gauss_stats.get('forma_p')) and gauss_stats.get('forma_p') < 0.05 else ''}p={gauss_stats.get('forma_p'):.3g}"
+                           if not pd.isna(gauss_stats.get('forma_p')) else "NA") +
+                          ", dur: " +
+                          (f"{'*' if not pd.isna(gauss_stats.get('duracion_p')) and gauss_stats.get('duracion_p') < 0.05 else ''}p={gauss_stats.get('duracion_p'):.3g}"
+                           if not pd.isna(gauss_stats.get('duracion_p')) else "NA") +
+                          ", int: " +
+                          (f"{'*' if not pd.isna(gauss_stats.get('interaccion_p')) and gauss_stats.get('interaccion_p') < 0.05 else ''}p={gauss_stats.get('interaccion_p'):.3g}"
+                           if not pd.isna(gauss_stats.get('interaccion_p')) else "NA"))
+        ax.text(0.95, 0.95, gauss_line, transform=ax.transAxes, fontsize=8,
                 verticalalignment='top', horizontalalignment='right',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
-        for stim in positions_by_stim:
-            pval_matrix = get_tukey_pvals_for_stimulus(df, stim, metric)
-            if pval_matrix is not None:
-                box_positions = positions_by_stim[stim]
-                pairs = list(itertools.combinations(sorted(box_positions.keys()), 2))
-                add_significance_brackets(ax, pairs, pval_matrix, box_positions,
-                                          y_offset=0.1, line_height=0.05, font_size=10)
+                bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.7))
+
+        pval_matrix = get_tukey_pvals_for_stimulus(df, stim, metric)
+        if pval_matrix is not None:
+            box_positions = positions_by_stim[stim]
+            pairs = list(itertools.combinations(sorted(box_positions.keys()), 2))
+            add_significance_brackets(ax, pairs, pval_matrix, box_positions, y_offset=0.03, line_height=0.02, font_size=6)
+
     fig.suptitle(f"{title_prefix}", fontsize=16)
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     fname = sanitize_filename(f"{title_prefix.replace(' ', '_')}.png")
@@ -539,50 +603,26 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
     plt.close()
     print(f"[Plot] {title_prefix} guardado en: {out_path}")
 
-###############################################################################
-# FUNCIONES PARA DIFERENTES AGRUPAMIENTOS
-###############################################################################
+# -------------------------------
+# Funciones de agrupación
+# -------------------------------
 def plot_summary_by_day_coord(aggregated_df, output_dir):
-    """
-    Genera un summary para cada combinación de Día experimental y Coordenadas (x,y) integrando
-    todos los body_parts.
-    """
     for (dia, coord_x, coord_y), df_sub in aggregated_df.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y']):
         title = f"Summary_{dia}_Coord_{coord_x}_{coord_y}"
-        # No filtramos por body_part (se integran todos)
         plot_summary_by_filters(df_sub, output_dir, title_prefix=title)
 
 def plot_global_summary(aggregated_df, output_dir):
-    """
-    Genera un summary global integrando todos los datos (todos los días, coordenadas y body_parts).
-    """
     title = "Global_Summary"
     plot_summary_by_filters(aggregated_df, output_dir, title_prefix=title)
 
 def plot_summary_by_bodypart(aggregated_df, output_dir):
-    """
-    Genera un summary para cada día y cada body_part.
-    """
     for (dia, bp), df_sub in aggregated_df.groupby(['Dia experimental', 'body_part']):
         title = f"Summary_{dia}_{bp}"
         plot_summary_by_filters(df_sub, output_dir, title_prefix=title)
 
 def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, coord_x=None, coord_y=None):
-    """
-    Genera gráficos 3D interactivos (usando Plotly) para el modelo Gaussian‑based,
-    mostrando únicamente la "caja central" (de Q1 a Q3) y la línea vertical que la conecta,
-    junto con la línea horizontal de la mediana para cada combinación de Estímulo y body_part.
-    Además, se interpola una superficie (heatmap) a partir de las medianas utilizando una escala
-    de color unificada (calculada entre el 5º y el 95º percentil de las medianas) para facilitar la comparación.
-    El eje Z se ajusta para incluir el rango completo de cada caja (desde el mínimo hasta el máximo).
-    El orden de los estímulos se basa en la "Forma" y "Duración (ms)".
-    Los colores de las cajas se asignan según 'shape_colors'.
-    Los gráficos se guardan en formato HTML para su interacción.
-    """
     import plotly.graph_objects as go
     from scipy.interpolate import griddata
-
-    # Filtrar para el modelo Gaussian-based y aplicar filtros opcionales
     df = aggregated_df[aggregated_df['MovementType'] == 'Gaussian-based'].copy()
     if day is not None:
         df = df[df["Dia experimental"] == day]
@@ -593,24 +633,17 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
     if df.empty:
         print("No hay datos Gaussian-based para el grupo seleccionado.")
         return
-
-    # Definir las métricas a analizar
     metrics = ["lat_inicio_ms", "lat_primer_pico_ms", "lat_pico_ultimo_ms",
                "dur_total_ms", "valor_pico_inicial", "valor_pico_max",
                "num_movs", "lat_inicio_mayor_ms", "lat_pico_mayor_ms", "delta_valor_pico"]
-
-    # Ordenar estímulos similar a los summary
     df['Forma'] = df['Estímulo'].apply(lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else 'unknown')
-    df['Duración (ms)'] = df['Estímulo'].apply(lambda s: float(s.split(',')[1].replace(' ms','')) if isinstance(s, str) and ',' in s else np.nan)
+    df['Duración (ms)'] = df['Estímulo'].apply(extract_duration)
     shape_order = ["rectangular", "rombo", "rampa descendente", "triple rombo", "rampa ascendente"]
     df["Forma"] = pd.Categorical(df["Forma"], categories=shape_order, ordered=True)
     ordered_stimuli = df.sort_values(["Forma", "Duración (ms)"])["Estímulo"].unique().tolist()
-    ordered_bodyparts = body_parts  # Usar el orden definido en body_parts_specific_colors
-
+    ordered_bodyparts = body_parts
     stim_to_x = {stim: i for i, stim in enumerate(ordered_stimuli)}
     bp_to_y = {bp: i for i, bp in enumerate(ordered_bodyparts)}
-
-    # Calcular, para cada combinación de Estímulo y body_part, los estadísticos (mín, Q1, mediana, Q3, máx)
     stats_list = []
     for stim, bp, forma in df[['Estímulo', 'body_part', 'Forma']].drop_duplicates().values:
         sub = df[(df['Estímulo'] == stim) & (df['body_part'] == bp)]
@@ -631,49 +664,32 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
     if stats_df.empty:
         print("No hay datos para construir la interpolación de las medianas.")
         return
-
-    # Para cada métrica, construir el gráfico 3D interactivo
     for metric in metrics:
         subdf = stats_df.dropna(subset=[f"{metric}_med", f"{metric}_vmin", f"{metric}_vmax"])
         if subdf.empty:
             continue
-
-        # Extraer posiciones y valores
         x_vals = subdf['Estímulo'].map(stim_to_x).values
         y_vals = subdf['body_part'].map(bp_to_y).values
         med_vals = subdf[f"{metric}_med"].values
         q1_vals = subdf[f"{metric}_q1"].values
         q3_vals = subdf[f"{metric}_q3"].values
-        vmin_vals = subdf[f"{metric}_vmin"].values
-        vmax_vals = subdf[f"{metric}_vmax"].values
-
-        # Definir la escala de color basada en la mediana (5º-95º percentil)
         cmin = np.percentile(med_vals, 5)
         cmax = np.percentile(med_vals, 95)
-
-        # Interpolar la superficie de la mediana
         grid_x, grid_y = np.mgrid[min(x_vals):max(x_vals):100j, min(y_vals):max(y_vals):100j]
         grid_med = griddata((x_vals, y_vals), med_vals, (grid_x, grid_y), method='cubic')
-
         surface_med = go.Surface(
             x=grid_x, y=grid_y, z=grid_med,
             colorscale='Viridis', opacity=0.6, cmin=cmin, cmax=cmax,
             showscale=True, name='Mediana'
         )
-
-        # Calcular el rango global de Z usando los extremos de las cajas (vmin y vmax)
         global_zmin = np.min(q1_vals)
-        global_zmax = np.max(q3_vals) * 1.05  # o agregar un incremento fijo
-
-
+        global_zmax = np.max(q3_vals) * 1.05
         traces = []
         for idx, row in subdf.iterrows():
             x = stim_to_x[row['Estímulo']]
             y = bp_to_y.get(row['body_part'], 0)
             width = 0.4
             depth = 0.4
-
-            # Dibujar la caja central (de Q1 a Q3)
             vertices_center = np.array([
                 [x - width/2, y - depth/2, row[f"{metric}_q1"]],
                 [x + width/2, y - depth/2, row[f"{metric}_q1"]],
@@ -697,8 +713,6 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
                 name=f"Center {row['Estímulo']} - {row['body_part']}"
             )
             traces.append(center_box_trace)
-
-            # Dibujar la línea vertical que conecta Q1 y Q3 (barra unificadora)
             center_line = go.Scatter3d(
                 x=[x, x],
                 y=[y, y],
@@ -708,8 +722,6 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
                 showlegend=False
             )
             traces.append(center_line)
-
-            # Dibujar la línea de la mediana
             median_trace = go.Scatter3d(
                 x=[x - width/2, x + width/2],
                 y=[y, y],
@@ -719,82 +731,80 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
                 showlegend=False
             )
             traces.append(median_trace)
-
         layout = go.Layout(
-        title=f"3D Gaussian-based Boxes for {metric} (Day: {day}, Coord: {coord_x}, {coord_y})",
-        scene=dict(
-            xaxis=dict(
-                title="Estímulo",
-                tickvals=list(stim_to_x.values()),
-                ticktext=list(stim_to_x.keys())
-            ),
-            yaxis=dict(
-                title="Body Part",
-                tickvals=list(bp_to_y.values()),
-                ticktext=list(bp_to_y.keys())
-            ),
-            # Ajuste clave aquí:
-            zaxis=dict(
-                title=metric,
-                range=[
-                    min(global_zmin - 0.05 * abs(global_zmax - global_zmin), -0.05 * global_zmax), 
-                    global_zmax
-                ]
+            title=f"3D Gaussian-based Boxes for {metric} (Day: {day}, Coord: {coord_x}, {coord_y})",
+            scene=dict(
+                xaxis=dict(
+                    title="Estímulo",
+                    tickvals=list(stim_to_x.values()),
+                    ticktext=list(stim_to_x.keys())
+                ),
+                yaxis=dict(
+                    title="Body Part",
+                    tickvals=list(bp_to_y.values()),
+                    ticktext=list(bp_to_y.keys())
+                ),
+                zaxis=dict(
+                    title=metric,
+                    range=[min(global_zmin - 0.05 * abs(global_zmax - global_zmin), -0.05 * global_zmax), global_zmax]
+                )
             )
         )
-    )
-
-
         fig = go.Figure(data=[surface_med] + traces, layout=layout)
         filename = sanitize_filename(f"3D_Gaussian_Boxplot_{metric}_Day_{day}_Coord_{coord_x}_{coord_y}.html")
         out_path = os.path.join(output_dir, filename)
         fig.write_html(out_path)
         print(f"3D Gaussian Boxplot for {metric} saved at: {out_path}")
 
+# -------------------------------
+# Preprocesamiento: extraer y renombrar columnas a partir de "Estímulo"
+# -------------------------------
+def preprocess_estimulo(df):
+    """
+    Crea las columnas estandarizadas 'Forma_del_Pulso' y 'Duracion_ms'
+    a partir de la columna 'Estímulo', y elimina columnas duplicadas.
+    """
+    df['Forma_del_Pulso'] = df['Estímulo'].apply(
+        lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
+    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
+    df = df.loc[:, ~df.columns.duplicated()]
+    return df
 
-
-
-
-
-
-
-
-
-
-
-
-
-###############################################################################
-# BLOQUE PRINCIPAL
-###############################################################################
 if __name__ == "__main__":
     logging.info("Ejecutando el bloque principal del script.")
     submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_summary.csv')
     if os.path.exists(submov_path):
         submovements_df = pd.read_csv(submov_path)
-        # ETAPA 1: Agregar métricas por ensayo y ajustar latencias
+        submovements_df = preprocess_estimulo(submovements_df)
         aggregated_df = aggregate_trial_metrics_extended(submovements_df)
+        # Extraer la duración y convertirla a categórica
+        aggregated_df['Duracion_ms'] = aggregated_df['Estímulo'].apply(extract_duration)
+        aggregated_df['Duracion_ms'] = aggregated_df['Duracion_ms'].apply(lambda x: str(int(x)) if not pd.isna(x) else x)
         aggregated_csv = os.path.join(output_comparisons_dir, 'aggregated_metrics.csv')
         aggregated_df.to_csv(aggregated_csv, index=False)
         print("Tabla agregada de métricas guardada en 'aggregated_metrics.csv'")
         
-        # ETAPA 2: Pruebas de hipótesis
+        # Verificar la variabilidad de 'Duracion_ms' en el día 15/05 (para depuración)
+        df_day15 = aggregated_df[aggregated_df["Dia experimental"] == "15/05"]
+        print("Valores únicos de 'Estímulo' en el día 15/05:")
+        print(df_day15["Estímulo"].unique())
+        print("Valores únicos de 'Duracion_ms' en el día 15/05:")
+        print(df_day15["Duracion_ms"].unique())
+        variabilidad = df_day15.groupby(["body_part", "MovementType"])["Duracion_ms"].nunique()
+        print("Variabilidad de 'Duracion_ms' en el día 15/05:")
+        print(variabilidad)
+        if (variabilidad == 1).any():
+            mensaje = "Error: En algunos grupos la variable Duracion_ms es constante en el día 15/05."
+            logging.error(mensaje)
+            sys.exit(mensaje)
+        
+        # Llamada a la función para ajustar los modelos ANOVA
         do_significance_tests_aggregated(aggregated_df, output_dir=output_comparisons_dir)
-        
-        # ETAPA 3: Generar gráficos summary con distintos niveles de agrupación
-        # 1. Por día y por body_part (cada grupo separado)
         plot_summary_by_bodypart(aggregated_df, output_comparisons_dir)
-        
-        # 2. Por día y coordenadas (integrando todos los body_parts)
         plot_summary_by_day_coord(aggregated_df, output_comparisons_dir)
-        
-        # 3. Global (todos los datos integrados)
         plot_global_summary(aggregated_df, output_comparisons_dir)
-
-        # Generar gráficos 3D para el modelo Gaussian-based, por día y coordenadas
         for (dia, coord_x, coord_y), group in aggregated_df.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y']):
             plot_3d_gaussian_boxplots_by_bodypart(group, output_comparisons_dir, day=dia, coord_x=coord_x, coord_y=coord_y)
-
     else:
         print("No se encontró el archivo submovement_detailed_summary.csv para generar los análisis.")
     print("Proceso completo finalizado.")
