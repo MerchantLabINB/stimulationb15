@@ -631,6 +631,84 @@ def plot_summary_by_bodypart(aggregated_df, output_dir):
     for (dia, bp), df_sub in aggregated_df.groupby(['Dia experimental', 'body_part']):
         title = f"Summary_{dia}_{bp}"
         plot_summary_by_filters(df_sub, output_dir, title_prefix=title)
+        
+def plot_summary_seaborn_gaussian(aggregated_df, output_dir, day=None, coord_x=None, coord_y=None, body_part=None, title_prefix="Gaussian-based Summary"):
+    """
+    Genera un resumen de boxplots usando únicamente los datos del modelo Gaussian-based.
+    Se muestran los boxplots para las seis métricas seleccionadas:
+      - Latencia al inicio
+      - Latencia al pico mayor
+      - Amplitud del pico máximo
+      - Duración total
+      - Diferencia entre primer y pico mayor
+      - Número de movimientos
+    Se usa Seaborn para obtener gráficos rigurosos, se aplica la paleta de colores definida
+    en 'shape_colors' y se eliminan las espinas superior y derecha.
+    """
+    import seaborn as sns
+
+    # Filtrar solo los datos de Gaussian-based
+    df = aggregated_df.copy()
+    df = df[df['MovementType'] == "Gaussian-based"]
+    if day is not None:
+        df = df[df["Dia experimental"] == day]
+    if coord_x is not None:
+        df = df[df["Coordenada_x"] == coord_x]
+    if coord_y is not None:
+        df = df[df["Coordenada_y"] == coord_y]
+    if body_part is not None:
+        df = df[df["body_part"] == body_part]
+    if df.empty:
+        print("No hay datos tras aplicar los filtros.")
+        return
+
+    # Crear columna de forma a partir de "Estímulo" y filtrar solo las formas deseadas
+    df['Forma_del_Pulso'] = df['Estímulo'].apply(lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
+    desired_forms = ["rectangular", "rombo", "triple rombo", "rampa ascendente"]
+    df = df[df["Forma_del_Pulso"].isin(desired_forms)]
+    df['Forma_del_Pulso'] = pd.Categorical(df['Forma_del_Pulso'], categories=desired_forms, ordered=True)
+    # Aseguramos la columna de duración
+    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
+
+    # Definir las seis métricas seleccionadas
+    selected_metrics = [
+        'lat_inicio_ms',       # Latencia al inicio
+        'lat_pico_mayor_ms',   # Latencia al pico mayor
+        'valor_pico_max',      # Amplitud del pico máximo
+        'dur_total_ms',        # Duración total
+        'delta_valor_pico',    # Diferencia entre primer y pico mayor
+        'num_movs'             # Número de movimientos
+    ]
+    
+    # Crear un subplot para cada métrica (en dos filas)
+    n_metrics = len(selected_metrics)
+    n_cols = math.ceil(n_metrics / 2)
+    fig, axs = plt.subplots(2, n_cols, figsize=(n_cols * 6, 12))
+    
+    # Recorrer cada métrica y graficarla con Seaborn
+    for i, metric in enumerate(selected_metrics):
+        ax = axs[i // n_cols, i % n_cols]
+        sns.boxplot(data=df, x="Estímulo", y=metric, hue="Forma_del_Pulso",
+                    palette=shape_colors, ax=ax)
+        # Ajustar títulos y etiquetas usando metric_labels
+        ax.set_title(metric_labels.get(metric, metric))
+        ax.set_xlabel("")
+        ax.set_ylabel(metric_labels.get(metric, metric))
+        # Eliminar espinas superior y derecha
+        sns.despine(ax=ax, top=True, right=True)
+        # Rotar etiquetas del eje x para mejor legibilidad
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+        # Opcional: si prefieres quitar la leyenda (o puedes ajustarla)
+        if ax.get_legend() is not None:
+            ax.get_legend().remove()
+    
+    fig.suptitle(title_prefix, fontsize=16)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fname = sanitize_filename(f"{title_prefix.replace(' ', '_')}.png")
+    out_path = os.path.join(output_dir, fname)
+    plt.savefig(out_path, dpi=150)
+    plt.close()
+    print(f"[Plot] {title_prefix} guardado en: {out_path}")
 
 def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, coord_x=None, coord_y=None):
     import plotly.graph_objects as go
