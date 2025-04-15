@@ -469,36 +469,6 @@ def robust_fit_velocity_profile(t, observed_velocity, n_submovements,
     logging.info(f"Fitted parameters: {best_result.x}")
     return best_result
 
-def filter_overlapping_minjerk(segments, overlap_threshold=0.5):
-    """
-    Filtra una lista de submovimientos MinimumJerk eliminando aquellos que se solapan en más
-    del porcentaje dado (por defecto 50% de la duración del segmento más corto). Se conserva
-    el segmento que tenga mayor pico (máximo valor en 'v_sm').
-    """
-    if not segments:
-        return segments
-    segments_sorted = sorted(segments, key=lambda s: s['t_segment_model'][0])
-    filtered = [segments_sorted[0]]
-    for seg in segments_sorted[1:]:
-        last_seg = filtered[-1]
-        last_start, last_end = last_seg['t_segment_model'][0], last_seg['t_segment_model'][-1]
-        seg_start, seg_end = seg['t_segment_model'][0], seg['t_segment_model'][-1]
-        # Calcular el solapamiento
-        overlap = max(0, min(last_end, seg_end) - max(last_start, seg_start))
-        # Duración del segmento más corto
-        min_duration = min(last_end - last_start, seg_end - seg_start)
-        if min_duration > 0 and (overlap / min_duration) > overlap_threshold:
-            # Conservar el que tenga mayor pico
-            if max(last_seg['v_sm']) >= max(seg['v_sm']):
-                continue  # descartar seg
-            else:
-                filtered[-1] = seg  # reemplazar
-        else:
-            filtered.append(seg)
-    return filtered
-
-
-
 def sanitize_filename(filename):
     return re.sub(r'[\\/*?:"<>|]', "_", filename)
 
@@ -1109,7 +1079,7 @@ def collect_velocity_threshold_data():
                             frames = np.arange(len(velocidades[current_part]))
                             amp_list, time_list = generar_estimulo_desde_parametros(
                                 rowAmp['Forma del Pulso'],
-                                rowAmp['Amplitud (microA)'] * 1000,
+                                rowAmp['Amplitud (microA)'],
                                 (duracion_ms * 1000 if duracion_ms else 1000000),
                                 rowAmp['Frecuencia (Hz)'],
                                 200,
@@ -1186,7 +1156,7 @@ def collect_velocity_threshold_data():
                             start_frame = 100
                             amp_list, duration_list = generar_estimulo_desde_parametros(
                                 rowStim['Forma del Pulso'],
-                                rowStim['Amplitud (microA)'] * 1000,
+                                rowStim['Amplitud (microA)'],
                                 (duracion_ms * 1000 if duracion_ms else 1000000),
                                 rowStim['Frecuencia (Hz)'] if frequency is None else frequency,
                                 200,
@@ -2116,7 +2086,7 @@ if __name__ == "__main__":
     print("Counts DataFrame after collection:", counts_df.shape)
     print(counts_df.head())
     
-    '''
+    
     # Para pruebas de hipótesis usaremos el CSV detallado de submovimientos:
     submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_summary.csv')
     if os.path.exists(submov_path):
@@ -2136,4 +2106,4 @@ if __name__ == "__main__":
         print("No se encontró el archivo submovement_detailed_summary.csv para generar los análisis.")
 
     print("Proceso completo finalizado.")
-    '''
+    
