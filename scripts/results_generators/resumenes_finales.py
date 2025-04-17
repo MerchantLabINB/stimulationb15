@@ -41,7 +41,7 @@ console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
 # --- DIRECTORIOS
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials4mad'
 if not os.path.exists(output_comparisons_dir):
     os.makedirs(output_comparisons_dir)
 
@@ -1145,7 +1145,7 @@ def preprocess_estimulo(df):
 # -------------------------------
 if __name__ == "__main__":
     logging.info("Ejecutando el bloque principal del script.")
-    submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_summary.csv')
+    submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_valid.csv')
     if os.path.exists(submov_path):
         submovements_df = pd.read_csv(submov_path)
         submovements_df = preprocess_estimulo(submovements_df)
