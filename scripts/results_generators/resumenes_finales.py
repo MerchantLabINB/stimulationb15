@@ -12,7 +12,7 @@ import matplotlib.cm as cm
 import logging
 import seaborn as sns
 from matplotlib.patches import Patch
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap, BoundaryNorm
 
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -20,8 +20,10 @@ from scipy.interpolate import griddata
 from scipy.signal import savgol_filter, find_peaks, butter, filtfilt
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
-from scipy.stats import friedmanchisquare
+from scipy.stats import friedmanchisquare, shapiro, levene
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
+import statsmodels.api as sm
+
 import re
 import shutil
 import glob
@@ -56,6 +58,11 @@ body_parts_specific_colors = {
 }
 body_parts = list(body_parts_specific_colors.keys())
 
+# -------------------------------
+# Formas de pulso a incluir en TODOS los análisis
+# -------------------------------
+desired_forms = ["rectangular", "rombo", "triple rombo", "rampa ascendente"]
+
 shape_colors = {
     "rectangular": "orange",
     "rombo": "blue",
@@ -66,14 +73,10 @@ shape_colors = {
 
 metric_labels = {
     "lat_inicio_ms": "Latencia al Inicio",
-    "lat_primer_pico_ms": "Latencia al Primer Pico",
-    "lat_pico_ultimo_ms": "Latencia al Último Pico",
-    "lat_inicio_mayor_ms": "Latencia del Movimiento de Mayor Amplitud",
-    "lat_pico_mayor_ms": "Latencia del Pico Mayor",
-    "valor_pico_inicial": "Amplitud del Pico Inicial",
+    "lat_pico_mayor_ms": "Latencia al Pico Mayor",
     "valor_pico_max": "Amplitud del Pico Máximo",
     "dur_total_ms": "Duración Total",
-    "delta_t_pico": "Diferencia entre Primer y Pico Mayor",
+    "delta_t_pico": "Diferencia Primer‑Pico Mayor",
     "num_movs": "Número de Movimientos"
 }
 
@@ -95,7 +98,41 @@ def extract_duration(s):
     except Exception as e:
         logging.error(f"Error al extraer duración de '{s}': {e}")
         return np.nan
+# -------------------- PRE‑ANÁLISIS ÚNICO --------------------
+def prep_for_anova(df, *,
+                   metric: str = None,
+                   model:  str = 'Gaussian-based',
+                   day=None, coord_x=None, coord_y=None, body_part=None):
+    """
+    Devuelve un DataFrame *listo para ANOVA* aplicando el mismo pipeline
+    que usa el summary (filtros, columnas derivadas, casting, …).
 
+    - Si `metric` se pasa, solo elimina NaNs en esa métrica.
+    """
+    d = df.copy()
+
+    # --- filtros contextuales ---------------------------------
+    if day       is not None: d = d[d['Dia experimental'] == day]
+    if coord_x   is not None: d = d[d['Coordenada_x']    == coord_x]
+    if coord_y   is not None: d = d[d['Coordenada_y']    == coord_y]
+    if body_part is not None: d = d[d['body_part']       == body_part]
+    if model     is not None: d = d[d['MovementType']    == model]
+
+    # --- columnas canónicas -----------------------------------
+    d['Forma_del_Pulso'] = (d['Estímulo']
+                            .str.split(',',1).str[0].str.lower().str.strip())
+    d = d[d['Forma_del_Pulso'].isin(desired_forms)]
+
+    d['Duracion_ms'] = (d['Estímulo']
+                          .apply(extract_duration)
+                          .astype('Int64')
+                          .astype('category'))
+
+    # --- dropna final (si procede) -----------------------------
+    if metric is not None:
+        d = d.dropna(subset=[metric, 'Forma_del_Pulso', 'Duracion_ms'])
+
+    return d
 # -------------------------------
 # ETAPA 1: Agregación de métricas
 # -------------------------------
@@ -217,223 +254,116 @@ def do_posthoc_tests(df, metric, factor_name):
     except Exception as e:
         logging.warning(f"Error en post-hoc para {factor_name}, {metric}: {e}")
         return None, None
+    
 
-def do_significance_tests_aggregated(aggregated_df, output_dir=None):
-    if output_dir is None:
-        output_dir = output_comparisons_dir
+ASSUMPTION_RESULTS = []         #  <<-- NUEVO  (renombramos para diferenciar)
 
-    if 'Forma_del_Pulso' not in aggregated_df.columns:
-        aggregated_df['Forma_del_Pulso'] = aggregated_df['Estímulo'].apply(
-            lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
-    else:
-        aggregated_df['Forma_del_Pulso'] = aggregated_df['Forma_del_Pulso'].str.lower().str.strip()
+def check_assumptions(model, data_metric, group_var, prefix):
+    """
+    Chequea Shapiro y Levene y guarda los p-values en la lista `assumption_results`.
+    - model: resultado de ols(...).fit()
+    - data_metric: DataFrame con las columnas metric y group_var
+    - group_var: lista de variables categóricas para Levene
+    - prefix: identificador para este test (p.ej. f"{dia}_{bp}_{mov}_{metric}_{modelo}")
+    """
+    resid = model.resid
 
-    if 'Duracion_ms' not in aggregated_df.columns:
-        aggregated_df['Duracion_ms'] = aggregated_df['Estímulo'].apply(extract_duration)
-    aggregated_df['Duracion_ms'] = aggregated_df['Duracion_ms'].apply(lambda x: str(int(x)) if not pd.isna(x) else x)
-    aggregated_df = aggregated_df.loc[:, ~aggregated_df.columns.duplicated()]
+    # Shapiro-Wilk
+    sw_stat, sw_p = shapiro(resid)
 
-    metrics = ['lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_ultimo_ms',
-               'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
-               'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_t_pico']
-    grouping = ['Dia experimental', 'body_part', 'MovementType']
-    results_anova = []
+    # Levene
+    levels = data_metric[group_var[0]].dropna().unique()
+    samples = [
+        data_metric.loc[data_metric[group_var[0]] == lev, model.model.endog_names]
+        for lev in levels
+        if len(data_metric.loc[data_metric[group_var[0]] == lev]) >= 2
+    ]
+    lev_p = levene(*samples)[1] if len(samples) >= 2 else np.nan
 
-    formulas = {
-        "forma": lambda m: f"{m} ~ C(Forma_del_Pulso)",
-        "duracion": lambda m: f"{m} ~ C(Duracion_ms)",
-        "combinado": lambda m: f"{m} ~ C(Forma_del_Pulso) * C(Duracion_ms)"
+    # acumular
+    ASSUMPTION_RESULTS.append({
+        "Test_ID"   : prefix,
+        "Shapiro_p" : sw_p,
+        "Levene_p"  : lev_p
+    })
+
+
+
+# ---------- núcleo único ----------
+def _calc_anova_table(agg: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calcula todos los ANOVA por día × body_part × MovementType × métrica.
+    No guarda nada; solo devuelve un DataFrame limpio y coherente.
+    """
+    # ---- normalización homogénea ----
+    agg = agg.copy()
+    agg['Forma_del_Pulso'] = agg['Estímulo'].str.split(',',1).str[0].str.lower().str.strip()
+    agg['Duracion_ms']     = (agg['Estímulo']
+                                .apply(extract_duration)
+                                .astype('Int64')        # enteros con NaN
+                                .astype('category'))     # y categórico
+
+    metrics   = selected_metrics
+    grouping  = ['Dia experimental', 'Coordenada_x', 'Coordenada_y',     'body_part', 'MovementType']
+    formulas  = {
+        'forma'     : lambda m: f"{m} ~ C(Forma_del_Pulso)",
+        'duracion'  : lambda m: f"{m} ~ C(Duracion_ms)",
+        'combinado' : lambda m: f"{m} ~ C(Forma_del_Pulso) * C(Duracion_ms)"
     }
 
-    for (dia, bp, movtype), df_sub in aggregated_df.groupby(grouping):
-        if len(df_sub) < 3:
+    rows = []
+    for (dia, coord_x, coord_y, bp, mtype), g in agg.groupby(grouping):
+        if len(g) < 3: 
             continue
-        for metric in metrics:
-            data_metric = df_sub.dropna(subset=[metric])
-            if len(data_metric) < 3:
+        for met in metrics:
+            sub = g.dropna(subset=[met])
+            if len(sub) < 3:
                 continue
-            if data_metric['Duracion_ms'].nunique() < 2:
-                logging.warning(f"En {dia}, {bp}, {movtype} para {metric} la variable Duracion_ms es constante. Se omite el efecto de duración.")
+            for tag, f in formulas.items():
                 try:
-                    model = ols(f"{metric} ~ C(Forma_del_Pulso)", data=data_metric).fit()
-                    anova_res = anova_lm(model, typ=2)
-                    for row in anova_res.index:
-                        if row == 'Residual':
-                            continue
-                        results_anova.append({
-                            'Dia experimental': dia,
-                            'body_part': bp,
-                            'MovementType': movtype,
-                            'Metric': metric,
-                            'Modelo': "solo forma",
-                            'Factor': row,
-                            'sum_sq': anova_res.loc[row, 'sum_sq'],
-                            'df': anova_res.loc[row, 'df'],
-                            'F': anova_res.loc[row, 'F'],
-                            'PR(>F)': anova_res.loc[row, 'PR(>F)'],
-                            'Partial_Eta_Sq': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
-                            'Num_observations': len(data_metric)
-                        })
+                    mod  = ols(f(met), data=sub).fit()
+                    anov = anova_lm(mod, typ=2)
+                    for factor in anov.index.drop('Residual'):
+                        rows.append({
+                        'Dia experimental' : dia,
+                        'Coordenada_x'     : coord_x,
+                        'Coordenada_y'     : coord_y,
+                        'body_part'        : bp,
+                        'MovementType'     : mtype,
+                        'Metric'           : met,
+                        'Modelo'           : tag,
+                        'Factor'           : factor,
+                        'sum_sq'           : anov.loc[factor,'sum_sq'],
+                        'df'               : anov.loc[factor,'df'],
+                        'F'                : anov.loc[factor,'F'],
+                        'PR(>F)'           : anov.loc[factor,'PR(>F)'],
+                        'Partial_Eta_Sq'   : calc_partial_eta_sq(anov,
+                                            factor_row=factor, resid_row='Residual'),
+                        'N'                : len(sub)
+                     })
                 except Exception as e:
-                    logging.warning(f"Fallo ANOVA (solo forma) en {dia}, {bp}, {movtype}, {metric}: {e}")
-                continue
+                    logging.warning(f"ANOVA fail: {dia},{bp},{mtype},{met},{tag} – {e}")
+    return pd.DataFrame(rows)
+from typing import Optional            # agrega arriba
 
-            for model_key, formula_func in formulas.items():
-                formula = formula_func(metric)
-                try:
-                    model = ols(formula, data=data_metric).fit()
-                    anova_res = anova_lm(model, typ=2)
-                    for row in anova_res.index:
-                        if row == 'Residual':
-                            continue
-                        results_anova.append({
-                            'Dia experimental': dia,
-                            'body_part': bp,
-                            'MovementType': movtype,
-                            'Metric': metric,
-                            'Modelo': model_key,
-                            'Factor': row,
-                            'sum_sq': anova_res.loc[row, 'sum_sq'],
-                            'df': anova_res.loc[row, 'df'],
-                            'F': anova_res.loc[row, 'F'],
-                            'PR(>F)': anova_res.loc[row, 'PR(>F)'],
-                            'Partial_Eta_Sq': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
-                            'Num_observations': len(data_metric)
-                        })
-                except Exception as e:
-                    logging.warning(f"Fallo ANOVA en {dia}, {bp}, {movtype}, {metric} ({model_key}): {e}")
-                    continue
-    anova_df = pd.DataFrame(results_anova)
-    out_csv = os.path.join(output_dir, 'anova_results_aggregated.csv')
-    anova_df.to_csv(out_csv, index=False)
-    print(f"Resultados ANOVA guardados en: {out_csv}")
-
-def do_significance_tests_aggregated_return(aggregated_df):
-    """
-    Ejecuta las pruebas de hipótesis (ANOVA, post‑hoc y Friedman) sobre la tabla de métricas
-    agregadas y retorna un DataFrame (anova_df) con los resultados de ANOVA.
-    Se agrupa por 'Dia experimental', 'body_part' y 'MovementType' y para cada métrica se calcula:
-       - Sum of Squares
-       - Degrees of Freedom
-       - F Value
-       - P Value
-       - Partial Eta Squared
-       - Número de observaciones
-    """
-    # Aseguramos que 'Forma_del_Pulso' y 'Duracion_ms' estén creadas y en el formato correcto.
-    if 'Forma_del_Pulso' not in aggregated_df.columns:
-        aggregated_df['Forma_del_Pulso'] = aggregated_df['Estímulo'].apply(
-            lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
-    else:
-        aggregated_df['Forma_del_Pulso'] = aggregated_df['Forma_del_Pulso'].str.lower().str.strip()
-
-    if 'Duracion_ms' not in aggregated_df.columns:
-        aggregated_df['Duracion_ms'] = aggregated_df['Estímulo'].apply(extract_duration)
-    aggregated_df['Duracion_ms'] = aggregated_df['Duracion_ms'].apply(lambda x: str(int(x)) if not pd.isna(x) else x)
-    aggregated_df = aggregated_df.loc[:, ~aggregated_df.columns.duplicated()]
-
-    metrics = ['lat_inicio_ms', 'lat_primer_pico_ms', 'lat_pico_ultimo_ms',
-               'dur_total_ms', 'valor_pico_inicial', 'valor_pico_max',
-               'num_movs', 'lat_inicio_mayor_ms', 'lat_pico_mayor_ms', 'delta_t_pico']
-    grouping = ['Dia experimental', 'body_part', 'MovementType']
-    results_anova = []
-    formulas = {
-        "forma": lambda m: f"{m} ~ C(Forma_del_Pulso)",
-        "duracion": lambda m: f"{m} ~ C(Duracion_ms)",
-        "combinado": lambda m: f"{m} ~ C(Forma_del_Pulso) * C(Duracion_ms)"
-    }
-
-    for (dia, bp, movtype), df_sub in aggregated_df.groupby(grouping):
-        if len(df_sub) < 3:
-            continue
-        for metric in metrics:
-            data_metric = df_sub.dropna(subset=[metric])
-            if len(data_metric) < 3:
-                continue
-            # Si Duracion_ms es constante, se ajusta solo con Forma_del_Pulso
-            if data_metric['Duracion_ms'].nunique() < 2:
-                try:
-                    model = ols(f"{metric} ~ C(Forma_del_Pulso)", data=data_metric).fit()
-                    anova_res = anova_lm(model, typ=2)
-                    for row in anova_res.index:
-                        if row == 'Residual':
-                            continue
-                        results_anova.append({
-                            'Dia experimental': dia,
-                            'Body Part': bp,
-                            'Movement Model': movtype,
-                            'Metric': metric,
-                            'ANOVA Model': "Solo Forma",
-                            'Factor': row,
-                            'Sum of Squares': anova_res.loc[row, 'sum_sq'],
-                            'Degrees of Freedom': anova_res.loc[row, 'df'],
-                            'F Value': anova_res.loc[row, 'F'],
-                            'P Value': anova_res.loc[row, 'PR(>F)'],
-                            'Partial Eta Squared': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
-                            'N Observations': len(data_metric)
-                        })
-                except Exception as e:
-                    logging.warning(f"Fallo ANOVA (solo forma) en {dia}, {bp}, {movtype}, {metric}: {e}")
-                continue
-
-            for model_key, formula_func in formulas.items():
-                formula = formula_func(metric)
-                try:
-                    model = ols(formula, data=data_metric).fit()
-                    anova_res = anova_lm(model, typ=2)
-                    for row in anova_res.index:
-                        if row == 'Residual':
-                            continue
-                        results_anova.append({
-                            'Dia experimental': dia,
-                            'Body Part': bp,
-                            'Movement Model': movtype,
-                            'Metric': metric,
-                            'ANOVA Model': model_key,
-                            'Factor': row,
-                            'Sum of Squares': anova_res.loc[row, 'sum_sq'],
-                            'Degrees of Freedom': anova_res.loc[row, 'df'],
-                            'F Value': anova_res.loc[row, 'F'],
-                            'P Value': anova_res.loc[row, 'PR(>F)'],
-                            'Partial Eta Squared': calc_partial_eta_sq(anova_res, factor_row=row, resid_row='Residual'),
-                            'N Observations': len(data_metric)
-                        })
-                except Exception as e:
-                    logging.warning(f"Fallo ANOVA en {dia}, {bp}, {movtype}, {metric} ({model_key}): {e}")
-                    continue
-    anova_df = pd.DataFrame(results_anova)
+# ---------- wrapper que guarda ----------
+def do_significance_tests_aggregated(
+                aggregated_df: pd.DataFrame,
+                *,
+               output_dir: Optional[str] = None
+        ) -> pd.DataFrame:
+    anova_df = _calc_anova_table(aggregated_df)
+    if output_dir:
+        csv = os.path.join(output_dir, 'anova_results_aggregated.csv')
+        anova_df.to_csv(csv, index=False)
+        print(f"Resultados ANOVA guardados en: {csv}")
     return anova_df
 
-def compute_model_pvals(agg_df, metric):
-    models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
-    pvals = {}
-    for mt in models:
-        df_model = agg_df[agg_df['MovementType'] == mt]
-        if df_model.empty or len(df_model) < 3:
-            logging.warning(f"Modelo {mt} para {metric}: Insuficientes datos (n={len(df_model)}).")
-            pvals[mt] = (np.nan, np.nan, np.nan)
-            continue
-        unique_forms = df_model["Forma_del_Pulso"].unique()
-        if len(unique_forms) < 2:
-            logging.warning(f"Modelo {mt} para {metric}: 'Forma_del_Pulso' tiene un solo nivel: {unique_forms}.")
-        dur_var = df_model["Duracion_ms"].var()
-        if dur_var == 0:
-            logging.warning(f"Modelo {mt} para {metric}: Varianza cero en 'Duracion_ms'. Valores: {df_model['Duracion_ms'].tolist()}")
-        try:
-            mod = ols(f"{metric} ~ C(Forma_del_Pulso) * Duracion_ms", data=df_model).fit()
-            anova_res = anova_lm(mod, typ=2)
-            p_shape = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
-            p_dur = anova_res.loc["Duracion_ms", "PR(>F)"] if "Duracion_ms" in anova_res.index else np.nan
-            p_int = anova_res.loc["C(Forma_del_Pulso):Duracion_ms", "PR(>F)"] if "C(Forma_del_Pulso):Duracion_ms" in anova_res.index else np.nan
-            if pd.isna(p_dur):
-                logging.warning(
-                    f"Modelo {mt} para {metric}: p-valor de 'Duracion_ms' es NA.\nResumen: mean={df_model['Duracion_ms'].mean():.3g}, var={dur_var:.3g}, min={df_model['Duracion_ms'].min()}, max={df_model['Duracion_ms'].max()}, unique={df_model['Duracion_ms'].unique()}.\nANOVA result:\n{anova_res}"
-                )
-            pvals[mt] = (p_shape, p_dur, p_int)
-        except Exception as e:
-            logging.error(f"Error en ANOVA para modelo {mt} y {metric}: {e}\nDatos: Forma_del_Pulso={df_model['Forma_del_Pulso'].unique()}, Duracion_ms={df_model['Duracion_ms'].tolist()}")
-            pvals[mt] = (np.nan, np.nan, np.nan)
-    return pvals
+# ---------- wrapper “return” conservado por retro‑compatibilidad ----------
+def do_significance_tests_aggregated_return(aggregated_df: pd.DataFrame) -> pd.DataFrame:
+    return do_significance_tests_aggregated(aggregated_df, output_dir=None)
+
+
 
 
 def format_stat(label, p, F):
@@ -443,8 +373,8 @@ def format_stat(label, p, F):
         prefix = "*" if p < 0.05 else ""
         return f"{label}: {prefix}p={p:.3g} (F={F:.2f})"
 
-def compute_model_stats(agg_df, metric):
-    models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
+def compute_model_stats(agg_df, metric, models=('Gaussian-based',)):
+    # models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
     stats = {}
     for mt in models:
         df_model = agg_df[agg_df['MovementType'] == mt]
@@ -455,6 +385,22 @@ def compute_model_stats(agg_df, metric):
             continue
         try:
             mod = ols(f"{metric} ~ C(Forma_del_Pulso) * C(Duracion_ms)", data=df_model).fit()
+            # <<-- NUEVO — llamamos al chequeo de supuestos
+            # prefijo con contexto humano‑legible
+            ctx = f"{df_model['Dia experimental'].iloc[0] if 'Dia experimental' in df_model else 'GLOBAL'}_" \
+                f"X{df_model['Coordenada_x'].iloc[0] if 'Coordenada_x' in df_model else ''}_" \
+                f"Y{df_model['Coordenada_y'].iloc[0] if 'Coordenada_y' in df_model else ''}_" \
+                f"{df_model['body_part'].iloc[0] if 'body_part' in df_model else ''}_" \
+                f"{metric}_{mt}"
+            check_assumptions(
+                model       = mod,
+                data_metric = df_model[[metric,'Forma_del_Pulso']].dropna(),
+                group_var   = ['Forma_del_Pulso'],   # usamos la forma como agrupador para Levene
+                prefix      = ctx
+            )
+            # ----------------------------------------------------------
+
+            anova_res = anova_lm(mod, typ=2)
             anova_res = anova_lm(mod, typ=2)
             p_shape = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
             p_dur = anova_res.loc["C(Duracion_ms)", "PR(>F)"] if "C(Duracion_ms)" in anova_res.index else np.nan
@@ -469,6 +415,7 @@ def compute_model_stats(agg_df, metric):
             stats[mt] = {'forma_p': np.nan, 'duracion_p': np.nan, 'interaccion_p': np.nan,
                          'forma_F': np.nan, 'duracion_F': np.nan, 'interaccion_F': np.nan}
     return stats
+
 
 def get_tukey_pvals_for_stimulus(agg_df, stim, metric):
     df_sub = agg_df[agg_df['Estímulo'] == stim]
@@ -543,6 +490,11 @@ yaxis_units = {
     "delta_t_pico": "ms",
     "num_movs": ""  # En número de movimientos, no es necesaria unidad
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NUEVA VARIABLE GLOBAL  –  lista donde iremos apilando los p‑values
+# ─────────────────────────────────────────────────────────────────────────────
+SUMMARY_PVALS = []        # ← se llena dentro de plot_summary_by_filters
 
 # -------------------------------
 # Funciones de graficación de resumen
@@ -670,9 +622,18 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
             ax.text(0.5, 0.5, "Sin datos", ha='center', va='center')
             continue
 
-        bp_obj = ax.boxplot(boxplot_data, positions=x_positions, widths=box_width,
-                            patch_artist=True, showfliers=False,
-                            medianprops={'color': median_line_color, 'linewidth': median_line_width})
+        bp_obj = ax.boxplot(
+            boxplot_data,
+            positions=x_positions,
+            widths=box_width,
+            patch_artist=True,
+            showfliers=False,
+            boxprops     = dict(linewidth=0),   # ← sin borde en las cajas
+            whiskerprops = dict(linewidth=0),   # ← sin bigotes
+            capprops     = dict(linewidth=0),   # ← sin “capas” en los extremos
+            medianprops  = {'color': median_line_color, 'linewidth': median_line_width}
+        )
+
         for element in ['whiskers', 'caps']:
             for line in bp_obj[element]:
                 line.set_visible(False)
@@ -695,7 +656,7 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
 
         ax.set_xticks(group_centers)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=8)
-        ax.set_xlabel("Estímulo")
+        ax.set_xlabel("")
         ax.set_ylabel(yaxis_units.get(metric, ""))
         ax.set_title(metric_labels.get(metric, metric))
         if metric in latency_metrics:
@@ -716,17 +677,29 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
             dur_text = "Duración: " + (f"{'*' if not pd.isna(gauss_stats.get('duracion_p')) and gauss_stats.get('duracion_p') < 0.05 else ''}p={gauss_stats.get('duracion_p'):.3g}" if not pd.isna(gauss_stats.get('duracion_p')) else "NA")
             int_text = "Int: " + (f"{'*' if not pd.isna(gauss_stats.get('interaccion_p')) and gauss_stats.get('interaccion_p') < 0.05 else ''}p={gauss_stats.get('interaccion_p'):.3g}" if not pd.isna(gauss_stats.get('interaccion_p')) else "NA")
             gauss_text = f"{forma_text}\n{dur_text}\n{int_text}"
-        ax.text(0.01, 0.99, gauss_text, transform=ax.transAxes, fontsize=8,
-                verticalalignment='top', horizontalalignment='left',
-                bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.7))
+        ax.text(
+            0.01, 0.99, gauss_text, transform=ax.transAxes, fontsize=8,
+            verticalalignment='top', horizontalalignment='left',
+            bbox=dict(boxstyle='round,pad=0', facecolor='white', alpha=0.7, edgecolor='white'),
+        )
 
-
+        # ── ↓↓ NUEVO: guardamos la fila en la variable global ↓↓ ───
+        SUMMARY_PVALS.append({
+            'Dia':        day if day is not None else 'GLOBAL',
+            'Coord_x':    coord_x,
+            'Coord_y':    coord_y,
+            'Body_part':  body_part,
+            'Metric':     metric,
+            'Forma_p':        gauss_stats.get('forma_p'),
+            'Duracion_p':     gauss_stats.get('duracion_p'),
+            'Interaccion_p':  gauss_stats.get('interaccion_p')
+        })
 
         pval_matrix = get_tukey_pvals_for_stimulus(df, stim, metric)
         if pval_matrix is not None:
             box_positions = positions_by_stim[stim]
             pairs = list(itertools.combinations(sorted(box_positions.keys()), 2))
-            add_significance_brackets(ax, pairs, pval_matrix, box_positions, y_offset=0.03, line_height=0.02, font_size=6)
+            add_significance_brackets(ax, pairs, pval_matrix, box_positions, y_offset=0.03, line_height=0, font_size=6)
 
     # Establecer el título final del gráfico usando final_title
     fig.suptitle(final_title, fontsize=16)
@@ -737,6 +710,9 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
     plt.savefig(out_path, dpi=150)
     plt.close()
     print(f"[Plot] {final_title} guardado en: {out_path}")
+
+
+
 
 # -------------------------------
 # Funciones de graficación 3D (se mantienen)
@@ -897,130 +873,180 @@ def plot_summary_by_bodypart(aggregated_df, output_dir):
         title = f"Summary_{dia}_{bp}"
         plot_summary_by_filters(df_sub, output_dir, title_prefix=title, model_filter=["Gaussian-based"])
 
-
-def plot_model_validation_full_by_group(aggregated_df, output_dir, group_by, metrics=None):
+def plot_model_only_validation(aggregated_df, group_by, metrics=None):
     """
-    Para cada grupo definido por 'group_by', ajusta un modelo ANOVA para cada una de las 6 métricas seleccionadas
-    usando la fórmula:
-         metric ~ C(Forma_del_Pulso) + C(Duracion_ms) [+ C(body_part) si existe] + C(MovementType)
-    Extrae los p-values de cada factor: "Forma", "Duración", "Body Part" (si existe) y "Modelo" (C(MovementType)).
-    Luego, genera un gráfico de barras agrupado para cada grupo en donde se muestra -log10(p) para cada factor y
-    métrica, con una línea horizontal en -log10(p)=1.3 (p < 0.05). Las barras por encima de ese valor se marcan con asterisco.
-    Se reordena la matriz resultante para que las filas sigan el orden de 'selected_metrics'.
-    Las etiquetas del eje x se muestran en diagonal y los textos sobre las barras se reducen.
+    Igual que antes, pero compara únicamente Gaussian‑based vs MinimumJerk.
     """
     if metrics is None:
         metrics = selected_metrics
 
-    results_list = []
-    groups = aggregated_df.groupby(group_by)
-    # Por cada grupo...
-    for group_name, group_df in groups:
-        include_body = 'body_part' in group_df.columns
-        for metric in metrics:
-            df_metric = group_df.dropna(subset=[metric, 'Forma_del_Pulso', 'Duracion_ms', 'MovementType'])
-            if include_body:
-                df_metric = df_metric.dropna(subset=['body_part'])
-            if len(df_metric) < 3:
-                continue
-            # Construir la fórmula con body_part si existe
-            if include_body:
-                formula = f"{metric} ~ C(Forma_del_Pulso) + C(Duracion_ms) + C(body_part) + C(MovementType)"
+    for name, grp in aggregated_df.groupby(group_by):
+        # Filtrar solo los dos modelos que nos interesan
+        sub_grp = grp[grp['MovementType'].isin(['Gaussian-based','MinimumJerk'])]
+
+        resultados = []
+        for m in metrics:
+            sub = sub_grp.dropna(subset=[m, 'MovementType'])
+            # comprobamos que haya al menos una observación en cada grupo
+            tipos = sub['MovementType'].value_counts()
+            if len(sub) < 3 or any(tipos.get(t,0) < 2 for t in ['Gaussian-based','MinimumJerk']):
+                p = np.nan; F = np.nan
             else:
-                formula = f"{metric} ~ C(Forma_del_Pulso) + C(Duracion_ms) + C(MovementType)"
-            try:
-                model = ols(formula, data=df_metric).fit()
-                anova_res = anova_lm(model, typ=2)
-                factors = {}
-                if "C(Forma_del_Pulso)" in anova_res.index:
-                    factors["Forma"] = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"]
-                if "C(Duracion_ms)" in anova_res.index:
-                    factors["Duración"] = anova_res.loc["C(Duracion_ms)", "PR(>F)"]
-                # Si se incluyó body_part, se omite su nombre para simplificar
-                if "C(MovementType)" in anova_res.index:
-                    factors["Modelo"] = anova_res.loc["C(MovementType)", "PR(>F)"]
-                # La interacción se captura de la combinación
-                if "C(Forma_del_Pulso):C(Duracion_ms)" in anova_res.index:
-                    factors["Interacción"] = anova_res.loc["C(Forma_del_Pulso):C(Duracion_ms)", "PR(>F)"]
-                for factor, p_val in factors.items():
-                    results_list.append({
-                        "Group": group_name,
-                        "Metric": metric,
-                        "Factor": factor,
-                        "P Value": p_val
-                    })
-            except Exception as e:
-                logging.warning(f"Fallo model validation en grupo {group_name}, métrica {metric}: {e}")
-                continue
+                model = ols(f"{m} ~ C(MovementType)", data=sub).fit()
+                an = anova_lm(model, typ=2)
+                p = an.loc['C(MovementType)', 'PR(>F)']
+                F = an.loc['C(MovementType)', 'F']
+            resultados.append({'Metric': m, 'p': p, 'F': F})
 
-    results_df = pd.DataFrame(results_list)
-    if results_df.empty:
-        print("No hay datos suficientes para model validation.")
-        return
+        df_r = pd.DataFrame(resultados)
+        df_r['-log10(p)'] = -np.log10(df_r['p'].fillna(1))
+        df_r['sig'] = df_r['p'] < 0.05
+        df_r['Label'] = df_r['sig'].map({True: 'S', False: 'NS'})
 
-    results_df['-log10(p)'] = -np.log10(results_df['P Value'])
-    
-    # Genera un gráfico para cada grupo
-    unique_groups = results_df["Group"].unique()
-    for group in unique_groups:
-        group_df = results_df[results_df["Group"] == group]
-        # Pivotear la tabla y reordenar las filas según selected_metrics
-        pivot_table = group_df.pivot(index="Metric", columns="Factor", values="-log10(p)")
-        pivot_table = pivot_table.reindex(metrics)  # asegura el mismo orden que en selected_metrics
-        pivot_table.index = [metric_labels.get(m, m) for m in pivot_table.index]
+        # Gráfico
+        fig, ax = plt.subplots(figsize=(8,5))
+        bars = ax.bar(
+            [metric_labels[m] for m in df_r['Metric']],
+            df_r['-log10(p)'],
+            edgecolor='black'
+        )
+        ax.axhline(-np.log10(0.05), ls='--', color='red')
+        for rect, label in zip(bars, df_r['Label']):
+            ax.text(
+                rect.get_x() + rect.get_width()/2,
+                rect.get_height() + 0.1,
+                label,
+                ha='center', va='bottom'
+            )
 
-        fig, ax = plt.subplots(figsize=(10, 6))
-        pivot_table.plot(kind="bar", ax=ax)
-        ax.axhline(1.3, color="red", linestyle="--", label="p = 0.05 (-log10=1.3)")
-        ax.set_ylabel("-log10(p-value)")
-        # Rotar las etiquetas del eje x en diagonal
+        ax.set_ylabel('-log10(p)')
+        # al principio de plot_model_only_validation:
+        label = ", ".join(group_by)  # p.ej. "Dia experimental, Coordenada_x, Coordenada_y"
+        ...
+        ax.set_title(f"Comparación Gaussian vs Minjerk – {label} = {name}")
+
         plt.xticks(rotation=45, ha='right')
-        # Reducir el tamaño de los números (bar labels)
-        for container in ax.containers:
-            ax.bar_label(container, fmt="%.2f", label_type="edge", fontsize=8)
-            for rect in container:
-                if rect.get_height() > 1.3:
-                    ax.text(rect.get_x() + rect.get_width()/2., rect.get_height(),
-                            "*", ha='center', va='bottom', color="black", fontsize=10)
-        plt.tight_layout(rect=[0, 0, 1, 0.92])
-        # Agregar un título completo para el grupo
-        if isinstance(group, tuple):
-            group_str = " / ".join(f"{col}={val}" for col, val in zip(group_by, group))
-        else:
-            group_str = f"{group_by[0]} = {group}"
-        # Se reduce un poco la fuente del título para que no se corte
-        fig.suptitle(f"Model Validation - {group_str}", fontsize=14)
-        fname = sanitize_filename(f"model_validation_full_{group_str}.png")
-        out_path = os.path.join(output_dir, fname)
-        plt.savefig(out_path, dpi=150)
-        plt.close()
-        print(f"Gráfico Model Validation para grupo {group_str} guardado en: {out_path}")
+        plt.tight_layout()
 
-def generate_anova_summary_table(aggregated_df, output_dir):
+        grp_name = name if not isinstance(name, tuple) else "_".join(map(str,name))
+        fname = sanitize_filename(f"model_compare_gm_{'_'.join(group_by)}_{grp_name}.png")
+        fig.savefig(os.path.join(output_comparisons_dir, fname), dpi=150)
+        plt.close()
+        print(f"[Model compare G vs M] guardado en: {fname}")
+
+def plot_model_compare_gauss_min(aggregated_df, by='global'):
+    groups = []
+    df = aggregated_df.copy()
+    if by=='global':
+        groups = [('Global','Global', df)]
+    else:
+        for dia, x, y in df[['Dia experimental','Coordenada_x','Coordenada_y']].drop_duplicates().values:
+            sub = df[(df['Dia experimental']==dia)&
+                     (df['Coordenada_x']==x)&
+                     (df['Coordenada_y']==y)]
+            name = f"{dia}_{x}_{y}"
+            groups.append((name, name, sub))
+
+    for name, title, sub in groups:
+        regs = []
+        sub = sub[sub['MovementType'].isin(['Gaussian-based','MinimumJerk'])]
+        for metric in selected_metrics:
+            clean = sub.dropna(subset=[metric,'MovementType'])
+            if clean['MovementType'].value_counts().min() < 2:
+                p = np.nan; F = np.nan
+            else:
+                m = ols(f"{metric} ~ C(MovementType)", data=clean).fit()
+                an = anova_lm(m, typ=2)
+                p = an.loc['C(MovementType)','PR(>F)']
+                F = an.loc['C(MovementType)','F']
+            regs.append({'Metric':metric_labels[metric], '-log10(p)': -np.log10(p if p>0 else 1), 'sig': p<0.05})
+
+        cmp_df = pd.DataFrame(regs).set_index('Metric')
+        plt.figure(figsize=(8,5))
+        ax = cmp_df['-log10(p)'].plot(kind='bar', edgecolor='black')
+        ax.axhline(-np.log10(0.05), ls='--', color='red')
+
+        # anotamos “S”/“NS” usando las barras, no el índice (strings)
+        for bar, is_sig in zip(ax.patches, cmp_df['sig']):
+            x = bar.get_x() + bar.get_width()/2
+            y = bar.get_height()
+            ax.text(
+                x, 
+                y + 0.05,
+                'S' if is_sig else 'NS',
+                ha='center', va='bottom'
+            )
+
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+
+
+        fname = sanitize_filename(f"model_compare_gauss_min_{by}_{name}.png")
+        plt.savefig(os.path.join(output_comparisons_dir, fname), dpi=150)
+        plt.close()
+        print(f"[ModelCmp G-M] guardado en: {fname}")
+
+
+def plot_model_validation_full_by_group(aggregated_df, output_dir, group_by, metrics=None):
     """
-    Genera una tabla resumen con los resultados de ANOVA (p-values, F-values, etc.),
-    renombrando las columnas para que sean descriptivas y guardándola en CSV.
+    Para cada grupo, calcula p-valor de:
+      - ANOVA solo Forma
+      - ANOVA solo Duración
+      - ANOVA interacción (forma*duración)
+    y plotea un bar chart con “S”/“NS”.
     """
-    anova_df = do_significance_tests_aggregated_return(aggregated_df)
-    # Renombramos columnas para mayor claridad
-    anova_df = anova_df.rename(columns={
-        'Dia experimental': 'Day',
-        'Body Part': 'Body_Part',
-        'Movement Model': 'Movement_Model',
-        'Metric': 'Metric',
-        'ANOVA Model': 'ANOVA_Model',
-        'Factor': 'Factor',
-        'Sum of Squares': 'SS',
-        'Degrees of Freedom': 'df',
-        'F Value': 'F',
-        'P Value': 'p',
-        'Partial Eta Squared': 'Partial_Eta_Sq',
-        'N Observations': 'N'
-    })
-    out_csv = os.path.join(output_dir, 'anova_summary_table.csv')
-    anova_df.to_csv(out_csv, index=False)
-    print(f"Tabla ANOVA resumida guardada en: {out_csv}")
-    return anova_df
+    if metrics is None:
+        metrics = selected_metrics
+
+    # define los tres factores ahí
+    factors = {
+        'Forma':             "C(Forma_del_Pulso)",
+        'Duración':          "C(Duracion_ms)",
+        'Interacción':       "C(Forma_del_Pulso):C(Duracion_ms)"
+    }
+
+    for name, grp in aggregated_df.groupby(group_by):
+        resultados = []
+        for m in metrics:
+            sub = grp.dropna(subset=[m,'Forma_del_Pulso','Duracion_ms'])
+            for lbl, term in factors.items():
+                vars_ = re.findall(r"C\(([^)]+)\)", term)
+                tmp = sub.dropna(subset=[m]+vars_)
+                if len(tmp)<3 or any(tmp[v].nunique()<2 for v in vars_):
+                    p = np.nan
+                else:
+                    an = anova_lm(ols(f"{m} ~ {term}", data=tmp).fit(), typ=2)
+                    p = an.loc[term,'PR(>F)'] if term in an.index else np.nan
+                resultados.append({'Metric':m,'Factor':lbl,'p':p})
+
+        df_r = pd.DataFrame(resultados)
+        df_r['sig'] = df_r['p']<0.05
+        df_r['Label'] = df_r['sig'].map({True:'S',False:'NS'})
+        df_r['-log10(p)'] = -np.log10(df_r['p'].fillna(1))
+
+        pivot = (df_r.pivot(index='Metric',columns='Factor',values='-log10(p)')
+                   .reindex(index=metrics,columns=factors.keys()))
+        pivot.index = [metric_labels[m] for m in pivot.index]
+
+        fig, ax = plt.subplots(figsize=(8,5))
+        pivot.plot(kind='bar', ax=ax, color='gray')
+        for i,rects in enumerate(ax.containers):
+            for j,rect in enumerate(rects):
+                label = df_r.iloc[i*len(factors)+j]['Label']
+                ax.text(rect.get_x()+rect.get_width()/2, rect.get_height()+0.1,
+                        label, ha='center', va='bottom')
+        ax.axhline(-np.log10(0.05), color='red', linestyle='--')
+        ax.set_ylabel('-log10(p)')
+        plt.xticks(rotation=45, ha='right')
+        plt.title(f"Model Validation – {group_by}={name}")
+        plt.tight_layout()
+
+        fname = sanitize_filename(f"model_validation_full_{group_by}_{name}.png")
+        fig.savefig(os.path.join(output_dir, fname), dpi=150)
+        plt.close()
+        print("Guardado:", fname)
+
+
 def generate_descriptive_stats_table(aggregated_df, output_dir):
     """
     Genera una tabla descriptiva (mean, std, median, min, max y count) para cada métrica,
@@ -1040,153 +1066,268 @@ def generate_descriptive_stats_table(aggregated_df, output_dir):
     print(f"Tabla descriptiva de estadísticas guardada en: {out_csv}")
     return descriptive_df
 
-def plot_anova_significance_heatmap_gaussian(aggregated_df, output_dir):
+# ---------- 1. Cálculo único de ANOVA factorial ----------
+# ---------- ANOVA factorial único (forma × duración) ----------
+def run_factorial_anova(df: pd.DataFrame, metric: str) -> dict:
     """
-    Genera un heatmap general que resume la significancia del modelo Gaussiano para las 6 métricas seleccionadas
-    y para los 3 factores: Forma, Duración e Interacción. Cada celda muestra 1 (si -log10(p) > 1.3) o 0.
-    Se reordenan las filas para que coincidan con el orden en selected_metrics.
+    Calcula un ANOVA 2‑vías:  C(Forma_del_Pulso) * C(Duracion_ms)
+    Devuelve un diccionario con p‑values y F‑values ya nombrados de forma
+    consistente en todo el script.
+    Requiere que el DataFrame `df` NO tenga NaN en `metric`, `Forma_del_Pulso`
+    ni `Duracion_ms`, y que ambas variables tengan ≥2 niveles.
     """
-    anova_df = do_significance_tests_aggregated_return(aggregated_df)
-    anova_df = anova_df[anova_df['Movement Model'] == "Gaussian-based"].copy()
-    anova_df = anova_df[anova_df["Metric"].isin(selected_metrics)]
-    # Remapear los factores para dejar solo Forma, Duración e Interacción (sin body_part)
-    factor_mapping = {
-        "C(Forma_del_Pulso)": "Forma",
-        "C(Duracion_ms)": "Duración",
-        "C(Forma_del_Pulso):C(Duracion_ms)": "Interacción"
-    }
-    anova_df['Factor'] = anova_df['Factor'].replace(factor_mapping)
-    # Usar solo los factores deseados
-    anova_df = anova_df[anova_df['Factor'].isin(["Forma", "Duración", "Interacción"])]
-    # Eliminar duplicados por combinación de Métrica y Factor
-    summary = anova_df.drop_duplicates(subset=["Metric", "Factor"])[["Metric", "Factor", "P Value"]]
-    summary['neg_log_p'] = -np.log10(summary['P Value'])
-    summary['significant'] = (summary['neg_log_p'] > 1.3).astype(int)
-    pivot_table = summary.pivot(index='Metric', columns='Factor', values='significant')
-    pivot_table = pivot_table.reindex(selected_metrics)
-    pivot_table.index = [metric_labels.get(m, m) for m in pivot_table.index]
+    # 1) comprobamos que existan al menos dos niveles en cada factor
+    if df['Forma_del_Pulso'].nunique() < 2 or df['Duracion_ms'].nunique() < 2:
+        keys = ['forma_p','duracion_p','interaccion_p','forma_F','duracion_F','interaccion_F']
+        return dict.fromkeys(keys, np.nan)
 
-    cmap = LinearSegmentedColormap.from_list("binary_significance", ["lightblue", "salmon"], N=2)
-    plt.figure(figsize=(10, 8))
-    ax = sns.heatmap(pivot_table, annot=True, fmt="d", cmap=cmap,
-                     cbar_kws={'ticks': [0, 1], 'label': 'Significancia'},
-                     linewidths=0.5, linecolor='white')
-    ax.set_xlabel("Factor")
-    ax.set_ylabel("Métrica")
-    ax.set_title("Heatmap de Significancia ANOVA (Modelo Gaussiano) - General", fontsize=14)
+    # 2) modelo
+    model = ols(f"{metric} ~ C(Forma_del_Pulso) * C(Duracion_ms)", data=df).fit()
+    anova = anova_lm(model, typ=2)
+
+    # 3) recogemos resultados con nombres homogéneos
+    return {
+        'forma_p'    : anova.loc['C(Forma_del_Pulso)',                    'PR(>F)'],
+        'duracion_p' : anova.loc['C(Duracion_ms)',                        'PR(>F)'],
+        'interaccion_p'      : anova.loc['C(Forma_del_Pulso):C(Duracion_ms)',     'PR(>F)'],
+        'forma_F'    : anova.loc['C(Forma_del_Pulso)',                    'F'],
+        'duracion_F' : anova.loc['C(Duracion_ms)',                        'F'],
+        'interaccion_F'      : anova.loc['C(Forma_del_Pulso):C(Duracion_ms)',     'F'],
+    }
+
+
+def preprocess_estimulo(df):
+    df['Forma_del_Pulso'] = df['Estímulo'].apply(
+        lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
+    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
+    df = df.loc[:, ~df.columns.duplicated()]
+    return df
+
+def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
+
+    # --- claves que identifican el grupo ------------------------------
+    days      = aggregated_df['Dia experimental'].dropna().unique()
+    day_key   = days[0] if len(days) == 1 else 'GLOBAL'
+
+    coords_x  = aggregated_df['Coordenada_x'].dropna().unique()
+    coord_x_k = coords_x[0] if len(coords_x) == 1 else None
+
+    coords_y  = aggregated_df['Coordenada_y'].dropna().unique()
+    coord_y_k = coords_y[0] if len(coords_y) == 1 else None
+
+    # --- p‑values ya guardados en los summaries -----------------------
+    global SUMMARY_PVALS
+    pval_df = pd.DataFrame(SUMMARY_PVALS)
+
+    results = []
+    for metric in selected_metrics:
+
+        # ---------- MASK corregido -----------------------------------
+        mask = (
+            (pval_df['Dia']    == day_key) &
+            (pval_df['Metric'] == metric)  &
+            (
+                (pval_df['Coord_x'].isna() if coord_x_k is None
+                 else pval_df['Coord_x'] == coord_x_k)
+            ) &
+            (
+                (pval_df['Coord_y'].isna() if coord_y_k is None
+                 else pval_df['Coord_y'] == coord_y_k)
+            )
+        )
+        # --------------------------------------------------------------
+
+        if mask.any():
+            row   = pval_df.loc[mask].iloc[0]
+            p_f   = row['Forma_p']
+            p_d   = row['Duracion_p']
+            p_int = row['Interaccion_p']
+        else:
+            # fallback (muy rara vez se ejecutará ya)
+            sub = aggregated_df.dropna(subset=[metric,
+                                               'Forma_del_Pulso',
+                                               'Duracion_ms'])
+            if sub['Forma_del_Pulso'].nunique() < 2 or sub['Duracion_ms'].nunique() < 2:
+                p_f = p_d = p_int = np.nan
+            else:
+                stats = run_factorial_anova(sub, metric)
+                p_f, p_d, p_int = (stats['forma_p'],
+                                   stats['duracion_p'],
+                                   stats['interaccion_p'])
+
+        results.append({
+            'Metric':      metric_labels[metric],
+            'Forma':       p_f,
+            'Duración':    p_d,
+            'Interacción': p_int
+        })
+
+    heat_df = pd.DataFrame(results).set_index('Metric')
+
+    # --- anotaciones y dibujo (sin cambios) ---------------------------
+    annot = heat_df.copy().astype(object)
+    for m in annot.index:
+        for c in annot.columns:
+            p = heat_df.loc[m, c]
+            annot.loc[m, c] = "NA" if pd.isna(p) else f"{'*' if p < 0.05 else ''}p={p:.3g}"
+
+    plt.figure(figsize=(6, 0.6 * len(heat_df)))
+    ax = sns.heatmap(
+        heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
+        annot=annot, fmt="", linewidths=0.5,
+        cbar_kws={'label': 'p‑value'}
+    )
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_xlabel('Efecto')
+    ax.set_title(title)
     plt.tight_layout()
-    out_path = os.path.join(output_dir, sanitize_filename("anova_significance_heatmap_gaussian_general.png"))
+
+    out_path = os.path.join(output_dir, sanitize_filename(title) + '.png')
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"Heatmap de ANOVA (Modelo Gaussiano) general guardado en: {out_path}")
-
-
-def plot_anova_significance_heatmap_gaussian_by_day(aggregated_df, output_dir):
-    """
-    Genera un heatmap para cada día que resume la significancia del modelo Gaussiano para las 6 métricas seleccionadas.
-    Se consideran únicamente los factores: Forma, Duración e Interacción (sin concatenar body_part).
-    El título sigue el formato: "Heatmap de Significancia ANOVA (Modelo Gaussiano) - Día: [day]"
-    """
-    anova_df = do_significance_tests_aggregated_return(aggregated_df)
-    anova_df = anova_df[anova_df['Movement Model'] == "Gaussian-based"].copy()
-    anova_df = anova_df[anova_df["Metric"].isin(selected_metrics)]
-    factor_mapping = {
-        "C(Forma_del_Pulso)": "Forma",
-        "C(Duracion_ms)": "Duración",
-        "C(Forma_del_Pulso):C(Duracion_ms)": "Interacción"
-    }
-    anova_df['Factor'] = anova_df['Factor'].replace(factor_mapping)
-    anova_df = anova_df[anova_df['Factor'].isin(["Forma", "Duración", "Interacción"])]
-
-    unique_days = aggregated_df["Dia experimental"].unique()
-    for day in unique_days:
-        day_str = str(day)
-        day_sanitized = sanitize_filename(day_str)
-        day_df = anova_df[anova_df['Dia experimental'] == day]
-        summary = day_df.drop_duplicates(subset=["Metric", "Factor"])[["Metric", "Factor", "P Value"]]
-        summary['neg_log_p'] = -np.log10(summary['P Value'])
-        summary['significant'] = (summary['neg_log_p'] > 1.3).astype(int)
-        pivot_table = summary.pivot(index='Metric', columns='Factor', values='significant')
-        pivot_table = pivot_table.reindex(selected_metrics)
-        pivot_table.index = [metric_labels.get(m, m) for m in pivot_table.index]
-
-        plt.figure(figsize=(10, 8))
-        cmap = LinearSegmentedColormap.from_list("binary_significance", ["lightblue", "salmon"], N=2)
-        ax = sns.heatmap(pivot_table, annot=True, fmt="d", cmap=cmap,
-                         cbar_kws={'ticks': [0, 1], 'label': 'Significancia'},
-                         linewidths=0.5, linecolor='white')
-        ax.set_xlabel("Factor")
-        ax.set_ylabel("Métrica")
-        ax.set_title(f"Heatmap de Significancia ANOVA (Modelo Gaussiano) - Día: {day_str}", fontsize=14)
-        plt.tight_layout()
-        out_path = os.path.join(output_dir, f"anova_significance_heatmap_gaussian_day_{day_sanitized}.png")
-        plt.savefig(out_path, dpi=150)
-        plt.close()
-        print(f"Heatmap de ANOVA (Modelo Gaussiano) para Día {day_str} guardado en: {out_path}")
-
-def preprocess_estimulo(df):
-    df['Forma_del_Pulso'] = df['Estímulo'].apply(
-        lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
-    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
-    df = df.loc[:, ~df.columns.duplicated()]
-    return df
+    print(f"[Heatmap ANOVA] {title} guardado en: {out_path}")
 
 
 
-def preprocess_estimulo(df):
-    df['Forma_del_Pulso'] = df['Estímulo'].apply(
-        lambda s: s.split(',')[0].strip().lower() if isinstance(s, str) and ',' in s else np.nan)
-    df['Duracion_ms'] = df['Estímulo'].apply(extract_duration)
-    df = df.loc[:, ~df.columns.duplicated()]
-    return df
 
-# -------------------------------
-# BLOQUE PRINCIPAL
-# -------------------------------
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    logging.info("Ejecutando el bloque principal del script.")
+    logging.info("Ejecutando el bloque principal unificado")
+
+    # 1) Ruta al CSV con los submovimientos válidos
     submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_valid.csv')
-    if os.path.exists(submov_path):
-        submovements_df = pd.read_csv(submov_path)
-        submovements_df = preprocess_estimulo(submovements_df)
-        aggregated_df = aggregate_trial_metrics_extended(submovements_df)
-        aggregated_df['Duracion_ms'] = aggregated_df['Estímulo'].apply(extract_duration)
-        aggregated_df['Duracion_ms'] = aggregated_df['Duracion_ms'].apply(lambda x: str(int(x)) if not pd.isna(x) else x)
-        aggregated_csv = os.path.join(output_comparisons_dir, 'aggregated_metrics.csv')
-        aggregated_df.to_csv(aggregated_csv, index=False)
-        print("Tabla agregada de métricas guardada en 'aggregated_metrics.csv'")
-        
-        # Llamadas a funciones de resumen:
-        do_significance_tests_aggregated(aggregated_df, output_dir=output_comparisons_dir)
-        aggregated_df["General"] = "General"
+    if not os.path.exists(submov_path):
+        print("No se encontró el archivo submovement_detailed_valid.csv para generar los análisis.")
+        sys.exit(1)
 
-        
-        # Resumen de boxplots generales (todos los modelos)
-        plot_global_summary(aggregated_df, output_comparisons_dir)
-        # Resumen por día + coordenada
-        plot_summary_by_day_coord(aggregated_df, output_comparisons_dir)
-        # Resumen por bodypart (por día)
-        plot_summary_by_bodypart(aggregated_df, output_comparisons_dir)
+    # 2) Carga y preprocesamiento
+    submovements_df = pd.read_csv(submov_path)
+    submovements_df = preprocess_estimulo(submovements_df)
 
-       
-        # Gráficos 3D de Gaussian-based
-        for (dia, coord_x, coord_y), group in aggregated_df.groupby(['Dia experimental', 'Coordenada_x', 'Coordenada_y']):
-            plot_3d_gaussian_boxplots_by_bodypart(group, output_comparisons_dir, day=dia, coord_x=coord_x, coord_y=coord_y)
-        
-        
-        # Validación de modelos: por día y general
-        # Llamada a la nueva validación con todos los factores
-        plot_model_validation_full_by_group(aggregated_df, output_comparisons_dir, group_by=['Dia experimental'])
-        plot_model_validation_full_by_group(aggregated_df, output_comparisons_dir, group_by=["General"])
+    # 3) Agregación de métricas
+    aggregated_df = aggregate_trial_metrics_extended(submovements_df)
+
+    # ----------------------------------------------------------------
+    # GLOBAL: summary + heatmap (mismo subset filtrado por prep_for_anova)
+    # ----------------------------------------------------------------
+    # 1) filtrado global sólo Gaussian
+    df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
+
+    # 2a) ANOVA tipo‑II completo (por cada día/coord/parte)
+    anova_full = do_significance_tests_aggregated_return(df_global)
+    anova_full.to_csv(
+        os.path.join(output_comparisons_dir, 'anova_gaussian_full_by_group.csv'),
+        index=False
+    )
+
+    # 2b) ANOVA 2‑vías (Forma × Duración) **único** para cada métrica
+    rows = []
+    for metric in selected_metrics:
+        stats = run_factorial_anova(df_global, metric)
+        rows.append({
+            'Metric':      metric_labels[metric],
+            'Shape_p':     stats['forma_p'],
+            'Duration_p':  stats['duracion_p'],
+            'Interact_p':  stats['interaccion_p'],
+            'Shape_F':     stats['forma_F'],
+            'Duration_F':  stats['duracion_F'],
+            'Interact_F':  stats['interaccion_F'],
+        })
+    anova_2way = pd.DataFrame(rows)
+    anova_2way.to_csv(
+        os.path.join(output_comparisons_dir, 'anova_gaussian_global_2way.csv'),
+        index=False
+    )
+
+    # 3a) Summary global
+    plot_summary_by_filters(
+        df_global,
+        output_comparisons_dir,
+        title_prefix="Global_Summary",
+        model_filter=["Gaussian-based"]
+    )
+    # 3b) Heatmap global
+    plot_heatmap_gauss_from_anova(
+        df_global,
+        output_comparisons_dir,
+        title="ANOVA Gauss – Global"
+    )
+
+    # ----------------------------------------------------------------
+    # POR DÍA + COORDENADA: summary + heatmap para cada combinación
+    # ----------------------------------------------------------------
+    combos_day_coord = (
+        aggregated_df[aggregated_df['MovementType']=="Gaussian-based"]
+        [['Dia experimental','Coordenada_x','Coordenada_y']]
+        .drop_duplicates()
+    )
+    for dia, coord_x, coord_y in combos_day_coord.itertuples(index=False, name=None):
+        df_grp = prep_for_anova(
+            aggregated_df,
+            model='Gaussian-based',
+            day=dia,
+            coord_x=coord_x,
+            coord_y=coord_y
+        )
+        # summary
+        plot_summary_by_filters(
+            df_grp,
+            output_comparisons_dir,
+            title_prefix=f"Summary_{dia}_Coord_{coord_x}_{coord_y}",
+            model_filter=["Gaussian-based"]
+        )
+        # heatmap
+        plot_heatmap_gauss_from_anova(
+            df_grp,
+            output_comparisons_dir,
+            title=f"ANOVA Gauss Día {dia} – X={coord_x},Y={coord_y}"
+        )
+
+    # ----------------------------------------------------------------
+    # POR BODY_PART: sólo summary para cada día y parte corporal
+    # ----------------------------------------------------------------
+    combos_day_bp = (
+        aggregated_df[aggregated_df['MovementType']=="Gaussian-based"]
+        [['Dia experimental','body_part']]
+        .drop_duplicates()
+    )
+    for dia, bp in combos_day_bp.itertuples(index=False, name=None):
+        df_bp = prep_for_anova(
+            aggregated_df,
+            model='Gaussian-based',
+            day=dia,
+            body_part=bp
+        )
+        plot_summary_by_filters(
+            df_bp,
+            output_comparisons_dir,
+            title_prefix=f"Summary_{dia}_{bp}",
+            model_filter=["Gaussian-based"]
+        )
+
+        # ----------------------------------------------------------------
+    # 4)  Guardamos todos los p‑values de los summaries
+    # ----------------------------------------------------------------
+    summary_pvals_df = pd.DataFrame(SUMMARY_PVALS)
+    csv_pvals = os.path.join(output_comparisons_dir, 'summary_gaussian_pvals.csv')
+    summary_pvals_df.to_csv(csv_pvals, index=False)
+    print(f"P‑values de summaries guardados en: {csv_pvals}")
+
+    # ----------------------------------------------------------------
+    # 5)  Guardamos los supuestos (Shapiro y Levene) en un CSV
+    # ----------------------------------------------------------------
+    assum_df = pd.DataFrame(ASSUMPTION_RESULTS)
+    assum_df = assum_df.sort_values('Test_ID')          # orden opcional
+    csv_assum = os.path.join(output_comparisons_dir, 'assumption_tests_gaussian.csv')
+    assum_df.to_csv(csv_assum, index=False)
+    print(f"Resultados de supuestos guardados en: {csv_assum}")
 
 
-        # Después de haber generado aggregated_df...
-        anova_summary = generate_anova_summary_table(aggregated_df, output_comparisons_dir)
-        descriptive_stats = generate_descriptive_stats_table(aggregated_df, output_comparisons_dir)
-        plot_anova_significance_heatmap_gaussian(aggregated_df, output_comparisons_dir)
-        plot_anova_significance_heatmap_gaussian_by_day(aggregated_df, output_comparisons_dir)
-
-
-    else:
-        print("No se encontró el archivo submovement_detailed_summary.csv para generar los análisis.")
-    print("Proceso completo finalizado.")
