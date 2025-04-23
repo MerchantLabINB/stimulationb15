@@ -43,7 +43,7 @@ console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
 # --- DIRECTORIOS
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials4mad'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials'
 if not os.path.exists(output_comparisons_dir):
     os.makedirs(output_comparisons_dir)
 
@@ -80,6 +80,14 @@ metric_labels = {
     "num_movs": "Número de Movimientos"
 }
 
+# ─── NUEVO bloque global ───────────────────────────────────────────────
+TRANSFORMS = {
+    'valor_pico_max'     : np.log1p,          # log(1+x)
+    'lat_pico_mayor_ms'  : np.sqrt,
+    'delta_t_pico'       : np.sqrt
+}
+# ----------------------------------------------------------------------
+
 def sanitize_filename(filename):
     return re.sub(r'[\\/*?:"<>|]', "_", filename)
 
@@ -98,6 +106,18 @@ def extract_duration(s):
     except Exception as e:
         logging.error(f"Error al extraer duración de '{s}': {e}")
         return np.nan
+    
+# ─── utilitario ───────────────────────────────────────────────────────
+def _maybe_transform(df, metric):
+    """Aplica la transformación definida en TRANSFORMS y devuelve:
+       (serie transformada, nombre_columna_nueva)"""
+    if metric in TRANSFORMS:
+        new_col = metric + '_tf'
+        df[new_col] = TRANSFORMS[metric](df[metric])
+        return df, new_col
+    return df, metric
+# ----------------------------------------------------------------------
+
 # -------------------- PRE‑ANÁLISIS ÚNICO --------------------
 def prep_for_anova(df, *,
                    metric: str = None,
@@ -238,13 +258,14 @@ def build_significance_matrix_from_arrays(factor_levels, tukey_df):
     return pval_matrix
 
 def do_posthoc_tests(df, metric, factor_name):
-    df_clean = df.dropna(subset=[metric, factor_name])
+    df, m_used = _maybe_transform(df.copy(), metric)      # 👈
+    df_clean = df.dropna(subset=[m_used, factor_name])
     if df_clean[factor_name].nunique() < 2:
         return None, None
     try:
-        tukey_res = pairwise_tukeyhsd(endog=df_clean[metric].values,
-                                      groups=df_clean[factor_name].values,
-                                      alpha=0.05)
+        tukey_res = pairwise_tukeyhsd(endog=df_clean[m_used].values,
+                                  groups=df_clean[factor_name].values,
+                                  alpha=0.05)
         tk_df = pd.DataFrame(data=tukey_res._results_table.data[1:], 
                              columns=tukey_res._results_table.data[0])
         tk_df = tk_df.rename(columns={'p-adj': 'p_adj'})
@@ -319,10 +340,11 @@ def _calc_anova_table(agg: pd.DataFrame) -> pd.DataFrame:
             sub = g.dropna(subset=[met])
             if len(sub) < 3:
                 continue
+            sub, m_used = _maybe_transform(sub, met)   
             for tag, f in formulas.items():
                 try:
-                    mod  = ols(f(met), data=sub).fit()
-                    anov = anova_lm(mod, typ=2)
+                    mod  = ols(f(m_used), data=sub).fit(cov_type='HC3')  ### 👈
+                    anov = sm.stats.anova_lm(mod, typ=3, robust='hc3')   ### 👈
                     for factor in anov.index.drop('Residual'):
                         rows.append({
                         'Dia experimental' : dia,
@@ -373,55 +395,97 @@ def format_stat(label, p, F):
         prefix = "*" if p < 0.05 else ""
         return f"{label}: {prefix}p={p:.3g} (F={F:.2f})"
 
+# ────────────────────────────────────────────────────────────────────
+# Función “def compute_model_stats …”  *totalmente* actualizada
+# ────────────────────────────────────────────────────────────────────
 def compute_model_stats(agg_df, metric, models=('Gaussian-based',)):
-    # models = ['Threshold-based', 'Gaussian-based', 'MinimumJerk']
+    """
+    Para cada modelo en `models` calcula un ANOVA factorial (SS Tipo III)
+    con contraste ‘Sum’, con p‑values robustos HC3 y, cuando procede,
+    aplicando la transformación definida en TRANSFORMS.
+
+    Devuelve un diccionario:
+        { modelo :
+            {forma_p, duracion_p, interaccion_p,
+             forma_F, duracion_F, interaccion_F}
+        }
+    """
     stats = {}
+
     for mt in models:
-        df_model = agg_df[agg_df['MovementType'] == mt]
-        if df_model.empty or len(df_model) < 3:
-            logging.warning(f"Modelo {mt} para {metric}: Insuficientes datos (n={len(df_model)}).")
-            stats[mt] = {'forma_p': np.nan, 'duracion_p': np.nan, 'interaccion_p': np.nan,
-                         'forma_F': np.nan, 'duracion_F': np.nan, 'interaccion_F': np.nan}
+        df_model = agg_df.loc[agg_df['MovementType'] == mt].copy()
+
+        # —— comprobación rápida de tamaño ————————————————
+        if len(df_model) < 3:
+            logging.warning(f"Modelo {mt} para {metric}: n={len(df_model)}.")
+            stats[mt] = dict.fromkeys(
+                ['forma_p', 'duracion_p', 'interaccion_p',
+                 'forma_F', 'duracion_F', 'interaccion_F'], np.nan)
             continue
+
         try:
-            mod = ols(f"{metric} ~ C(Forma_del_Pulso) * C(Duracion_ms)", data=df_model).fit()
-            # <<-- NUEVO — llamamos al chequeo de supuestos
-            # prefijo con contexto humano‑legible
-            ctx = f"{df_model['Dia experimental'].iloc[0] if 'Dia experimental' in df_model else 'GLOBAL'}_" \
-                f"X{df_model['Coordenada_x'].iloc[0] if 'Coordenada_x' in df_model else ''}_" \
-                f"Y{df_model['Coordenada_y'].iloc[0] if 'Coordenada_y' in df_model else ''}_" \
-                f"{df_model['body_part'].iloc[0] if 'body_part' in df_model else ''}_" \
-                f"{metric}_{mt}"
+            # 1) transformación (si existe) ──────────────────────
+            df_model, m_used = _maybe_transform(df_model, metric)
+
+            # 2) modelo + covarianzas robustas HC3 ───────────────
+            formula = (f"{m_used} ~ "
+                       f"C(Forma_del_Pulso, Sum) * C(Duracion_ms, Sum)")
+            mod = ols(formula, data=df_model).fit(cov_type='HC3')
+
+            # 3) chequeo de supuestos (sobre residuos del modelo) ─
+            ctx = (f"{df_model['Dia experimental'].iat[0] if 'Dia experimental' in df_model else 'GLOBAL'}_"
+                   f"X{df_model['Coordenada_x'].iat[0] if 'Coordenada_x' in df_model else ''}_"
+                   f"Y{df_model['Coordenada_y'].iat[0] if 'Coordenada_y' in df_model else ''}_"
+                   f"{df_model['body_part'].iat[0]  if 'body_part' in df_model  else ''}_"
+                   f"{metric}_{mt}")
             check_assumptions(
                 model       = mod,
-                data_metric = df_model[[metric,'Forma_del_Pulso']].dropna(),
-                group_var   = ['Forma_del_Pulso'],   # usamos la forma como agrupador para Levene
+                data_metric = df_model[[m_used, 'Forma_del_Pulso']].dropna(),
+                group_var   = ['Forma_del_Pulso'],
                 prefix      = ctx
             )
-            # ----------------------------------------------------------
 
-            anova_res = anova_lm(mod, typ=2)
-            anova_res = anova_lm(mod, typ=2)
-            p_shape = anova_res.loc["C(Forma_del_Pulso)", "PR(>F)"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
-            p_dur = anova_res.loc["C(Duracion_ms)", "PR(>F)"] if "C(Duracion_ms)" in anova_res.index else np.nan
-            p_int = anova_res.loc["C(Forma_del_Pulso):C(Duracion_ms)", "PR(>F)"] if "C(Forma_del_Pulso):C(Duracion_ms)" in anova_res.index else np.nan
-            F_shape = anova_res.loc["C(Forma_del_Pulso)", "F"] if "C(Forma_del_Pulso)" in anova_res.index else np.nan
-            F_dur = anova_res.loc["C(Duracion_ms)", "F"] if "C(Duracion_ms)" in anova_res.index else np.nan
-            F_int = anova_res.loc["C(Forma_del_Pulso):C(Duracion_ms)", "F"] if "C(Forma_del_Pulso):C(Duracion_ms)" in anova_res.index else np.nan
-            stats[mt] = {'forma_p': p_shape, 'duracion_p': p_dur, 'interaccion_p': p_int,
-                         'forma_F': F_shape, 'duracion_F': F_dur, 'interaccion_F': F_int}
+            # 4) ANOVA SS Tipo III  (robusto HC3) ─────────────────
+            try:
+                anova_res = sm.stats.anova_lm(mod, typ=3, robust='hc3')
+            except TypeError:      # versiones < 0.14
+                anova_res = sm.stats.anova_lm(mod, typ=3)
+
+            # nombres exactos de las filas (pueden llevar “, Sum”)
+            def _row(pattern):
+                return next(r for r in anova_res.index if pattern in r)
+
+            p_shape = anova_res.loc[_row("Forma_del_Pulso"), "PR(>F)"]
+            p_dur   = anova_res.loc[_row("Duracion_ms"),     "PR(>F)"]
+            p_int   = anova_res.loc[_row("Forma_del_Pulso"):\
+                                     _row("Duracion_ms"),    "PR(>F)"].iloc[-1]
+
+            F_shape = anova_res.loc[_row("Forma_del_Pulso"), "F"]
+            F_dur   = anova_res.loc[_row("Duracion_ms"),     "F"]
+            F_int   = anova_res.loc[_row("Forma_del_Pulso"):\
+                                     _row("Duracion_ms"),    "F"].iloc[-1]
+
+            stats[mt] = {'forma_p': p_shape,   'duracion_p': p_dur,
+                         'interaccion_p': p_int,
+                         'forma_F': F_shape,   'duracion_F': F_dur,
+                         'interaccion_F': F_int}
+
         except Exception as e:
-            logging.error(f"Error en ANOVA para {mt} y {metric}: {e}")
-            stats[mt] = {'forma_p': np.nan, 'duracion_p': np.nan, 'interaccion_p': np.nan,
-                         'forma_F': np.nan, 'duracion_F': np.nan, 'interaccion_F': np.nan}
+            logging.error(f"[compute_model_stats] {mt}/{metric}: {e}")
+            stats[mt] = dict.fromkeys(
+                ['forma_p', 'duracion_p', 'interaccion_p',
+                 'forma_F', 'duracion_F', 'interaccion_F'], np.nan)
+
     return stats
 
 
+
 def get_tukey_pvals_for_stimulus(agg_df, stim, metric):
-    df_sub = agg_df[agg_df['Estímulo'] == stim]
+    df_sub      = agg_df[agg_df['Estímulo'] == stim].copy()
+    df_sub, m_used = _maybe_transform(df_sub, metric)
     if df_sub['MovementType'].nunique() < 2:
         return None
-    tukey_res = pairwise_tukeyhsd(endog=df_sub[metric].values,
+    tukey_res = pairwise_tukeyhsd(endog=df_sub[m_used].values,
                                   groups=df_sub['MovementType'].values,
                                   alpha=0.05)
     tk_df = pd.DataFrame(data=tukey_res._results_table.data[1:], 
@@ -922,7 +986,7 @@ def plot_model_only_validation(aggregated_df, group_by, metrics=None):
         ax.set_ylabel('-log10(p)')
         # al principio de plot_model_only_validation:
         label = ", ".join(group_by)  # p.ej. "Dia experimental, Coordenada_x, Coordenada_y"
-        ...
+        
         ax.set_title(f"Comparación Gaussian vs Minjerk – {label} = {name}")
 
         plt.xticks(rotation=45, ha='right')
@@ -1082,8 +1146,13 @@ def run_factorial_anova(df: pd.DataFrame, metric: str) -> dict:
         return dict.fromkeys(keys, np.nan)
 
     # 2) modelo
-    model = ols(f"{metric} ~ C(Forma_del_Pulso) * C(Duracion_ms)", data=df).fit()
-    anova = anova_lm(model, typ=2)
+    # ---- transformación antes del modelo -------------------------
+    df, m_used = _maybe_transform(df.copy(), metric)                ### 👈
+    # ---------------------------------------------------------------
+
+    formula = f"{m_used} ~ C(Forma_del_Pulso, Sum) * C(Duracion_ms, Sum)"  ### 👈
+    model   = ols(formula, data=df).fit(cov_type='HC3')                    ### 👈
+    anova   = sm.stats.anova_lm(model, typ=3, robust='hc3')  
 
     # 3) recogemos resultados con nombres homogéneos
     return {
@@ -1187,17 +1256,6 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     plt.savefig(out_path, dpi=150)
     plt.close()
     print(f"[Heatmap ANOVA] {title} guardado en: {out_path}")
-
-
-
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     logging.info("Ejecutando el bloque principal unificado")

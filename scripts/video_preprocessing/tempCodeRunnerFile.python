@@ -1,0 +1,129 @@
+import os
+import cv2
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+import pickle
+
+# Load the CSV file
+csv_path = "Stimuli_information.csv"
+data = pd.read_csv(csv_path)
+print(data.columns)
+"""
+# Function to parse frame ranges from CSV strings
+def parse_frame_ranges(frame_str):
+    if pd.isna(frame_str):
+        return []
+    return [int(x.strip()) for x in frame_str.split(',') if x.strip().isdigit()]
+
+# Filter data for camera 40298451 and specific date range
+data = data[(data['Archivos de video'].str.contains('40298451')) & 
+            (data['Fecha de adquisición'].str.contains('09/15'))]
+
+data['start_frames'] = data['Start frame (lateral)'].apply(parse_frame_ranges)
+data['durations'] = data['Duración (ms)'].apply(lambda x: int(x / 10))  # Convert ms to number of frames (assuming 100 fps)
+
+# Function to find all video paths with .mp4 extension in the directory and subdirectories
+def list_all_video_paths(base_directory):
+    video_paths = []
+    for root, _, files in os.walk(base_directory):
+        for file in files:
+            if file.endswith('.mp4'):
+                video_paths.append(os.path.join(root, file))
+    return video_paths
+
+# Function to find the video path based on the video name substring
+def find_video_path(video_paths, video_name_substring):
+    for path in video_paths:
+        if video_name_substring in path:
+            return path
+    return None
+
+# Function to extract frames and labels
+def extract_frames_and_labels(video_path, start_frames, durations):
+    cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    light_frames = []
+    non_light_frames = []
+    
+    for start, duration in zip(start_frames, durations):
+        light_frames.extend(range(start, start + duration))
+    
+    non_light_frames = list(set(range(total_frames)) - set(light_frames))
+    np.random.shuffle(non_light_frames)
+    non_light_frames = non_light_frames[:len(light_frames)]  # Balance non-light frames with light frames
+
+    frames = []
+    labels = []
+
+    for frame_idx in sorted(light_frames + non_light_frames):
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        roi = frame[:, :frame.shape[1]//3]  # Extract left third of the frame
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        resized = cv2.resize(gray, (64, 64))
+        frames.append(resized)
+        labels.append(1 if frame_idx in light_frames else 0)
+    
+    cap.release()
+    return np.array(frames), np.array(labels)
+
+# Set the base directory where your videos are stored
+base_directory = "/mnt/data/"
+
+# List all video paths
+all_video_paths = list_all_video_paths(base_directory)
+
+# Extract frames and labels for each video
+features = []
+labels = []
+
+for index, row in data.iterrows():
+    video_name = row['Archivos de video'].split()[0]
+    start_frames = row['start_frames']
+    durations = row['durations']
+    
+    video_path = find_video_path(all_video_paths, video_name)
+    if not video_path:
+        print(f"Video file containing '{video_name}' not found.")
+        continue
+    
+    vid_features, vid_labels = extract_frames_and_labels(video_path, start_frames, durations)
+    features.append(vid_features)
+    labels.append(vid_labels)
+
+if not features:
+    print("No features extracted. Exiting.")
+    exit()
+
+# Convert lists to numpy arrays
+features = np.concatenate(features)
+labels = np.concatenate(labels)
+
+# Normalize features
+features = features / 255.0
+features = features.reshape(features.shape[0], -1)  # Flatten images
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+# Train a Random Forest classifier
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
+
+# Evaluate the classifier
+y_pred = clf.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Save the trained model
+model_path = os.path.join(base_directory, "light_intensity_model.pkl")
+with open(model_path, 'wb') as model_file:
+    pickle.dump(clf, model_file)
+
+print(f"Model saved to: {model_path}")
+"""
