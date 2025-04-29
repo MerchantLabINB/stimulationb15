@@ -161,6 +161,11 @@ PULSE_SHAPE_COLORS = {
     'Triple rombo': sns.color_palette('tab10')[4]
 }
 
+# ——— Constantes de “Periodo” ———
+PERIODO_PRE     = 'Pre-Estímulo'
+PERIODO_DURANTE = 'Durante Estímulo'
+PERIODO_POST    = 'Post-Estímulo'
+
 def butter_lowpass_filter(data, cutoff, fs, order=1):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
@@ -333,46 +338,27 @@ def sum_of_minimum_jerk(t, *params):
     return v_total
 
 def regularized_residuals(p, t, observed_velocity, lambda_reg, A_target):
-    """Compute residuals with a penalty on amplitudes."""
+    # residual de velocidad
     residual = sum_of_minimum_jerk(t, *p) - observed_velocity
+
+    # penalización de amplitudes
     amplitudes = p[0::3]
-    penalty = np.sqrt(lambda_reg) * (amplitudes - A_target)
-    return np.concatenate([residual, penalty])
+    amp_penalty = np.sqrt(lambda_reg) * (amplitudes - A_target)
+
+    # penalización de duraciones demasiado cortas
+    durations = p[2::3]
+    ideal_dur = t[-1] - t[0]
+    gamma = lambda_reg * 10
+    dur_penalty = np.sqrt(gamma) * (ideal_dur - durations)
+
+    return np.concatenate([residual, amp_penalty, dur_penalty])
+
 
 def robust_fit_velocity_profile(t, observed_velocity, n_submovements,
                                 n_restarts=5,
                                 lambda_reg=0.1, loss='soft_l1', f_scale=0.5, peak_limit=np.inf):
-    """
-    Robustly fits a sum of minimum jerk profiles to an observed velocity profile.
-    
-    To help avoid solutions that capture only the onset (or offset), we modify the initial
-    guess for the onset (t₀) and, importantly, we enforce a minimum duration for the submovement.
-    Here, the lower bound for T is set as:
-    
-       min_T = max(0.05, 0.5 * (t[-1] - t[0]))
-    
-    This forces each minimum-jerk submovement to have a duration that is at least half the total
-    segment duration (or 50 ms, whichever is larger).
-    
-    Parameters:
-      t : array_like
-          Time vector (seconds).
-      observed_velocity : array_like
-          The observed velocity profile.
-      n_submovements : int
-          Number of submovements to fit.
-      n_restarts : int, optional
-          Number of random restarts for robustness.
-      lambda_reg, loss, f_scale : parameters for the least_squares call.
-      peak_limit : float
-          Maximum allowed amplitude.
-    
-    Returns:
-      best_result : OptimizeResult
-          The least_squares optimization result with the lowest cost.
-    """
     def initial_fit(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale, peak_limit):
-        # Find peaks in the observed velocity.
+        # 1) detecto picos
         peak_indices, _ = find_peaks(observed_velocity, height=np.mean(observed_velocity), distance=10)
         if len(peak_indices) == 0:
             peak_times = np.array([(t[0] + t[-1]) / 2])
@@ -380,102 +366,79 @@ def robust_fit_velocity_profile(t, observed_velocity, n_submovements,
         else:
             peak_times = t[peak_indices]
             peak_amplitudes = observed_velocity[peak_indices]
-    
-        # If not enough peaks, add extra guesses evenly over the time interval.
+
+        # 2) completo con tiempos uniformes si faltan
         if len(peak_amplitudes) < n_submovements:
             extras = n_submovements - len(peak_amplitudes)
             extra_times = np.linspace(t[0], t[-1], extras)
-            extra_amplitudes = np.full(extras, np.max(observed_velocity) / n_submovements)
+            extra_amps = np.full(extras, np.max(observed_velocity) / n_submovements)
             peak_times = np.concatenate([peak_times, extra_times])
-            peak_amplitudes = np.concatenate([peak_amplitudes, extra_amplitudes])
+            peak_amplitudes = np.concatenate([peak_amplitudes, extra_amps])
         else:
-            # Choose the largest n_submovements peaks.
-            top_indices = np.argsort(peak_amplitudes)[-n_submovements:]
-            peak_times = peak_times[top_indices]
-            peak_amplitudes = peak_amplitudes[top_indices]
-    
+            top = np.argsort(peak_amplitudes)[-n_submovements:]
+            peak_times = peak_times[top]
+            peak_amplitudes = peak_amplitudes[top]
+
         total_time = t[-1] - t[0]
-        delta = 0.1 * total_time  # 10% of the total time.
-        midpoint = (t[0] + t[-1]) / 2
-        # Adjust peak times if they are too close to boundaries.
-        adjusted_peak_times = np.clip(peak_times, t[0] + delta, t[-1] - delta)
-    
-        params_init = []
-        for i in range(n_submovements):
-            A_init = peak_amplitudes[i]
-            t0_init = adjusted_peak_times[i]
-            # Use the equal split as initial guess for T.
+        delta = 0.1 * total_time
+
+        # 3) cálculo de T_init por FWHM si es posible
+        half_max = np.max(observed_velocity) / 2
+        idx = observed_velocity >= half_max
+        if idx.sum() >= 2:
+            fwhm = t[idx].max() - t[idx].min()
+            T_init = fwhm
+        else:
             T_init = total_time / n_submovements
-            params_init.extend([A_init, t0_init, T_init])
-    
-        lower_bounds = []
-        upper_bounds = []
-        epsilon = 1e-3
-        segment_duration = total_time
-        # Enforce a minimum T that is at least half the segment duration or 50 ms.
-        # Fuerza a que cada submovimiento dure al menos la mitad del segmento
-        min_T = max(0.05, 0.3 * segment_duration)
-        # nunca mayor que segment_duration minus un epsilon pequeñito
-        min_T = min(min_T, segment_duration - 1e-3)
 
+        # 4) bounds para T
+        min_T = total_time * 0.2
 
-        for i in range(n_submovements):
-            lower_bounds.extend([epsilon, t[0] + delta, min_T])
-            upper_bounds.extend([peak_limit, t[-1] - delta, segment_duration])
-    
-        params_init = np.maximum(params_init, lower_bounds)
-        params_init = np.minimum(params_init, upper_bounds)
-    
-        A_target = np.max(observed_velocity)
-        if A_target < epsilon:
-            A_target = epsilon
-    
+        max_T = total_time * 1.2
+
+        # 5) armo x0, lb, ub
+        params_init, lb, ub = [], [], []
+        for A0, t0 in zip(peak_amplitudes, peak_times):
+            params_init += [A0, t0, T_init]
+            lb    += [1e-3, t[0]+delta, min_T]
+            ub    += [min(peak_limit, np.max(observed_velocity)), t[-1]-delta, max_T]
+
+        # ajustar a bounds
+        params_init = np.maximum(params_init, lb)
+        params_init = np.minimum(params_init, ub)
+
+        # 6) llamada a least_squares
+        return least_squares(
+            lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, np.max(observed_velocity)),
+            x0=params_init,
+            bounds=(lb, ub),
+            loss=loss,
+            f_scale=f_scale
+        )
+
+    # primer ajuste
+    base = initial_fit(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale, peak_limit)
+    best, best_cost = base, base.cost
+
+    # re-arranques
+    for _ in range(n_restarts):
+        perturb = base.x * np.random.uniform(0.9, 1.1, size=base.x.size)
+        perturb = np.maximum(perturb, 1e-3)
         try:
-            result = least_squares(
-                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target),
-                x0=params_init,
-                bounds=(lower_bounds, upper_bounds),
+            res = least_squares(
+                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, np.max(observed_velocity)),
+                x0=perturb,
+                bounds=([1e-3]*base.x.size, [peak_limit if i%3==0 else np.inf for i in range(base.x.size)]),
                 loss=loss,
                 f_scale=f_scale
             )
-        except ValueError as e:
-            logging.error(f"Initial fitting failed: {e}")
-            return None
-        return result
+            if res.cost < best_cost:
+                best, best_cost = res, res.cost
+        except:
+            pass
 
-    base_result = initial_fit(t, observed_velocity, n_submovements, lambda_reg, loss, f_scale, peak_limit)
-    if base_result is None:
-        logging.error("Initial fitting failed.")
-        return None
-    best_result = base_result
-    best_cost = base_result.cost
+    return best
 
-    epsilon = 1e-3
-    for i in range(n_restarts):
-        perturbation = np.random.uniform(0.9, 1.1, size=len(base_result.x))
-        perturbed_init = base_result.x * perturbation
-        perturbed_init = np.maximum(perturbed_init, epsilon)
-        try:
-            result = least_squares(
-                lambda p: regularized_residuals(p, t, observed_velocity, lambda_reg, A_target=np.max(observed_velocity)),
-                x0=perturbed_init,
-                bounds=(
-                    [epsilon for _ in base_result.x],
-                    [peak_limit if j % 3 == 0 else np.inf for j in range(len(base_result.x))]
-                ),
-                loss=loss,
-                f_scale=f_scale
-            )
-            if result.cost < best_cost:
-                best_cost = result.cost
-                best_result = result
-        except Exception as e:
-            logging.warning(f"Restart {i} failed: {e}")
-            continue
-
-    logging.info(f"Robust fit result: cost = {best_cost}")
-    logging.info(f"Fitted parameters: {best_result.x}")
-    return best_result
 
 def sanitize_filename(filename):
     return re.sub(r'[\\/*?:"<>|]', "_", filename)
@@ -695,7 +658,7 @@ def plot_trials_side_by_side(
 
         fig_height = 25
         fig_width  = len(subset) * 5
-        height_ratios = [2, 2, 0.5, 2, 2]
+        height_ratios = [2, 2, 2, 0.5, 2]
         fig, axes = plt.subplots(
             5, len(subset),
             figsize=(fig_width, fig_height),
@@ -713,15 +676,21 @@ def plot_trials_side_by_side(
         for idx_col, trial in enumerate(subset):
             ax_disp   = axes[0, idx_col]
             ax_vel    = axes[1, idx_col]
-            ax_mov    = axes[2, idx_col]
-            ax_submov = axes[3, idx_col]
+            ax_submov = axes[2, idx_col]   # panel DETALLE de submovimientos
+            ax_mov    = axes[3, idx_col]   # panel RANGOS de movimiento
             ax_stim   = axes[4, idx_col]
+
 
             vel = trial.get('velocity', [])
             pos = trial.get('positions', {'x': [], 'y': []})
             #submovements = trial.get('submovements', [])
-            subm = trial['submovements']
             mov_ranges   = trial.get('movement_ranges', [])
+            subm = trial['submovements']
+            th_segments = [m for m in mov_ranges if m['Periodo']==PERIODO_DURANTE]
+            gauss_list  = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']==PERIODO_DURANTE
+                        for g in s['gaussians']]
+            mj_list     = [(s['t_segment_model'], s['v_sm']) for s in subm
+                        if s['MovementType']=='MinimumJerk' and s['Periodo']==PERIODO_DURANTE]
 
             threshold      = trial.get('threshold_refined',
                                       trial.get('threshold', 0.0))
@@ -738,13 +707,6 @@ def plot_trials_side_by_side(
             frames_vel = np.arange(len(vel))
             t_vel      = frames_vel / fs
 
-            ax_disp   = axes[0, idx_col]
-            
-            
-            ax_vel    = axes[1, idx_col]
-            ax_mov    = axes[2, idx_col]
-            ax_submov = axes[3, idx_col]
-            ax_stim   = axes[4, idx_col]
 
             stim_start_s = start_frame / fs
             stim_end_s   = current_frame / fs
@@ -796,8 +758,8 @@ def plot_trials_side_by_side(
             # --- antes del panel 3 y 4 ----
             # Extraemos todas las gaussianas "Durante Estimulo"
             gauss_list = []
-            gauss_list = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']=='Durante Estimulo' for g in s['gaussians']]
-            mj_list = [(s['t_segment_model'], s['v_sm']) for s in subm if s['MovementType']=='MinimumJerk' and s['Periodo']=='Durante Estimulo']
+            gauss_list = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']==PERIODO_DURANTE for g in s['gaussians']]
+            mj_list = [(s['t_segment_model'], s['v_sm']) for s in subm if s['MovementType']=='MinimumJerk' and s['Periodo']==PERIODO_DURANTE]
             n_gauss = len(gauss_list); n_mj = len(mj_list)
 
             # Colores consistentes
@@ -806,71 +768,10 @@ def plot_trials_side_by_side(
             GAUSS_COLORS = [GAUSSIAN_PALETTE[i % len(GAUSSIAN_PALETTE)] for i in range(n_gauss)]
 
 
-            # ——— Panel 3: Rangos de movimiento ———
-            ax3 = axes[2, idx_col]
-
-            # recortamos el eje Y a la mitad inferior (0–0.5)
-            ax3.set(xlim=(0, max_time), ylim=(0.0, 0.5))
-            ax3.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
-
-            # extraemos los segmentos
-            th_segments = [m for m in mov_ranges if m['Periodo']=='Durante Estimulo']
-            gauss_list  = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']=='Durante Estimulo' for g in s['gaussians']]
-            mj_list     = [(s['t_segment_model'], s['v_sm']) for s in subm if s['MovementType']=='MinimumJerk' and s['Periodo']=='Durante Estimulo']
-
-            # definimos niveles bien separados en la mitad baja
-            y_levels = {
-                'Threshold-based': 0.4,
-                'Gaussian-based':  0.3,
-                'MinimumJerk':      0.2
-            }
-
-            # dibujar Threshold-based en y=0.4
-            for mv in th_segments:
-                x0, x1 = mv['Inicio Movimiento (Frame)']/fs, mv['Fin Movimiento (Frame)']/fs
-                y0 = y_levels['Threshold-based']
-                ax3.hlines(y0, x0, x1, color=TH_COLOR, lw=2)
-                abs_pk = mv['Inicio Movimiento (Frame)'] + np.argmax(vel[mv['Inicio Movimiento (Frame)']:mv['Fin Movimiento (Frame)']+1])
-                t_pk, v_pk = abs_pk/fs, mv['Valor Pico (velocidad)']
-                ax3.plot(t_pk, y0, 'o', color=TH_COLOR, ms=6)
-                ax3.text(t_pk, y0 - 0.02, f"{v_pk:.1f}", ha='center', va='bottom', fontsize=4)
-
-            # dibujar Gaussian-based en y=0.3
-            for i, g in enumerate(gauss_list):
-                y1 = y_levels['Gaussian-based']
-                L, R = g['mu_gauss']-2*g['sigma_gauss'], g['mu_gauss']+2*g['sigma_gauss']
-                ax3.hlines(y1, L, R, lw=2, color=GAUSS_COLORS[i])
-                ax3.plot(g['mu_gauss'], y1, 'o', color=GAUSS_COLORS[i], ms=6)
-                ax3.text(g['mu_gauss'], y1 - 0.02, f"{g['A_gauss']:.1f}", ha='center', va='bottom', fontsize=4)
-
-            # dibujar MinimumJerk en y=0.2
-            for t_seg, v_seg in mj_list:
-                y2 = y_levels['MinimumJerk']
-                ax3.hlines(y2, t_seg[0], t_seg[-1], lw=2, color=MJ_COLOR)
-                rel = np.argmax(v_seg)
-                t_pk = t_seg[rel]
-                ax3.plot(t_pk, y2, 'o', color=MJ_COLOR, ms=6)
-                ax3.text(t_pk, y2 - 0.02, f"{v_seg.max():.1f}", ha='center', va='bottom', fontsize=4)
-
-            ax3.set_yticks([])
-            ax3.set_ylabel('Rangos de mov.')
-
-
-            # construir leyenda sólo si hay algo
-            legend_handles = []
-            if th_segments:
-                legend_handles.append(Line2D([0],[0], color=TH_COLOR, lw=2, label=f"Seg Umbral ({len(th_segments)})"))
-            if gauss_list:
-                legend_handles.append(Line2D([0],[0], color=GAUSS_COLORS[0], lw=2, label=f"Seg Gauss ({len(gauss_list)})"))
-            if mj_list:
-                legend_handles.append(Line2D([0],[0], color=MJ_COLOR, lw=2, label=f"Seg MinJerk ({len(mj_list)})"))
-
-            if legend_handles:
-                ax3.legend(handles=legend_handles, fontsize=6, loc='upper left')
+            
 
 
             # ——— Panel 4: Detalle de submovimientos ———
-            ax_submov = axes[3, idx_col]
             ax_submov.plot(t_vel, vel, color=VELOCITY_COLOR, lw=1, label='Velocidad')
             ax_submov.axhline(threshold, color='k', lw=1, ls='--', label='Umbral')
             ax_submov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
@@ -916,13 +817,73 @@ def plot_trials_side_by_side(
                 )
             ax_submov.legend(handles=legend_elems, fontsize=8, loc='upper left')
 
+            # ——— Panel 3: Rangos de movimiento ———
+            ax_mov = ax_mov
+
+            # recortamos el eje Y a la mitad inferior (0–0.5)
+            ax_mov.set(xlim=(0, max_time), ylim=(0.0, 0.5))
+            ax_mov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
+
+            # extraemos los segmentos
+  #          th_segments = [m for m in mov_ranges if m['Periodo']=='Durante Estimulo']
+ #           gauss_list  = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']=='Durante Estimulo' for g in s['gaussians']]
+#            mj_list     = [(s['t_segment_model'], s['v_sm']) for s in subm if s['MovementType']=='MinimumJerk' and s['Periodo']=='Durante Estimulo']
+
+            # definimos niveles bien separados en la mitad baja
+            y_levels = {
+                'Threshold-based': 0.4,
+                'Gaussian-based':  0.3,
+                'MinimumJerk':      0.2
+            }
+
+            # dibujar Threshold-based en y=0.4
+            for mv in th_segments:
+                x0, x1 = mv['Inicio Movimiento (Frame)']/fs, mv['Fin Movimiento (Frame)']/fs
+                y0 = y_levels['Threshold-based']
+                ax_mov.hlines(y0, x0, x1, color=TH_COLOR, lw=2)
+                abs_pk = mv['Inicio Movimiento (Frame)'] + np.argmax(vel[mv['Inicio Movimiento (Frame)']:mv['Fin Movimiento (Frame)']+1])
+                t_pk, v_pk = abs_pk/fs, mv['Valor Pico (velocidad)']
+                ax_mov.plot(t_pk, y0, 'o', color=TH_COLOR, ms=6)
+                ax_mov.text(t_pk, y0 - 0.02, f"{v_pk:.1f}", ha='center', va='bottom', fontsize=4)
+
+            # dibujar Gaussian-based en y=0.3
+            for i, g in enumerate(gauss_list):
+                y1 = y_levels['Gaussian-based']
+                L, R = g['mu_gauss']-2*g['sigma_gauss'], g['mu_gauss']+2*g['sigma_gauss']
+                ax_mov.hlines(y1, L, R, lw=2, color=GAUSS_COLORS[i])
+                ax_mov.plot(g['mu_gauss'], y1, 'o', color=GAUSS_COLORS[i], ms=6)
+                ax_mov.text(g['mu_gauss'], y1 - 0.02, f"{g['A_gauss']:.1f}", ha='center', va='bottom', fontsize=4)
+
+            # dibujar MinimumJerk en y=0.2
+            for t_seg, v_seg in mj_list:
+                y2 = y_levels['MinimumJerk']
+                ax_mov.hlines(y2, t_seg[0], t_seg[-1], lw=2, color=MJ_COLOR)
+                rel = np.argmax(v_seg)
+                t_pk = t_seg[rel]
+                ax_mov.plot(t_pk, y2, 'o', color=MJ_COLOR, ms=6)
+                ax_mov.text(t_pk, y2 - 0.02, f"{v_seg.max():.1f}", ha='center', va='bottom', fontsize=4)
+
+            ax_mov.set_yticks([])
+            ax_mov.set_ylabel('Rangos de mov.')
 
 
+            # construir leyenda sólo si hay algo
+            legend_handles = []
+            if th_segments:
+                legend_handles.append(Line2D([0],[0], color=TH_COLOR, lw=2, label=f"Seg Umbral ({len(th_segments)})"))
+            if gauss_list:
+                legend_handles.append(Line2D([0],[0], color=GAUSS_COLORS[0], lw=2, label=f"Seg Gauss ({len(gauss_list)})"))
+            if mj_list:
+                legend_handles.append(Line2D([0],[0], color=MJ_COLOR, lw=2, label=f"Seg MinJerk ({len(mj_list)})"))
+
+            if legend_handles:
+                ax_mov.legend(handles=legend_handles, fontsize=6, loc='upper left')
 
             # Panel 5: Perfil del Estímulo
             ax_stim.set_xlabel('Tiempo (ms)')
             ax_stim.set_ylabel('Amplitud (µA)')
             ax_stim.set_xlim(0, max_time)
+            ax_stim.set_ylim(-170, 170)
             ax_stim.set_title('Perfil del estímulo')
             ax_stim.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
             ax_stim.axhline(0, color='black', lw=0.5)
@@ -935,7 +896,7 @@ def plot_trials_side_by_side(
                     x_vals.extend([t_stim, nxt_time])
                     y_vals.extend([amp, amp])
                     t_stim = nxt_time
-                ax_stim.step(x_vals, y_vals, color='purple', where='pre', linewidth=1, label='Estímulo')
+                ax_stim.step(x_vals, y_vals, color='purple', where='pre', linewidth=0.05, label='Estímulo')
 
         fig.suptitle(
             f"Día {dia_experimental}, {body_part}, {stimulus_key} - Grupo {batch_num}/{len(batches)}",
@@ -951,7 +912,8 @@ def plot_trials_side_by_side(
         out_path = os.path.join(output_dir, out_filename)
         if os.path.exists(out_path):
             os.remove(out_path)
-        plt.savefig(out_path, dpi=150)
+        plt.savefig(out_path, dpi=300, bbox_inches='tight')
+
         logging.info(f"Gráfico guardado en {out_path}")
         print(f"Gráfico guardado en {out_path}")
         plt.close()
@@ -1123,9 +1085,9 @@ def detect_movements_and_submovements(trial):
             continue
 
         # determinar periodo
-        if   i1 < start:           periodo = 'Pre-Estimulo'
-        elif i0 <= end:            periodo = 'Durante Estimulo'
-        else:                      periodo = 'Post-Estimulo'
+        if   i1 < start:           periodo = PERIODO_PRE
+        elif i0 <= end:            periodo = PERIODO_DURANTE
+        else:                      periodo = PERIODO_POST
 
         # 1.a) Threshold‑based: tomar el pico
         rel_pk     = np.argmax(vel[i0:i1+1])
@@ -1407,7 +1369,7 @@ def collect_velocity_threshold_data():
 
                     # Volcar en resumen
                     for mv in td.get('movement_ranges', []):
-                        if mv.get('Periodo')!='Durante Estimulo': 
+                        if mv.get('Periodo')!=PERIODO_DURANTE: 
                             continue
                         movement_ranges_all.append({
                             **mv,
@@ -1420,21 +1382,56 @@ def collect_velocity_threshold_data():
                             'Distancia Intracortical': dist_ic
                         })
                     for sm in td.get('submovements', []):
-                        if sm.get('Periodo')!='Durante Estimulo':
+                        if sm.get('Periodo')!=PERIODO_DURANTE:
                             continue
-                        entry = {
-                            **sm,
-                            'Ensayo_Key': td['trial_id'],
-                            'Dia experimental': td['Dia experimental'],
-                            'body_part': td['body_part'],
-                            'Estímulo': td['Estímulo'],
-                            'Coordenada_x': x_coord,
-                            'Coordenada_y': y_coord,
-                            'Distancia Intracortical': dist_ic
-                        }
-                        submovement_details_all.append(entry)
-                        if td['Descartar']=='No':
-                            submovement_details_valid.append(entry)
+                        if sm['MovementType'] == 'Gaussian-based':
+                            for g in sm['gaussians']:
+                                entry = {
+                                    'Ensayo_Key':              td['trial_id'],
+                                    'Dia experimental':        td['Dia experimental'],
+                                    'body_part':               td['body_part'],
+                                    'Estímulo':                td['Estímulo'],
+                                    'Coordenada_x':            x_coord,
+                                    'Coordenada_y':            y_coord,
+                                    'Distancia Intracortical': dist_ic,
+                                    'MovementType':            'Gaussian-based',
+                                    'Periodo':                 'Durante Estímulo',
+                                    'A_gauss':                 g['A_gauss'],
+                                    'mu_gauss':                g['mu_gauss'],
+                                    'sigma_gauss':             g['sigma_gauss'],
+                                    # columnas “históricas”:
+                                    't_start':                 g['mu_gauss'] - 2*g['sigma_gauss'],
+                                    't_peak':                  g['mu_gauss'],
+                                    't_end':                   g['mu_gauss'] + 2*g['sigma_gauss'],
+                                    'valor_pico':              g['A_gauss']
+                                }
+                                submovement_details_all.append(entry)
+                                if td['Descartar']=='No':
+                                    submovement_details_valid.append(entry)
+
+                        elif sm['MovementType'] == 'MinimumJerk':
+                            t_seg = sm['t_segment_model']
+                            v_sm  = sm['v_sm']
+                            if len(t_seg)>0 and len(v_sm)>0:
+                                idx_peak = int(np.argmax(v_sm))
+                                entry = {
+                                    'Ensayo_Key':              td['trial_id'],
+                                    'Dia experimental':        td['Dia experimental'],
+                                    'body_part':               td['body_part'],
+                                    'Estímulo':                td['Estímulo'],
+                                    'Coordenada_x':            x_coord,
+                                    'Coordenada_y':            y_coord,
+                                    'Distancia Intracortical': dist_ic,
+                                    'MovementType':            'MinimumJerk',
+                                    'Periodo':                 'Durante Estímulo',
+                                    't_start':                 t_seg[0],
+                                    't_peak':                  t_seg[idx_peak],
+                                    't_end':                   t_seg[-1],
+                                    'valor_pico':              float(np.max(v_sm))
+                                }
+                                submovement_details_all.append(entry)
+                                if td['Descartar']=='No':
+                                    submovement_details_valid.append(entry)
 
                 # 8) Graficar
                 all_stimuli_data[stimulus_key] = {
@@ -1458,29 +1455,47 @@ def collect_velocity_threshold_data():
                     )
 
     # ——— Guardado de CSV finales ———
+    # Renombramos trial_id → Ensayo antes de guardar
     expanded_df = pd.DataFrame(expanded_trials)
+    expanded_df.rename(columns={'trial_id': 'Ensayo'}, inplace=True)
     expanded_df.to_csv(
-        os.path.join(output_comparisons_dir, 'expanded_trials_detailed.csv'),
-        index=False
+         os.path.join(output_comparisons_dir, 'expanded_trials_detailed.csv'),
+         index=False
     )
 
     counts_df = pd.DataFrame(all_movement_data)
+    # Aseguramos acento en Estímulo y luego normalizamos para el merge
     counts_df['Estímulo'] = counts_df.apply(
-        lambda r: f"{r['Forma del Pulso'].strip().capitalize()}, {int(round(float(r['Duración (ms)']),0))} ms",
-        axis=1
+         lambda r: f"{r['Forma del Pulso'].strip().capitalize()}, {int(round(float(r['Duración (ms)']),0))} ms",
+         axis=1
     )
     # Merge y_max_velocity
     if global_stimuli_data:
-        stimuli_df = pd.DataFrame([e for sub in global_stimuli_data.values() for e in sub.values()])
-        stimuli_df['Estímulo'] = stimuli_df['Estímulo'].str.lower().str.strip()
-        counts_df['Estímulo'] = counts_df['Estímulo'].str.lower().str.strip()
-        counts_df['body_part'] = counts_df['body_part'].str.lower().str.strip()
+        # Reconstruimos una lista de registros que SÍ incluyan body_part
+        stim_list = []
+        for (dia_exp, bp), stim_dict in global_stimuli_data.items():
+            for stim_key, d in stim_dict.items():
+                stim_list.append({
+                    'Dia experimental': dia_exp,
+                    'body_part': bp,
+                    'Estímulo':   d['Estímulo'],
+                    'y_max_velocity': d['y_max_velocity']
+                })
+        stimuli_df = pd.DataFrame(stim_list)
+
+        # Normalizamos para merge
+        # Normalizamos para merge (mismas columnas en ambos DFs)
+        stimuli_df['Estímulo']  = stimuli_df['Estímulo'].str.lower().str.strip()
         stimuli_df['body_part'] = stimuli_df['body_part'].str.lower().str.strip()
+        counts_df['Estímulo']   = counts_df['Estímulo'].str.lower().str.strip()
+        counts_df['body_part']  = counts_df['body_part'].str.lower().str.strip()
+
         counts_df = counts_df.merge(
             stimuli_df[['Dia experimental','body_part','Estímulo','y_max_velocity']],
             on=['Dia experimental','body_part','Estímulo'],
             how='left'
         )
+
 
     counts_df.to_csv(
         os.path.join(output_comparisons_dir, 'movement_counts_summary.csv'),
@@ -1683,6 +1698,23 @@ def do_significance_tests_aggregated(aggregated_df, output_dir=None):
     if output_dir is None:
         output_dir = output_comparisons_dir
 
+    if 'Estímulo' not in aggregated_df.columns:
+        if 'Estimulo' in aggregated_df.columns:
+            aggregated_df = aggregated_df.rename(columns={'Estimulo':'Estímulo'})
+        else:
+            raise KeyError(
+                f"No encontré ni 'Estímulo' ni 'Estimulo'.\n"
+                f"Columnas recibidas: {aggregated_df.columns.tolist()}"
+            )
+    # Ahora ya podemos extraer Forma y Duración sin errores
+    aggregated_df['Forma del Pulso'] = aggregated_df['Estímulo'].apply(
+        lambda s: s.split(', ')[0] if isinstance(s, str) and ', ' in s else np.nan
+    )
+    aggregated_df['Duración (ms)'] = aggregated_df['Estímulo'].apply(
+        lambda s: float(s.split(', ')[1].replace(' ms',''))
+                  if isinstance(s, str) and ', ' in s else np.nan
+    )
+
     # Primero, extraemos los factores de 'Estímulo'
     aggregated_df['Forma del Pulso'] = aggregated_df['Estímulo'].apply(lambda s: s.split(', ')[0] if isinstance(s, str) and ', ' in s else np.nan)
     aggregated_df['Duración (ms)'] = aggregated_df['Estímulo'].apply(lambda s: float(s.split(', ')[1].replace(' ms','')) if isinstance(s, str) and ', ' in s else np.nan)
@@ -1797,17 +1829,22 @@ def aggregate_trial_metrics_extended(submovements_df):
 
     # Agrupamos por ensayo y tipo de movimiento
     grouping_cols = [
-        'Ensayo_Key','Ensayo','Estímulo','MovementType',
+        'Ensayo_Key','Estímulo','MovementType',
         'Dia experimental','body_part','Coordenada_x','Coordenada_y',
         'Distancia Intracortical'
     ]
 
-    for name, group in submovements_df.groupby(grouping_cols):
-        mt = name[3]
-        # common fields
-        base = dict(zip(grouping_cols, name))
-        if mt == 'Threshold-based' and (group['Periodo']=='Durante Estimulo').any():
-            g = group[group['Periodo']=='Durante Estimulo']
+    for (ensayo_key, estimulo, movement_type,
+        dia_exp, body_part, coord_x, coord_y, dist_ic), group in submovements_df.groupby(grouping_cols):
+
+        # now movement_type really is your MovementType
+        mt = movement_type
+
+        base = dict(zip(grouping_cols,
+                        [ensayo_key, estimulo, movement_type,
+                        dia_exp, body_part, coord_x, coord_y, dist_ic]))
+        if mt == 'Threshold-based' and (group['Periodo']==PERIODO_DURANTE).any():
+            g = group[group['Periodo']==PERIODO_DURANTE]
             idx_min_start = g['Latencia al Inicio (s)'].idxmin()
             idx_max_val   = g['Valor Pico (velocidad)'].idxmax()
             results.append({
@@ -1967,8 +2004,12 @@ if __name__ == "__main__":
     # Para pruebas de hipótesis usaremos el CSV detallado de submovimientos:
     submov_path = os.path.join(output_comparisons_dir, 'submovement_detailed_valid.csv')
     if os.path.exists(submov_path):
-        submovements_df = pd.read_csv(submov_path)
-        
+        # submovements_df = pd.read_csv(submov_path)
+        submovements_df = pd.read_csv(submov_path, encoding='utf-8-sig')
+        # si la lee como "Estimulo" sin tilde:
+        if 'Estimulo' in submovements_df.columns and 'Estímulo' not in submovements_df.columns:
+            submovements_df.rename(columns={'Estimulo': 'Estímulo'}, inplace=True)
+
         # ETAPA 1: Agregar métricas por ensayo a partir de los submovimientos detallados
         aggregated_df = aggregate_trial_metrics_extended(submovements_df)
         aggregated_df.to_csv(os.path.join(output_comparisons_dir, 'aggregated_metrics.csv'), index=False)
