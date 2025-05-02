@@ -79,7 +79,7 @@ except ImportError as e:
 # Directorios
 stimuli_info_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\tablas\Stimuli_information_expanded.csv'
 csv_folder = r'C:\Users\samae\Documents\GitHub\stimulationb15\DeepLabCut\xv_lat-Br-2024-10-02\videos'
-output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials4mad'
+output_comparisons_dir = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\plot_trials'
 
 if not os.path.exists(output_comparisons_dir):
     os.makedirs(output_comparisons_dir)
@@ -658,7 +658,7 @@ def plot_trials_side_by_side(
 
         fig_height = 25
         fig_width  = len(subset) * 5
-        height_ratios = [2, 2, 2, 0.5, 2]
+        height_ratios = [2, 2, 2, 0.3, 2]
         fig, axes = plt.subplots(
             5, len(subset),
             figsize=(fig_width, fig_height),
@@ -792,11 +792,13 @@ def plot_trials_side_by_side(
                 xs = np.linspace(g['mu_gauss']-3*g['sigma_gauss'], g['mu_gauss']+3*g['sigma_gauss'], 200)
                 curve = gaussian(xs, g['A_gauss'], g['mu_gauss'], g['sigma_gauss'])
                 ax_submov.plot(xs, curve, ls='--', lw=2, color=GAUSS_COLORS[i], label='Gaussianas')
-
+            '''
             # MinimumJerk curves (más gruesas)
             for i, (t_seg, v_seg) in enumerate(mj_list):
                 ax_submov.plot(t_seg, v_seg, ls=':', lw=2, color=MJ_COLOR, label='MinimumJerk')
 
+            '''
+            
             ax_submov.set(xlim=(0, max_time), ylim=(0, max_vel+5))
             ax_submov.set_xlabel('Tiempo (ms)')
             ax_submov.set_ylabel('Vel. (px/s)')
@@ -811,10 +813,13 @@ def plot_trials_side_by_side(
                 legend_elems.append(
                     Line2D([0],[0], color=GAUSS_COLORS[0], lw=2, ls='--', label='Gaussianas')
                 )
+            '''
             if mj_list:
                 legend_elems.append(
                     Line2D([0],[0], color=MJ_COLOR, lw=2, ls=':', label='MinimumJerk')
                 )
+            '''
+            
             ax_submov.legend(handles=legend_elems, fontsize=8, loc='upper left')
 
             # ——— Panel 3: Rangos de movimiento ———
@@ -824,10 +829,6 @@ def plot_trials_side_by_side(
             ax_mov.set(xlim=(0, max_time), ylim=(0.0, 0.5))
             ax_mov.axvspan(stim_start_s, stim_end_s, color='green', alpha=0.1)
 
-            # extraemos los segmentos
-  #          th_segments = [m for m in mov_ranges if m['Periodo']=='Durante Estimulo']
- #           gauss_list  = [g for s in subm if s['MovementType']=='Gaussian-based' and s['Periodo']=='Durante Estimulo' for g in s['gaussians']]
-#            mj_list     = [(s['t_segment_model'], s['v_sm']) for s in subm if s['MovementType']=='MinimumJerk' and s['Periodo']=='Durante Estimulo']
 
             # definimos niveles bien separados en la mitad baja
             y_levels = {
@@ -853,7 +854,7 @@ def plot_trials_side_by_side(
                 ax_mov.hlines(y1, L, R, lw=2, color=GAUSS_COLORS[i])
                 ax_mov.plot(g['mu_gauss'], y1, 'o', color=GAUSS_COLORS[i], ms=6)
                 ax_mov.text(g['mu_gauss'], y1 - 0.02, f"{g['A_gauss']:.1f}", ha='center', va='bottom', fontsize=4)
-
+            '''
             # dibujar MinimumJerk en y=0.2
             for t_seg, v_seg in mj_list:
                 y2 = y_levels['MinimumJerk']
@@ -863,6 +864,8 @@ def plot_trials_side_by_side(
                 ax_mov.plot(t_pk, y2, 'o', color=MJ_COLOR, ms=6)
                 ax_mov.text(t_pk, y2 - 0.02, f"{v_seg.max():.1f}", ha='center', va='bottom', fontsize=4)
 
+            '''
+            
             ax_mov.set_yticks([])
             ax_mov.set_ylabel('Rangos de mov.')
 
@@ -873,9 +876,12 @@ def plot_trials_side_by_side(
                 legend_handles.append(Line2D([0],[0], color=TH_COLOR, lw=2, label=f"Seg Umbral ({len(th_segments)})"))
             if gauss_list:
                 legend_handles.append(Line2D([0],[0], color=GAUSS_COLORS[0], lw=2, label=f"Seg Gauss ({len(gauss_list)})"))
+            '''
             if mj_list:
                 legend_handles.append(Line2D([0],[0], color=MJ_COLOR, lw=2, label=f"Seg MinJerk ({len(mj_list)})"))
 
+            '''
+            
             if legend_handles:
                 ax_mov.legend(handles=legend_handles, fontsize=6, loc='upper left')
 
