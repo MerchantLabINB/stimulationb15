@@ -44,6 +44,8 @@ from statsmodels.stats.multitest import multipletests
 
 from patsy.contrasts import Sum  
 
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter, NullFormatter
+
 # --- CONFIGURACIÓN DEL LOGGING
 log_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
 logging.basicConfig(filename=log_path, level=logging.DEBUG, 
@@ -89,7 +91,7 @@ metric_labels = {
     "valor_pico_max": "Amplitud del Pico Máximo",
     "dur_total_ms": "Duración Total",
     "delta_t_pico": "Diferencia Primer‑Pico Mayor",
-    "num_movs": "Número de Movimientos"
+    "num_movs": "Número de Submovimientos"
 }
 
 # ─── NUEVO bloque global ───────────────────────────────────────────────
@@ -614,10 +616,12 @@ def compute_lmm_stats(df, metric):
         "interaccion_p":  pvals.filter(like=":").min()            # NaN si no hubo interacción
     }
 
-def fmt_p(p):
-    if np.isnan(p):      return "NA"
-    txt = f"{p:.2e}"
-    return "*"+txt if p < .05 else txt
+
+def stars(p):
+    if   p < 0.001: return "***"
+    elif p < 0.01:  return "**"
+    elif p < 0.05:  return "*"
+    else:           return "NS"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # NUEVA VARIABLE GLOBAL  –  lista donde iremos apilando los p‑values
@@ -693,8 +697,8 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
 
     latency_metrics = ['lat_inicio_ms', 'lat_pico_mayor_ms']
     peak_metrics = ['valor_pico_max']
-    global_latency_max = df[latency_metrics].max().max() if not df[latency_metrics].empty else None
-    global_peak_max = df[peak_metrics].quantile(0.95).max() if not df[peak_metrics].empty else None
+    # global_latency_max = df[latency_metrics].max().max() if not df[latency_metrics].empty else None
+    # global_peak_max = df[peak_metrics].quantile(0.95).max() if not df[peak_metrics].empty else None
 
     if model_filter is not None and model_filter == ["Gaussian-based"]:
         box_width = 0.6 / 0.5  # cajas más anchas
@@ -704,6 +708,52 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         box_width = 0.6 / 2.2
         median_line_color = 'black'
         median_line_width = 4.0
+
+    # 1) inicializamos el diccionario de límites
+    global_ylim = {}
+
+    # 2) para cada métrica de latencia usamos percentil 95 + 10 % de margen
+    for m in latency_metrics:
+        vals = df[m].dropna()
+        if len(vals):
+            p95 = np.percentile(vals, 95)
+            global_ylim[m] = (0, p95 * 1.10)
+        else:
+            global_ylim[m] = (0, 1)
+
+    """
+    # 3) idem para amplitud de pico
+    for m in peak_metrics:
+        vals = df[m].dropna()
+        if len(vals):
+            p95 = np.percentile(vals, 95)
+            global_ylim[m] = (0, p95 * 1.10)
+        else:
+            global_ylim[m] = (0, 1)
+    """
+    
+    # ────────────────────────────────────
+    # límites unificados
+    # ────────────────────────────────────
+    # para latencias todas con el mismo máximo
+    shared_latency_max = max(global_ylim[m][1] for m in latency_metrics)
+    shared_latency_ylim = (0, shared_latency_max)
+    # para amplitud de pico: calculamos p95 de todas las métricas de pico SIN margen
+    raw_peak_max = max(
+        np.percentile(df[m].dropna(), 95)
+        for m in peak_metrics
+        if len(df[m].dropna()) > 0
+    )
+    # aplicamos un 10% de margen
+    shared_peak_ylim = (0, raw_peak_max * 0.8)
+    
+    tick_settings = {}
+    # latencias + dur_total_ms + delta_t_pico cada 500ms (major)/250ms (minor)
+    for m in latency_metrics + ['dur_total_ms', 'delta_t_pico']:
+        tick_settings[m] = (MultipleLocator(500), MultipleLocator(250))
+    # pico máximo: cada 100px/s (major)/50px/s (minor)
+    for m in peak_metrics:
+        tick_settings[m] = (MultipleLocator(100), MultipleLocator(50))
 
     n_cols = math.ceil(len(metrics_order) / 2)
     fig, axs = plt.subplots(2, n_cols, figsize=(n_cols * 5, 2 * 5), squeeze=False)
@@ -787,12 +837,27 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         ax.set_xlabel("")
         ax.set_ylabel(yaxis_units.get(metric, ""))
         ax.set_title(metric_labels.get(metric, metric))
+        # ── fijar rango unificado ─────────────────────────────────────────
         if metric in latency_metrics:
-            ax.set_ylim(0, global_latency_max * 0.8)
+            ax.set_ylim(*shared_latency_ylim)
         elif metric in peak_metrics:
-            ax.set_ylim(0, global_peak_max * 0.8)
+            ax.set_ylim(*shared_peak_ylim)
         else:
-            ax.set_ylim(0, ax.get_ylim()[1] * 0.8)
+            vals = np.concatenate(boxplot_data)
+            p95 = np.percentile(vals, 95)
+            ax.set_ylim(0, p95 * 1.10)
+
+        # ── aplicar ticks según lo definido arriba ────────────────────────
+        major, minor = tick_settings.get(metric, (None, None))
+        if major and minor:
+            ax.yaxis.set_major_locator(major)
+            ax.yaxis.set_minor_locator(minor)
+            ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+            ax.yaxis.set_minor_formatter(NullFormatter())
+            ax.tick_params(axis='y', which='major', length=6)
+            ax.tick_params(axis='y', which='minor', length=3)
+
+
 
         # Se anota una línea con los p-valores del modelo Gaussiano (como ejemplo)
         # Se anota una caja en la esquina superior izquierda con los p-valores del modelo Gaussiano (dividido en tres líneas)
@@ -807,34 +872,31 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         # Bonferroni para los 3 efectos
         # extraemos raw p’s
         # Asegurarnos de tener floats puros
-        raw = [
-            float(stats.get('forma_p', np.nan)),
-            float(stats.get('duracion_p', np.nan)),
-            float(stats.get('interaccion_p', np.nan))
-        ]
-        # Ahora sí
+        # Bonferroni para los 3 efectos
+        raw = [ float(stats.get(k, np.nan)) for k in ('forma_p','duracion_p','interaccion_p') ]
         _, p_adj, _, _ = multipletests(raw, alpha=0.05, method='bonferroni')
-
         adj = dict(zip(['forma_p','duracion_p','interaccion_p'], p_adj))
-        # Nuevo: tres textos separados para poder colorear cada uno distinto
-        fmt = lambda p: ("*p={:.3g}".format(p) if p < 0.05 else "p={:.3g}".format(p)) if not np.isnan(p) else "NA"
-        bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.7)
 
-        texts = [
-            ("Forma: {}".format(fmt(adj['forma_p'])),       adj['forma_p']      < 0.05),
-            ("Durac.: {}".format(fmt(adj['duracion_p'])),   adj['duracion_p']   < 0.05),
-            ("Int.:   {}".format(fmt(adj['interaccion_p'])), adj['interaccion_p']< 0.05)
-        ]
+        # Definimos las etiquetas limpias
+        labels = ['Forma', 'Duración', 'Forma x Duración']
 
-        y = 0.99
-        dy = 0.10
+        # Creamos lista de (texto, es_significativo)
+        texts = []
+        for key, lbl in zip(['forma_p','duracion_p','interaccion_p'], labels):
+            p = adj[key]
+            s = stars(p)
+            texts.append((f"{lbl}: {s}", s != "NS"))
+
+        # Dibujamos
+        y = 0.99; dy = 0.10
         for txt, sig in texts:
             ax.text(0.01, y, txt,
                     transform=ax.transAxes,
-                    fontsize=8, va='top', ha='left',
+                    fontsize=10, va='top', ha='left',
                     color='red' if sig else 'black',
-                    bbox=bbox_props)
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.7))
             y -= dy
+
 
 
         # Opcional: guardarlo en SUMMARY_PVALS si lo necesitas
@@ -999,13 +1061,13 @@ def plot_3d_gaussian_boxplots_by_bodypart(aggregated_df, output_dir, day=None, c
             title=f"3D Gaussian-based Boxes for {metric_label} (Day: {day}, Coord: {coord_x}, {coord_y})",
             scene=dict(
                 xaxis=dict(
-                    title=dict(text="Estímulo", font=dict(size=14)),
+                    title=dict(text="", font=dict(size=14)),
                     tickvals=list(stim_to_x.values()),
                     ticktext=list(stim_to_x.keys()),
                     range=[min(stim_to_x.values()) - 0.5, max(stim_to_x.values()) + 0.5]
                 ),
                 yaxis=dict(
-                    title="Body Part",
+                    title="",
                     tickvals=list(bp_to_y.values()),
                     ticktext=list(bp_to_y.keys())
                 ),
@@ -1365,11 +1427,16 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     heat_df = pd.DataFrame(results).set_index('Metric')
 
     # --- anotaciones y dibujo (sin cambios) ---------------------------
+        # --- anotaciones con asteriscos en lugar de p=… -----------------
     annot = heat_df.copy().astype(object)
     for m in annot.index:
         for c in annot.columns:
             p = heat_df.loc[m, c]
-            annot.loc[m, c] = "NA" if pd.isna(p) else f"{'*' if p < 0.05 else ''}p={p:.3g}"
+            if pd.isna(p):
+                annot.loc[m, c] = "NA"
+            else:
+                annot.loc[m, c] = stars(p)
+
 
     plt.figure(figsize=(6, 0.6 * len(heat_df)))
     ax = sns.heatmap(
@@ -1380,6 +1447,7 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
     ax.set_xlabel('Efecto')
+    ax.set_ylabel('Métrica')
     ax.set_title(title)
     plt.tight_layout()
 
