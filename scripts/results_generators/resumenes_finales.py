@@ -16,11 +16,11 @@ from matplotlib.colors import LinearSegmentedColormap, ListedColormap, BoundaryN
 from typing import Optional            # agrega arriba
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from scipy.interpolate import griddata
-from scipy.signal import savgol_filter, find_peaks, butter, filtfilt
+#from scipy.interpolate import griddata
+#from scipy.signal import savgol_filter, find_peaks, butter, filtfilt
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
-from scipy.stats import friedmanchisquare, shapiro, levene
+from scipy.stats import shapiro, levene, ttest_ind, mannwhitneyu
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
@@ -45,6 +45,7 @@ from statsmodels.stats.multitest import multipletests
 from patsy.contrasts import Sum  
 
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter, NullFormatter
+import matplotlib.gridspec as gridspec
 
 # --- CONFIGURACIÓN DEL LOGGING
 log_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
@@ -1456,6 +1457,88 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     plt.close()
     print(f"[Heatmap ANOVA] {title} guardado en: {out_path}")
 
+def run_ttest_simple_by_site(df, metrics=None, output_dir=output_comparisons_dir):
+    if metrics is None:
+        metrics = selected_metrics.copy()
+
+    # 1) filtramos Gaussian-based
+    sub = (df[df.MovementType=='Gaussian-based']
+           .assign(
+               Forma=lambda d: d['Estímulo'].str.split(',',1).str[0].str.lower().str.strip(),
+               Dur_ms=lambda d: d['Estímulo'].apply(extract_duration).round().astype(int)
+           ))
+
+    # 2) filtramos hombro/codo/muñeca, rectangular vs rombo a 500 ms
+    mask = (
+        (sub['Dur_ms'] == 500) &
+        (sub['Forma'].isin(['rectangular','rombo'])) &
+        (sub['body_part'].isin(['Hombro','Codo','Muneca']))
+    )
+    sub = sub[mask]
+
+    all_results = []
+    for (day, x, y), grp in sub.groupby(['Dia experimental','Coordenada_x','Coordenada_y']):
+        site_stats = []
+        for m in metrics:
+            g1 = grp.loc[grp.Forma=='rectangular', m].dropna()
+            g2 = grp.loc[grp.Forma=='rombo',       m].dropna()
+
+            # aplicamos transform si toca
+            if m in TRANSFORMS:
+                g1 = TRANSFORMS[m](g1)
+                g2 = TRANSFORMS[m](g2)
+
+            # test de varianzas y normalidad
+            p_lev  = levene(g1, g2).pvalue if len(g1)>1 and len(g2)>1 else np.nan
+            p_sw1  = shapiro(g1).pvalue if len(g1)>2 else np.nan
+            p_sw2  = shapiro(g2).pvalue if len(g2)>2 else np.nan
+
+            # igualamos tamaños
+            n = min(len(g1), len(g2))
+            g1, g2 = g1.sample(n, random_state=1), g2.sample(n, random_state=1)
+
+            if (p_sw1 > .05 and p_sw2 > .05) and n>=2:
+                stat, p_raw = ttest_ind(g1, g2, equal_var=(p_lev>.05))
+            else:
+                stat, p_raw = mannwhitneyu(g1, g2)
+
+            site_stats.append({'metric': m, 'p_raw': p_raw})
+            all_results.append({
+                'day': day, 'coord_x': x, 'coord_y': y,
+                'metric': m, 'stat': stat, 'p_raw': p_raw,
+                'p_levene': p_lev, 'p_shapiro1': p_sw1, 'p_shapiro2': p_sw2
+            })
+
+        # 3) dibujamos el heatmap
+        heat_df = pd.DataFrame(site_stats).set_index('metric') \
+                     .rename(index=lambda m: metric_labels[m])
+        annot   = heat_df['p_raw'].apply(lambda p: stars(p) if pd.notna(p) else 'NA').to_frame()
+
+        plt.figure(figsize=(6, len(metrics)*0.5+1))
+        ax = sns.heatmap(
+            heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
+            annot=annot, fmt='', linewidths=0.5,
+            cbar_kws={'label':'p-value'}
+        )
+        ax.set_xticks([0.5])
+        ax.set_xticklabels(['Rectangular vs Rombo (500 ms)'], ha='center')
+        ax.set_title(f"Coordenada ({x},{y})")
+        ax.set_ylabel('Métrica')
+        plt.tight_layout()
+
+        fn = sanitize_filename(f"ttest_rect_vs_rombo_{day}_{x}_{y}.png")
+        plt.savefig(os.path.join(output_dir, fn), dpi=150, bbox_inches='tight')
+        plt.close()
+
+    return pd.DataFrame(all_results)
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     logging.info("Ejecutando el análisis completo")
     ASSUMPTION_RESULTS.clear()
@@ -1469,6 +1552,10 @@ if __name__ == "__main__":
     submovements_df = pd.read_csv(submov_path)
     aggregated_df   = aggregate_trial_metrics_extended(submovements_df)
 
+    tt_df = run_ttest_simple_by_site(aggregated_df, selected_metrics, output_comparisons_dir)
+    tt_df.to_csv(os.path.join(output_comparisons_dir, 'ttest_simple_by_site.csv'), index=False)
+
+    
     # 2) Filtrado global Gaussian-based
     df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
 
@@ -1565,4 +1652,6 @@ if __name__ == "__main__":
     
     plot_model_compare_gauss_min(aggregated_df, by='global')
 
+    
+    
     print("¡Análisis completo!")
