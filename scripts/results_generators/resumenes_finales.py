@@ -47,6 +47,10 @@ from patsy.contrasts import Sum
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter, NullFormatter
 import matplotlib.gridspec as gridspec
 
+# ——— Tema global para todos los gráficos ———
+# sns.set_theme(style="whitegrid")
+
+
 # --- CONFIGURACIÓN DEL LOGGING
 log_path = r'C:\Users\samae\Documents\GitHub\stimulationb15\data\filtered_processing_log.txt'
 logging.basicConfig(filename=log_path, level=logging.DEBUG, 
@@ -91,7 +95,7 @@ metric_labels = {
     "lat_pico_mayor_ms": "Latencia al Pico Mayor",
     "valor_pico_max": "Amplitud del Pico Máximo",
     "dur_total_ms": "Duración Total",
-    "delta_t_pico": "Diferencia Primer‑Pico Mayor",
+    "delta_t_pico": "Diferencia Primer-Pico Mayor",
     "num_movs": "Número de Submovimientos"
 }
 
@@ -834,10 +838,11 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
             patch.set_edgecolor('black')
 
         ax.set_xticks(group_centers)
-        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=8)
+        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=10)
         ax.set_xlabel("")
-        ax.set_ylabel(yaxis_units.get(metric, ""))
-        ax.set_title(metric_labels.get(metric, metric))
+        ax.set_title(metric_labels.get(metric, metric), fontsize=18)
+        ax.set_ylabel(yaxis_units.get(metric, ""), fontsize=10)
+
         # ── fijar rango unificado ─────────────────────────────────────────
         if metric in latency_metrics:
             ax.set_ylim(*shared_latency_ylim)
@@ -893,7 +898,7 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
         for txt, sig in texts:
             ax.text(0.01, y, txt,
                     transform=ax.transAxes,
-                    fontsize=10, va='top', ha='left',
+                    fontsize=12, va='top', ha='left',
                     color='red' if sig else 'black',
                     bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.7))
             y -= dy
@@ -931,7 +936,7 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
                 )
 
     # Establecer el título final del gráfico usando final_title
-    fig.suptitle(final_title, fontsize=16)
+    fig.suptitle(final_title)
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     # Se conserva el nombre del archivo original (usando title_prefix sin modificaciones)
     fname = sanitize_filename(title_prefix.replace(' ', '_'))
@@ -1531,12 +1536,6 @@ def run_ttest_simple_by_site(df, metrics=None, output_dir=output_comparisons_dir
         plt.close()
 
     return pd.DataFrame(all_results)
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

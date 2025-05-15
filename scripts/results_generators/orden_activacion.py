@@ -18,11 +18,12 @@ df = df[df["body_part"].isin(["Hombro", "Codo", "Muñeca"])]
 # --- NUEVO FILTRADO ---
 df["Forma_del_Pulso"] = df["Estímulo"].str.split(",", n=1).str[0].str.strip().str.lower()
 df["Duracion_ms"] = df["Estímulo"].str.extract(r'(\d+)').astype(float)
-df = df[(df["Forma_del_Pulso"] == "rectangular") & (df["Duracion_ms"] == 1000)]
+df = df[(df["Forma_del_Pulso"] == "rectangular") & (df["Duracion_ms"] == 500)]
 
 # Configuración visual
 color_dict = {"Hombro": "gold", "Codo": "darkorange", "Muñeca": "purple"}
-sns.set(style="whitegrid", font_scale=1.2)
+# nuevo: set_theme en lugar de set
+sns.set_theme(style="whitegrid", font_scale=1.5)
 
 # Escala Y común para todos los días (percentil 10–90)
 y_min = df["lat_pico_mayor_ms"].quantile(0.10)
@@ -80,9 +81,13 @@ for dia, sub in df.groupby("Dia experimental"):
     coord_y = sub["Coordenada_y"].iloc[0]
     titulo = f"Coordenada: ({coord_x}, {coord_y})"
 
-    ax.set_title(titulo, fontsize=14)
-    ax.set_xlabel("Parte del cuerpo")
-    ax.set_ylabel("Latencia al pico mayor (ms)")
+    ax.set_title(titulo, fontsize=26)
+
+    ax.set_xlabel("Parte del cuerpo", fontsize=24)
+    ax.set_ylabel("Latencia al pico mayor (ms)", fontsize=24)
+    # Tamaño de las etiquetas de los ticks
+    ax.tick_params(axis='x', labelsize=22)
+    ax.tick_params(axis='y', labelsize=22)
     ax.set_ylim(y_min, y_max * 1.15)
     ax.set_xticklabels(orden)
 
@@ -91,6 +96,6 @@ for dia, sub in df.groupby("Dia experimental"):
     # Guardar
     filename = f"latencia_pico_mayor_{dia.replace('/', '-')}_coord_{coord_x}_{coord_y}.png"
     filepath = os.path.join(output_dir, filename)
-    plt.savefig(filepath, dpi=150, transparent=True)
+    plt.savefig(filepath, dpi=300, transparent=True)
     plt.close()
     print(f"[✓] Guardado: {filepath}")
