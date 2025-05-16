@@ -1561,6 +1561,9 @@ if __name__ == "__main__":
 
     submovements_df = pd.read_csv(submov_path)
     aggregated_df   = aggregate_trial_metrics_extended(submovements_df)
+    # Filtramos solo hombro, codo y muñeca
+    parts_of_interest = ['Hombro', 'Codo', 'Muneca','Braquiradial','Bicep','Frente']
+    aggregated_df = aggregated_df[aggregated_df['body_part'].isin(parts_of_interest)]
 
     tt_df = run_ttest_simple_by_site(aggregated_df, selected_metrics, output_comparisons_dir)
     tt_df.to_csv(os.path.join(output_comparisons_dir, 'ttest_simple_by_site.csv'), index=False)
