@@ -93,7 +93,7 @@ shape_colors = {
 metric_labels = {
     "lat_inicio_ms": "Latencia al Inicio",
     "lat_pico_mayor_ms": "Latencia al Pico Mayor",
-    "valor_pico_max": "Amplitud del Pico Máximo",
+    "valor_pico_max": "Amplitud del Pico Mayor",
     "dur_total_ms": "Duración Total",
     "delta_t_pico": "Diferencia Primer-Pico Mayor",
     "num_movs": "Número de Submovimientos"
@@ -632,6 +632,7 @@ def stars(p):
 # NUEVA VARIABLE GLOBAL  –  lista donde iremos apilando los p‑values
 # ─────────────────────────────────────────────────────────────────────────────
 SUMMARY_PVALS = []        # ← se llena dentro de plot_summary_by_filters
+SUMMARY_SAMPLE_SIZES = []
 
 # -------------------------------
 # Funciones de graficación de resumen
@@ -780,6 +781,16 @@ def plot_summary_by_filters(aggregated_df, output_dir, day=None, coord_x=None, c
             for mtype in ['Threshold-based', 'Gaussian-based', 'MinimumJerk']:
                 if model_filter is not None and mtype not in model_filter:
                     continue
+                n_trials = len(df[(df['Estímulo']==stim) & (df['MovementType']==mtype)])
+                SUMMARY_SAMPLE_SIZES.append({
+                    'Day':        day or 'GLOBAL',
+                    'Coord_x':    coord_x,
+                    'Coord_y':    coord_y,
+                    'Body_part':  body_part or 'ALL',
+                    'Stimulus':   stim,
+                    'Model':      mtype,
+                    'n_trials':   n_trials
+                })
                 data = df_stim[df_stim['MovementType'] == mtype][metric].dropna().values
                 if len(data) == 0:
                     continue
@@ -1632,6 +1643,11 @@ if __name__ == "__main__":
     pd.DataFrame(SUMMARY_PVALS)\
     .to_csv(os.path.join(output_comparisons_dir, 'summary_gaussian_pvals.csv'),
             index=False)
+    pd.DataFrame(SUMMARY_SAMPLE_SIZES)\
+    .to_csv(os.path.join(output_comparisons_dir,
+                        'summary_sample_sizes.csv'),
+            index=False)
+    print("Tamaños de muestra guardados en: summary_sample_sizes.csv")
 
     # Sólo grabamos ASSUMPTION_RESULTS si no está vacío
     assump_df = pd.DataFrame(ASSUMPTION_RESULTS)
