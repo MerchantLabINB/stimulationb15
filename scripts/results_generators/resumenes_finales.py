@@ -1473,88 +1473,103 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     plt.close()
     print(f"[Heatmap ANOVA] {title} guardado en: {out_path}")
 
-def run_ttest_simple_by_site(df, metrics=None, output_dir=output_comparisons_dir):
+def run_ttest_duration_by_shape(df, metrics=None, 
+                                shape='rectangular', 
+                                durations=(500, 1000),
+                                body_parts=None,
+                                output_dir=output_comparisons_dir):
     if metrics is None:
         metrics = selected_metrics.copy()
+    if body_parts is None:
+        body_parts = ['Hombro','Codo','Muneca','Braquiradial','Bicep','Frente']
 
     # 1) filtramos Gaussian-based
     sub = (df[df.MovementType=='Gaussian-based']
            .assign(
-               Forma=lambda d: d['Estímulo'].str.split(',',1).str[0].str.lower().str.strip(),
-               Dur_ms=lambda d: d['Estímulo'].apply(extract_duration).round().astype(int)
+               Forma=lambda d: d['Estímulo']
+                                .str.split(',',1).str[0]
+                                .str.lower().str.strip(),
+               Dur_ms=lambda d: d['Estímulo']
+                                .apply(extract_duration)
+                                .round().astype(int)
            ))
 
-    # 2) filtramos hombro/codo/muñeca, rectangular vs rombo a 500 ms
-    desired_parts = ['Hombro','Codo','Muneca','Braquiradial','Bicep','Frente']
-
+    # 2) filtramos por forma fija y dos duraciones
     mask = (
-        (sub['Dur_ms'] == 500) &
-        (sub['Forma'].isin(['rectangular','rombo'])) &
-        (sub['body_part'].isin(desired_parts))
+        (sub['Forma'] == shape) &
+        (sub['Dur_ms'].isin(durations)) &
+        (sub['body_part'].isin(body_parts))
     )
-    filtered = sub[mask]
-    # Verificación rápida de que sólo salen esas seis partes
-    assert set(filtered['body_part'].unique()) <= set(desired_parts), \
-        f"Hay partes fuera de {desired_parts}: {set(filtered['body_part'].unique())}"
-
-    logging.info(f"T-test: {len(filtered)} ensayos tras filtrar formas y bodyparts {desired_parts}")
     sub = sub[mask]
+    logging.info(f"T-test duración “{shape}” {durations}: {len(sub)} ensayos tras filtro")
 
     all_results = []
+    # 3) para cada site, comparamos Dur_ms=500 vs Dur_ms=1000
     for (day, x, y), grp in sub.groupby(['Dia experimental','Coordenada_x','Coordenada_y']):
+        n_total = len(grp)
+        n1 = len(grp[grp.Dur_ms == durations[0]])
+        n2 = len(grp[grp.Dur_ms == durations[1]])
+        logging.info(f"Coordenada ({x},{y}) día {day}: {n_total} ensayos totales "
+                    f"({durations[0]} ms: {n1}, {durations[1]} ms: {n2})")
         site_stats = []
+        # división en dos grupos
+        g1 = grp[grp.Dur_ms == durations[0]]
+        g2 = grp[grp.Dur_ms == durations[1]]
+        
         for m in metrics:
-            g1 = grp.loc[grp.Forma=='rectangular', m].dropna()
-            g2 = grp.loc[grp.Forma=='rombo',       m].dropna()
-
-            # aplicamos transform si toca
+            v1 = g1[m].dropna()
+            v2 = g2[m].dropna()
+            # transformación si aplica
             if m in TRANSFORMS:
-                g1 = TRANSFORMS[m](g1)
-                g2 = TRANSFORMS[m](g2)
-
-            # test de varianzas y normalidad
-            p_lev  = levene(g1, g2).pvalue if len(g1)>1 and len(g2)>1 else np.nan
-            p_sw1  = shapiro(g1).pvalue if len(g1)>2 else np.nan
-            p_sw2  = shapiro(g2).pvalue if len(g2)>2 else np.nan
-
-            # igualamos tamaños
-            n = min(len(g1), len(g2))
-            g1, g2 = g1.sample(n, random_state=1), g2.sample(n, random_state=1)
-
-            if (p_sw1 > .05 and p_sw2 > .05) and n>=2:
-                stat, p_raw = ttest_ind(g1, g2, equal_var=(p_lev>.05))
+                v1 = TRANSFORMS[m](v1); v2 = TRANSFORMS[m](v2)
+            # tests varianza y normalidad
+            p_lev = levene(v1, v2).pvalue if len(v1)>1 and len(v2)>1 else np.nan
+            p_sw1 = shapiro(v1).pvalue if len(v1)>2 else np.nan
+            p_sw2 = shapiro(v2).pvalue if len(v2)>2 else np.nan
+            # igualar tamaños
+            n = min(len(v1), len(v2))
+            v1, v2 = v1.sample(n, random_state=1), v2.sample(n, random_state=1)
+            n_eq = n  # el tamaño que van a tener ambos grupos tras sample()
+            logging.info(
+                f"Coordenada ({x},{y}) día {day}: {n_total} ensayos totales; "
+                f"tras equiparar -> {durations[0]} ms: {n_eq}, {durations[1]} ms: {n_eq}"
+            )
+            # elegir t-test o Mann-Whitney
+            if n>=2 and p_sw1>.05 and p_sw2>.05:
+                stat, p_raw = ttest_ind(v1, v2, equal_var=(p_lev>.05))
             else:
-                stat, p_raw = mannwhitneyu(g1, g2)
-
+                stat, p_raw = mannwhitneyu(v1, v2)
             site_stats.append({'metric': m, 'p_raw': p_raw})
             all_results.append({
                 'day': day, 'coord_x': x, 'coord_y': y,
+                'shape': shape, 'dur1': durations[0], 'dur2': durations[1],
                 'metric': m, 'stat': stat, 'p_raw': p_raw,
                 'p_levene': p_lev, 'p_shapiro1': p_sw1, 'p_shapiro2': p_sw2
             })
 
-        # 3) dibujamos el heatmap
-        heat_df = pd.DataFrame(site_stats).set_index('metric') \
+        # 4) heatmap de p-values
+        heat_df = pd.DataFrame(site_stats).set_index('metric')\
                      .rename(index=lambda m: metric_labels[m])
-        annot   = heat_df['p_raw'].apply(lambda p: stars(p) if pd.notna(p) else 'NA').to_frame()
-
+        annot = heat_df['p_raw'].apply(lambda p: stars(p) if pd.notna(p) else 'NA').to_frame()
         plt.figure(figsize=(6, len(metrics)*0.5+1))
-        ax = sns.heatmap(
-            heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
-            annot=annot, fmt='', linewidths=0.5,
-            cbar_kws={'label':'p-value'}
-        )
-        ax.set_xticks([0.5])
-        ax.set_xticklabels(['Rectangular vs Rombo (500 ms)'], ha='center')
-        ax.set_title(f"Coordenada ({x},{y})")
-        ax.set_ylabel('Métrica')
-        plt.tight_layout()
+        ax = sns.heatmap(heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
+                         annot=annot, fmt='', linewidths=0.5,
+                         cbar_kws={'label':'p-value'})
+        ax.set_ylabel("Métrica")          # ← aquí cambias "metric" por "Métrica"
 
-        fn = sanitize_filename(f"ttest_rect_vs_rombo_{day}_{x}_{y}.png")
+        ax.set_xticks([0.5])
+        ax.set_xticklabels(
+            [f"{shape.capitalize()} {durations[0]} vs {durations[1]} ms"],
+            ha='center'
+        )
+        ax.set_title(f"Coordenada ({x},{y})")
+        plt.tight_layout()
+        fn = sanitize_filename(f"ttest_{shape}_{durations[0]}vs{durations[1]}_{day}_{x}_{y}.png")
         plt.savefig(os.path.join(output_dir, fn), dpi=150, bbox_inches='tight')
         plt.close()
 
     return pd.DataFrame(all_results)
+
 
 
 if __name__ == "__main__":
@@ -1573,10 +1588,20 @@ if __name__ == "__main__":
     parts_of_interest = ['Hombro', 'Codo', 'Muneca','Braquiradial','Bicep','Frente']
     aggregated_df = aggregated_df[aggregated_df['body_part'].isin(parts_of_interest)]
 
-    tt_df = run_ttest_simple_by_site(aggregated_df, selected_metrics, output_comparisons_dir)
-    tt_df.to_csv(os.path.join(output_comparisons_dir, 'ttest_simple_by_site.csv'), index=False)
+    tt_df = run_ttest_duration_by_shape(
+        aggregated_df,
+        metrics=selected_metrics,
+        shape='rectangular',
+        durations=(500,1000),
+        body_parts=parts_of_interest,
+        output_dir=output_comparisons_dir
+    )
+    tt_df.to_csv(os.path.join(output_comparisons_dir,
+                                'ttest_duracion_rect_500vs1000.csv'),
+                index=False)
 
-    
+
+    """
     # 2) Filtrado global Gaussian-based
     df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
 
@@ -1680,4 +1705,6 @@ if __name__ == "__main__":
 
     
     
+
+    """
     print("¡Análisis completo!")
