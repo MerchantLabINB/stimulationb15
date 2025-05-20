@@ -1733,8 +1733,23 @@ if __name__ == "__main__":
                     'ttest_formas_rect_vs_rombo_500.csv'),
         index=False
     )
-    """
+    # --- nuevo contraste: rectangular vs rampa ascendente a 1000 ms
+    tt_df = run_ttest_shape_by_duration(
+        aggregated_df,
+        metrics=selected_metrics,
+        shapes=('rectangular', 'rampa ascendente'),
+        duration=1000,
+        body_parts=parts_of_interest,
+        output_dir=output_comparisons_dir
+    )
+    tt_df.to_csv(
+        os.path.join(output_comparisons_dir,
+                    'ttest_formas_rect_vs_rampa_1000.csv'),
+        index=False
+    )
 
+    
+"""
     # 2) Filtrado global Gaussian-based
     df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
 
@@ -1842,4 +1857,6 @@ if __name__ == "__main__":
     
     print("¡Análisis completo!")
     
-    """
+    
+
+"""
