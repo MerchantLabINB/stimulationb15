@@ -1459,7 +1459,7 @@ def plot_heatmap_gauss_from_anova(aggregated_df, output_dir, title):
     ax = sns.heatmap(
         heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
         annot=annot, fmt="", linewidths=0.5,
-        cbar_kws={'label': 'p‑value'}
+        cbar_kws={'label': 'valores p'}
     )
     ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
@@ -1534,6 +1534,7 @@ def run_ttest_duration_by_shape(df, metrics=None,
                 f"Coordenada ({x},{y}) día {day}: {n_total} ensayos totales; "
                 f"tras equiparar -> {durations[0]} ms: {n_eq}, {durations[1]} ms: {n_eq}"
             )
+            
             # elegir t-test o Mann-Whitney
             if n>=2 and p_sw1>.05 and p_sw2>.05:
                 stat, p_raw = ttest_ind(v1, v2, equal_var=(p_lev>.05))
@@ -1554,14 +1555,22 @@ def run_ttest_duration_by_shape(df, metrics=None,
         plt.figure(figsize=(6, len(metrics)*0.5+1))
         ax = sns.heatmap(heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
                          annot=annot, fmt='', linewidths=0.5,
-                         cbar_kws={'label':'p-value'})
-        ax.set_ylabel("Métrica")          # ← aquí cambias "metric" por "Métrica"
+                         cbar_kws={'label':'valores p'})
+        
+        # — aumentamos ticks y labels —
+        ax.tick_params(axis='x', labelsize=14)      # escala etiquetas eje x
+        ax.tick_params(axis='y', labelsize=14)      # escala etiquetas eje y
+        ax.set_ylabel("Métrica", fontsize = 14)          # ← aquí cambias "metric" por "Métrica"
 
         ax.set_xticks([0.5])
         ax.set_xticklabels(
             [f"{shape.capitalize()} {durations[0]} vs {durations[1]} ms"],
-            ha='center'
+            fontsize=14, ha='center'
         )
+        # colorbar
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=14)
+        cbar.set_label('valores p', fontsize=14)
         ax.set_title(f"Coordenada ({x},{y})")
         plt.tight_layout()
         fn = sanitize_filename(f"ttest_{shape}_{durations[0]}vs{durations[1]}_{day}_{x}_{y}.png")
@@ -1570,6 +1579,117 @@ def run_ttest_duration_by_shape(df, metrics=None,
 
     return pd.DataFrame(all_results)
 
+def run_ttest_shape_by_duration(
+    df,
+    metrics=None,
+    shapes=('rectangular','rombo'),
+    duration=500,
+    body_parts=None,
+    output_dir=output_comparisons_dir
+):
+    """
+    Igual que run_ttest_duration_by_shape, pero compara dos formas
+    (shapes) a una duración fija (duration) en lugar de dos duraciones.
+    """
+    if metrics is None:
+        metrics = selected_metrics.copy()
+    if body_parts is None:
+        body_parts = ['Hombro','Codo','Muneca','Braquiradial','Bicep','Frente']
+
+    # 1) filtramos Gaussian-based y extraemos Forma y Dur_ms
+    sub = (df[df.MovementType=='Gaussian-based']
+           .assign(
+               Forma=lambda d: d['Estímulo']
+                                .str.split(',',1).str[0]
+                                .str.lower().str.strip(),
+               Dur_ms=lambda d: d['Estímulo']
+                                .apply(extract_duration)
+                                .round().astype(int)
+           ))
+
+    # 2) filtramos por duración fija y dos formas
+    mask = (
+        (sub['Dur_ms'] == duration) &
+        (sub['Forma'].isin(shapes)) &
+        (sub['body_part'].isin(body_parts))
+    )
+    sub = sub[mask]
+    logging.info(f"T-test formas {shapes} a {duration} ms: {len(sub)} ensayos tras filtro")
+
+    all_results = []
+    # 3) para cada site, comparamos Forma=shapes[0] vs Forma=shapes[1]
+    for (day, x, y), grp in sub.groupby(['Dia experimental','Coordenada_x','Coordenada_y']):
+        logging.info(f"Coordenada ({x},{y}) día {day}: {len(grp)} ensayos totales "
+                     f"({shapes[0]}: {len(grp[grp.Forma==shapes[0]])}, "
+                     f"{shapes[1]}: {len(grp[grp.Forma==shapes[1]])})")
+        g1 = grp[grp.Forma == shapes[0]]
+        g2 = grp[grp.Forma == shapes[1]]
+
+        site_stats = []
+        for m in metrics:
+            v1 = g1[m].dropna()
+            v2 = g2[m].dropna()
+            # igualar tamaños
+            n = min(len(v1), len(v2))
+            v1, v2 = v1.sample(n, random_state=1), v2.sample(n, random_state=1)
+            logging.info(f"  tras equiparar -> {shapes[0]}: {n}, {shapes[1]}: {n}")
+
+            # tests varianza y normalidad
+            p_lev  = levene(v1, v2).pvalue if n>1 else np.nan
+            p_sw1  = shapiro(v1).pvalue  if n>2 else np.nan
+            p_sw2  = shapiro(v2).pvalue  if n>2 else np.nan
+
+            # elegir t-test o Mann-Whitney
+            if n>=2 and p_sw1>.05 and p_sw2>.05:
+                stat, p_raw = ttest_ind(v1, v2, equal_var=(p_lev>.05))
+            else:
+                stat, p_raw = mannwhitneyu(v1, v2)
+
+            site_stats.append({'metric': m, 'p_raw': p_raw})
+            all_results.append({
+                'day': day, 'coord_x': x, 'coord_y': y,
+                'shape1': shapes[0], 'shape2': shapes[1],
+                'duration': duration,
+                'metric': m, 'stat': stat, 'p_raw': p_raw,
+                'p_levene': p_lev, 'p_shapiro1': p_sw1, 'p_shapiro2': p_sw2
+            })
+
+        # 4) heatmap de p-values
+        heat_df = (pd.DataFrame(site_stats)
+                     .set_index('metric')
+                     .rename(index=lambda m: metric_labels[m]))
+        annot = heat_df['p_raw'].apply(lambda p: stars(p) if pd.notna(p) else 'NA').to_frame()
+
+        plt.figure(figsize=(6, len(metrics)*0.5+1))
+        ax = sns.heatmap(
+            heat_df, cmap="Greys_r", vmin=0, vmax=0.05,
+            annot=annot, fmt='', linewidths=0.5,
+            cbar_kws={'label':'valores p'}
+        )
+        # dentro de cada iteración, justo después de crear el heatmap…
+        ax.tick_params(axis='x', labelsize=14)
+        ax.tick_params(axis='y', labelsize=14)
+
+        ax.set_ylabel("Métrica", fontsize=14)
+        ax.set_xticks([0.5])
+        ax.set_xticklabels(
+            [f"{shapes[0].capitalize()} vs {shapes[1].capitalize()} ({duration} ms)"],fontsize=14,
+            ha='center'
+        )
+        # colorbar
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=14)
+        cbar.set_label('valores p', fontsize=14)
+        ax.set_title(f"Coordenada ({x},{y})")
+        plt.tight_layout()
+
+        fn = sanitize_filename(
+            f"ttest_{shapes[0]}_vs_{shapes[1]}_{duration}ms_{day}_{x}_{y}.png"
+        )
+        plt.savefig(os.path.join(output_dir, fn), dpi=150, bbox_inches='tight')
+        plt.close()
+
+    return pd.DataFrame(all_results)
 
 
 if __name__ == "__main__":
@@ -1600,8 +1720,21 @@ if __name__ == "__main__":
                                 'ttest_duracion_rect_500vs1000.csv'),
                 index=False)
 
-
+    tt_df = run_ttest_shape_by_duration(
+        aggregated_df,
+        metrics=selected_metrics,
+        shapes=('rectangular','rombo'),
+        duration=500,
+        body_parts=parts_of_interest,
+        output_dir=output_comparisons_dir
+    )
+    tt_df.to_csv(
+        os.path.join(output_comparisons_dir,
+                    'ttest_formas_rect_vs_rombo_500.csv'),
+        index=False
+    )
     """
+
     # 2) Filtrado global Gaussian-based
     df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
 
@@ -1706,5 +1839,7 @@ if __name__ == "__main__":
     
     
 
-    """
+    
     print("¡Análisis completo!")
+    
+    """
