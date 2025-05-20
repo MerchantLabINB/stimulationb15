@@ -1485,11 +1485,19 @@ def run_ttest_simple_by_site(df, metrics=None, output_dir=output_comparisons_dir
            ))
 
     # 2) filtramos hombro/codo/muñeca, rectangular vs rombo a 500 ms
+    desired_parts = ['Hombro','Codo','Muneca','Braquiradial','Bicep','Frente']
+
     mask = (
         (sub['Dur_ms'] == 500) &
         (sub['Forma'].isin(['rectangular','rombo'])) &
-        (sub['body_part'].isin(['Hombro','Codo','Muneca']))
+        (sub['body_part'].isin(desired_parts))
     )
+    filtered = sub[mask]
+    # Verificación rápida de que sólo salen esas seis partes
+    assert set(filtered['body_part'].unique()) <= set(desired_parts), \
+        f"Hay partes fuera de {desired_parts}: {set(filtered['body_part'].unique())}"
+
+    logging.info(f"T-test: {len(filtered)} ensayos tras filtrar formas y bodyparts {desired_parts}")
     sub = sub[mask]
 
     all_results = []
