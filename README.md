@@ -64,7 +64,6 @@ Herramientas para recodificar y recortar videos experimentales. Incluye scripts 
 
 - `environment.yml`: archivo con las dependencias exactas necesarias para recrear el ambiente.
 - `README.md`: este archivo.
-- `estructura_repositorio_*.txt`: árbol de directorios con organización del código.
 
 ---
 
