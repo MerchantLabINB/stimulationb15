@@ -35,7 +35,7 @@ Para asegurar la reproducibilidad de los análisis, se utilizó un entorno de Co
 ```bash
 conda env create -f environment.yml
 conda activate stimulationb15
-
+```
 ## 🗂️ Estructura del repositorio: `scripts/`
 
 La carpeta `scripts` contiene los módulos principales del proyecto, organizados según su función:
