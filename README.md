@@ -84,4 +84,4 @@ Para dudas, reproducibilidad o colaboración:
 
 **Bruno Bustos Alarcón**  
 Correo: brunobustos@neurotechx.com  
-Sitio web del laboratorio: [MerchantLab]([http://merchantlab.inb.unam.mx](https://hugomerchant.wixsite.com/misitio))
+Sitio web del laboratorio: [MerchantLab](https://hugomerchant.wixsite.com/misitio)
