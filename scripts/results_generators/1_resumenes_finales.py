@@ -1749,7 +1749,7 @@ if __name__ == "__main__":
     )
 
     
-"""
+
     # 2) Filtrado global Gaussian-based
     df_global = prep_for_anova(aggregated_df, model='Gaussian-based', metric=None)
 
@@ -1856,7 +1856,3 @@ if __name__ == "__main__":
 
     
     print("¡Análisis completo!")
-    
-    
-
-"""
