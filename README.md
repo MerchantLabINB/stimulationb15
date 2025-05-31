@@ -34,7 +34,7 @@ Para asegurar la reproducibilidad de los análisis, se utilizó un entorno de Co
 
 ```bash
 conda env create -f environment.yml
-conda activate stimulationb15
+conda activate stream_board
 ```
 ## 🗂️ Estructura del repositorio: `scripts/`
 
