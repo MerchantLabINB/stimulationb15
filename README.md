@@ -1,6 +1,6 @@
 # stimulationb15
 
-Repositorio oficial asociado a la tesis **"Microestimulación eléctrica en la corteza motora del primate y la evaluación cinemática de las conductas evocadas"**. Este conjunto de scripts y herramientas fue desarrollado para ejecutar tareas de estimulación intracortical prolongada (ICMS), adquisición de datos conductuales en primates, análisis cinemático automatizado con DeepLabCut y análisis estadístico riguroso de los movimientos evocados.
+Repositorio oficial asociado a la tesis **"Microestimulación eléctrica en la corteza motora del primate y la evaluación cinemática de las conductas evocadas"**. Este conjunto de scripts y herramientas fue desarrollado para ejecutar tareas de estimulación intracortical prolongada (ICMS), adquisición de datos conductuales en primates, análisis cinemático automatizado con DeepLabCut y análisis estadístico de los movimientos evocados.
 
 ## 🧠 Descripción general
 
