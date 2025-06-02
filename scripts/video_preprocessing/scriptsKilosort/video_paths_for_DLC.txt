@@ -1,0 +1,1958 @@
+video1: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_190231533_segment_1771_17710.mp4
+video2: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_190231533_segment_2643_26429.mp4
+video3: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_190231533_segment_860_8599.mp4
+video4: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191526862_segment_14906_14960.mp4
+video5: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191526862_segment_15669_156689.mp4
+video6: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191526862_segment_2288_22879.mp4
+video7: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191526862_segment_4954_49539.mp4
+video8: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191526862_segment_6031_60310.mp4
+video9: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191905880_segment_1419_14189.mp4
+video10: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191905880_segment_2281_22809.mp4
+video11: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191905880_segment_3654_36539.mp4
+video12: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191905880_segment_5151_51509.mp4
+video13: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_191905880_segment_6112_61119.mp4
+video14: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192245413_segment_3039_30390.mp4
+video15: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192245413_segment_5048_50479.mp4
+video16: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192245413_segment_5913_59130.mp4
+video17: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192245413_segment_6769_67689.mp4
+video18: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192245413_segment_7599_75989.mp4
+video19: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_1448_14480.mp4
+video20: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_2637_26370.mp4
+video21: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_3544_35439.mp4
+video22: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_4356_43560.mp4
+video23: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_5673_56729.mp4
+video24: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192458831_segment_7093_70930.mp4
+video25: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192829762_segment_1456_14560.mp4
+video26: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192829762_segment_2551_25510.mp4
+video27: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192829762_segment_3588_35880.mp4
+video28: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192829762_segment_4857_48570.mp4
+video29: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_192829762_segment_6389_63890.mp4
+video30: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_193236972_segment_3220_32200.mp4
+video31: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_193236972_segment_4152_41520.mp4
+video32: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_193236972_segment_6007_6070.mp4
+video33: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_193236972_segment_7296_72959.mp4
+video34: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240509_193236972_segment_9391_93909.mp4
+video35: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183352214_segment_1319_13189.mp4
+video36: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183352214_segment_2610_26100.mp4
+video37: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183352214_segment_4217_42170.mp4
+video38: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183352214_segment_5507_5570.mp4
+video39: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_10052_100519.mp4
+video40: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_10831_108310.mp4
+video41: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_11493_114930.mp4
+video42: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_1620_16199.mp4
+video43: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_3228_32280.mp4
+video44: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_5013_50130.mp4
+video45: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_5672_56719.mp4
+video46: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_6801_6810.mp4
+video47: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_8114_81140.mp4
+video48: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_9142_91420.mp4
+video49: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183544802_segment_987_9869.mp4
+video50: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_10817_108170.mp4
+video51: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_11956_119560.mp4
+video52: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_12856_128560.mp4
+video53: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_14230_142300.mp4
+video54: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_14962_149620.mp4
+video55: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_16100_1610.mp4
+video56: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_1613_16129.mp4
+video57: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_5100_510.mp4
+video58: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_6800_680.mp4
+video59: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_8097_80969.mp4
+video60: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_183853353_segment_9627_96269.mp4
+video61: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_10013_100129.mp4
+video62: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_10779_107790.mp4
+video63: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_11554_115540.mp4
+video64: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_1554_15539.mp4
+video65: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_3067_30670.mp4
+video66: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_4505_4549.mp4
+video67: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_5395_53950.mp4
+video68: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_6841_68409.mp4
+video69: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_7661_76609.mp4
+video70: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_8468_84680.mp4
+video71: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184433293_segment_9316_93159.mp4
+video72: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_10302_10319.mp4
+video73: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_12347_123469.mp4
+video74: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_2098_20980.mp4
+video75: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_3189_31890.mp4
+video76: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_4157_41570.mp4
+video77: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_4950_49500.mp4
+video78: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_5560_55600.mp4
+video79: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_6311_63109.mp4
+video80: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_7126_71260.mp4
+video81: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_7954_79540.mp4
+video82: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_184757138_segment_8695_86950.mp4
+video83: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_10215_102150.mp4
+video84: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_11256_112560.mp4
+video85: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_1277_12769.mp4
+video86: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_2011_20109.mp4
+video87: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_2947_29469.mp4
+video88: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_4167_41670.mp4
+video89: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_5073_50729.mp4
+video90: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_6304_6339.mp4
+video91: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_7041_70409.mp4
+video92: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_7632_76319.mp4
+video93: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_8452_84519.mp4
+video94: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185239261_segment_9120_91200.mp4
+video95: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_10541_105409.mp4
+video96: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_12365_123650.mp4
+video97: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_1513_15130.mp4
+video98: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_2173_21730.mp4
+video99: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_4752_47520.mp4
+video100: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_5771_57710.mp4
+video101: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_6394_63939.mp4
+video102: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_7068_70680.mp4
+video103: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_757_7570.mp4
+video104: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_7770_77700.mp4
+video105: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_8523_85230.mp4
+video106: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185600664_segment_9293_92930.mp4
+video107: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_10612_106120.mp4
+video108: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_11479_114790.mp4
+video109: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_12324_123239.mp4
+video110: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_2909_2989.mp4
+video111: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_4016_40159.mp4
+video112: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_4951_49509.mp4
+video113: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_6011_60109.mp4
+video114: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_7190_71900.mp4
+video115: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_7996_79959.mp4
+video116: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_8606_8660.mp4
+video117: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_9239_92390.mp4
+video118: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_185908180_segment_9863_98629.mp4
+video119: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_10667_106670.mp4
+video120: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_11339_113390.mp4
+video121: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_1540_15400.mp4
+video122: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_2504_2539.mp4
+video123: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_3498_34979.mp4
+video124: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_4851_48509.mp4
+video125: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_5914_59140.mp4
+video126: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_6661_66609.mp4
+video127: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_7314_73140.mp4
+video128: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_8034_80340.mp4
+video129: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_8835_88349.mp4
+video130: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190212033_segment_9861_98609.mp4
+video131: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_10230_102299.mp4
+video132: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_10861_108609.mp4
+video133: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_1680_16800.mp4
+video134: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_2290_22899.mp4
+video135: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_3837_38369.mp4
+video136: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_4676_46759.mp4
+video137: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_5449_54490.mp4
+video138: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_6248_62479.mp4
+video139: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_7393_73930.mp4
+video140: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_8428_84280.mp4
+video141: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240515_190547882_segment_9208_9279.mp4
+video142: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_10955_109549.mp4
+video143: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_11858_118579.mp4
+video144: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_1567_15669.mp4
+video145: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_2268_22679.mp4
+video146: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_2856_28559.mp4
+video147: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_3708_3779.mp4
+video148: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_4698_46979.mp4
+video149: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_5688_56880.mp4
+video150: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_7715_77150.mp4
+video151: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_150354924_segment_8655_86549.mp4
+video152: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_1140_11400.mp4
+video153: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_1730_17300.mp4
+video154: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_2387_23870.mp4
+video155: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_2769_27690.mp4
+video156: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_3354_33539.mp4
+video157: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_4118_41179.mp4
+video158: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_4598_45979.mp4
+video159: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_5502_5520.mp4
+video160: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_6325_63250.mp4
+video161: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_6916_69159.mp4
+video162: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_152236707_segment_7723_77230.mp4
+video163: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_1493_14929.mp4
+video164: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_2382_23820.mp4
+video165: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_2906_2959.mp4
+video166: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_3698_36979.mp4
+video167: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_4500_450.mp4
+video168: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_5079_50789.mp4
+video169: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_5857_58570.mp4
+video170: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_6420_64200.mp4
+video171: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_6923_69230.mp4
+video172: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_7834_78340.mp4
+video173: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_8205_8249.mp4
+video174: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_8796_87959.mp4
+video175: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153104163_segment_9256_92560.mp4
+video176: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_1415_14150.mp4
+video177: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_1889_18890.mp4
+video178: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_2616_26160.mp4
+video179: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_3286_32859.mp4
+video180: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_3939_39390.mp4
+video181: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_4721_47210.mp4
+video182: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_5432_54320.mp4
+video183: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_6011_60109.mp4
+video184: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_6572_65719.mp4
+video185: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_7149_71489.mp4
+video186: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_7877_78769.mp4
+video187: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153538782_segment_865_8650.mp4
+video188: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_1426_14259.mp4
+video189: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_2037_20370.mp4
+video190: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_2669_26690.mp4
+video191: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_3244_32439.mp4
+video192: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_3743_37429.mp4
+video193: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_4315_43149.mp4
+video194: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_4938_49380.mp4
+video195: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_5533_55329.mp4
+video196: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_6157_61570.mp4
+video197: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_6696_66959.mp4
+video198: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_7152_71519.mp4
+video199: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_153908255_segment_915_9150.mp4
+video200: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_1391_13910.mp4
+video201: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_2022_20219.mp4
+video202: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_2731_27309.mp4
+video203: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_3406_3460.mp4
+video204: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_3937_39369.mp4
+video205: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_4691_46909.mp4
+video206: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_4985_49850.mp4
+video207: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_5440_54399.mp4
+video208: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_6028_60280.mp4
+video209: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_6636_66359.mp4
+video210: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_7166_71659.mp4
+video211: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154118587_segment_845_8449.mp4
+video212: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_1401_149.mp4
+video213: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_2029_20289.mp4
+video214: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_2478_24780.mp4
+video215: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_5141_51409.mp4
+video216: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_5671_56710.mp4
+video217: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_6185_61850.mp4
+video218: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_6598_65980.mp4
+video219: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_7258_72579.mp4
+video220: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154347497_segment_801_89.mp4
+video221: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_1515_15150.mp4
+video222: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_2065_20649.mp4
+video223: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_2719_27190.mp4
+video224: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_3231_32310.mp4
+video225: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_3912_39119.mp4
+video226: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_4749_47490.mp4
+video227: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_5258_52579.mp4
+video228: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_5687_56869.mp4
+video229: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_6226_62259.mp4
+video230: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_6814_68140.mp4
+video231: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_7473_74730.mp4
+video232: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_154701440_segment_936_9359.mp4
+video233: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_1027_10269.mp4
+video234: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_1485_14849.mp4
+video235: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_2045_20449.mp4
+video236: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_2524_25239.mp4
+video237: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_3411_34109.mp4
+video238: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_4033_40329.mp4
+video239: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_4643_46429.mp4
+video240: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_5105_5149.mp4
+video241: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_5509_5590.mp4
+video242: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_6170_61700.mp4
+video243: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_6866_68659.mp4
+video244: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240518_155041665_segment_7870_78700.mp4
+video245: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_2148_21480.mp4
+video246: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_2944_29440.mp4
+video247: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_3672_36719.mp4
+video248: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_4566_45659.mp4
+video249: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_5516_55159.mp4
+video250: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191420471_segment_6302_6320.mp4
+video251: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191651242_segment_1134_11339.mp4
+video252: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191651242_segment_2050_20500.mp4
+video253: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191651242_segment_2644_26440.mp4
+video254: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191651242_segment_3180_31800.mp4
+video255: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_191651242_segment_3675_36750.mp4
+video256: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_1427_14269.mp4
+video257: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_2402_2419.mp4
+video258: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_3633_36329.mp4
+video259: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_4399_43990.mp4
+video260: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_5203_5230.mp4
+video261: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_5879_58789.mp4
+video262: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_6656_66560.mp4
+video263: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_7595_75950.mp4
+video264: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_8339_83390.mp4
+video265: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_9045_90450.mp4
+video266: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192044842_segment_9626_96260.mp4
+video267: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_1593_15929.mp4
+video268: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_2164_21640.mp4
+video269: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_3163_31629.mp4
+video270: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_3759_37590.mp4
+video271: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_4699_46990.mp4
+video272: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_5344_53439.mp4
+video273: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_6386_63859.mp4
+video274: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_7129_71290.mp4
+video275: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_8030_80299.mp4
+video276: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192426160_segment_9435_94349.mp4
+video277: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_1401_149.mp4
+video278: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_2242_22420.mp4
+video279: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_3185_31850.mp4
+video280: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_3956_39560.mp4
+video281: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_4454_44539.mp4
+video282: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_5159_51590.mp4
+video283: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_5808_5879.mp4
+video284: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_6748_67480.mp4
+video285: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_7742_77420.mp4
+video286: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_8466_84659.mp4
+video287: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_857_8570.mp4
+video288: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_192913087_segment_9082_90819.mp4
+video289: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_1217_12169.mp4
+video290: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_2118_21179.mp4
+video291: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_2858_28579.mp4
+video292: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_3445_34450.mp4
+video293: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_4158_41579.mp4
+video294: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_4840_48399.mp4
+video295: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_5533_55329.mp4
+video296: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_634_6339.mp4
+video297: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_6407_6469.mp4
+video298: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_6972_69719.mp4
+video299: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_7712_77120.mp4
+video300: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193310834_segment_8388_83879.mp4
+video301: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_1629_16289.mp4
+video302: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_2223_22230.mp4
+video303: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_2804_2839.mp4
+video304: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_3508_3579.mp4
+video305: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_4229_42289.mp4
+video306: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_4648_46479.mp4
+video307: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_5099_50990.mp4
+video308: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_5524_55240.mp4
+video309: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_6103_6130.mp4
+video310: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_6536_65359.mp4
+video311: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_7037_70370.mp4
+video312: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_193847809_segment_763_7629.mp4
+video313: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_1511_15109.mp4
+video314: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_2009_2089.mp4
+video315: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_3354_33539.mp4
+video316: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_4051_40509.mp4
+video317: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_5263_52630.mp4
+video318: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_5661_56609.mp4
+video319: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_6078_60780.mp4
+video320: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_6679_66790.mp4
+video321: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_7075_70750.mp4
+video322: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_7510_7599.mp4
+video323: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_7888_78879.mp4
+video324: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_8284_82840.mp4
+video325: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194123764_segment_924_9240.mp4
+video326: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_1810_18100.mp4
+video327: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_2639_26390.mp4
+video328: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_3418_34179.mp4
+video329: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_4010_40100.mp4
+video330: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_4543_45429.mp4
+video331: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_5056_50560.mp4
+video332: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_5306_5360.mp4
+video333: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_5808_5879.mp4
+video334: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_6135_61350.mp4
+video335: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_6478_64780.mp4
+video336: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_7295_72950.mp4
+video337: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194358295_segment_960_9599.mp4
+video338: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_1176_11759.mp4
+video339: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_1802_1819.mp4
+video340: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_2378_23780.mp4
+video341: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_3082_30820.mp4
+video342: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_3688_36880.mp4
+video343: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_4191_41909.mp4
+video344: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_4484_44840.mp4
+video345: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_4872_48719.mp4
+video346: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_5578_55780.mp4
+video347: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_6049_60490.mp4
+video348: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_6540_65400.mp4
+video349: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_194611500_segment_6972_69719.mp4
+video350: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_195141827_segment_1371_13710.mp4
+video351: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_195141827_segment_2016_20160.mp4
+video352: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_195141827_segment_2659_26589.mp4
+video353: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_195141827_segment_3082_30820.mp4
+video354: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240523_195141827_segment_792_7919.mp4
+video355: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_182817246_segment_1337_13369.mp4
+video356: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_182817246_segment_1773_17730.mp4
+video357: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_182817246_segment_3183_31829.mp4
+video358: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_185844967_segment_1478_14779.mp4
+video359: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_185844967_segment_2213_22129.mp4
+video360: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_185844967_segment_2867_28670.mp4
+video361: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_1102_1119.mp4
+video362: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_1609_1689.mp4
+video363: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_2171_21710.mp4
+video364: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_2881_28809.mp4
+video365: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_3531_35310.mp4
+video366: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_4205_4249.mp4
+video367: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_4782_47820.mp4
+video368: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_5577_55770.mp4
+video369: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_6380_63799.mp4
+video370: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_6975_69750.mp4
+video371: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_7631_76310.mp4
+video372: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190146903_segment_8017_80170.mp4
+video373: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_1126_11259.mp4
+video374: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_1712_17120.mp4
+video375: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_2329_23289.mp4
+video376: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_3126_31260.mp4
+video377: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_3776_37759.mp4
+video378: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_4543_45429.mp4
+video379: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_5096_50960.mp4
+video380: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_5715_57149.mp4
+video381: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_6360_63600.mp4
+video382: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_6898_68980.mp4
+video383: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_7559_75590.mp4
+video384: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_8069_80689.mp4
+video385: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190429487_segment_8526_85260.mp4
+video386: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_1078_10779.mp4
+video387: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_1713_17129.mp4
+video388: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_2493_24929.mp4
+video389: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_3243_32429.mp4
+video390: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_4079_40789.mp4
+video391: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_4609_4690.mp4
+video392: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_474_4740.mp4
+video393: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_5256_52560.mp4
+video394: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_5866_58659.mp4
+video395: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_6458_64579.mp4
+video396: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_190733224_segment_7012_70120.mp4
+video397: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_1707_1770.mp4
+video398: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_2511_25109.mp4
+video399: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_3345_33450.mp4
+video400: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_4035_40350.mp4
+video401: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_4740_47399.mp4
+video402: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_5240_52399.mp4
+video403: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_5990_59899.mp4
+video404: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_6578_65780.mp4
+video405: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_7305_7349.mp4
+video406: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_7850_78500.mp4
+video407: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_8357_83569.mp4
+video408: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191025834_segment_854_8539.mp4
+video409: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_1242_12419.mp4
+video410: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_1873_18730.mp4
+video411: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_2591_25910.mp4
+video412: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_3214_32140.mp4
+video413: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_3932_39320.mp4
+video414: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_4706_4760.mp4
+video415: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_5160_51600.mp4
+video416: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_5791_57909.mp4
+video417: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_6402_6419.mp4
+video418: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_6936_69359.mp4
+video419: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_704_740.mp4
+video420: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191425019_segment_7547_75469.mp4
+video421: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_1398_13980.mp4
+video422: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_2368_23679.mp4
+video423: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_3204_3239.mp4
+video424: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_4048_40479.mp4
+video425: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_4777_47770.mp4
+video426: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_5475_54750.mp4
+video427: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_561_5610.mp4
+video428: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_6119_61189.mp4
+video429: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_6793_67930.mp4
+video430: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_7769_77689.mp4
+video431: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_8387_83870.mp4
+video432: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_191702830_segment_9107_9169.mp4
+video433: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_1181_11810.mp4
+video434: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_1702_1719.mp4
+video435: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_2397_23969.mp4
+video436: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_2987_29870.mp4
+video437: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_3504_3539.mp4
+video438: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_4117_41170.mp4
+video439: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_4881_48810.mp4
+video440: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_5265_52649.mp4
+video441: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_5550_55500.mp4
+video442: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_584_5839.mp4
+video443: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_6083_60829.mp4
+video444: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_192105054_segment_6561_65609.mp4
+video445: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_1540_15400.mp4
+video446: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_2253_22530.mp4
+video447: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_3041_30410.mp4
+video448: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_3763_37630.mp4
+video449: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_4407_4470.mp4
+video450: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_5040_50399.mp4
+video451: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_5657_56570.mp4
+video452: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_6277_62770.mp4
+video453: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_6946_69459.mp4
+video454: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_7464_74640.mp4
+video455: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_8061_80609.mp4
+video456: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_193807515_segment_8843_88430.mp4
+video457: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194108473_segment_1186_11859.mp4
+video458: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194108473_segment_1612_16120.mp4
+video459: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194108473_segment_2231_22309.mp4
+video460: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194108473_segment_2833_28329.mp4
+video461: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194108473_segment_3391_33909.mp4
+video462: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_1111_11109.mp4
+video463: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_1839_18390.mp4
+video464: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_2320_23199.mp4
+video465: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_2936_29359.mp4
+video466: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_3555_35549.mp4
+video467: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_3935_39350.mp4
+video468: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_4430_44299.mp4
+video469: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_4926_49259.mp4
+video470: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_5459_54590.mp4
+video471: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_5856_58560.mp4
+video472: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_6327_63270.mp4
+video473: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_634_6339.mp4
+video474: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_6815_68150.mp4
+video475: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194433638_segment_7235_72349.mp4
+video476: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_1017_10169.mp4
+video477: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_1565_15650.mp4
+video478: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_2105_2150.mp4
+video479: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_2880_28800.mp4
+video480: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_3216_32159.mp4
+video481: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_3760_37600.mp4
+video482: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_4328_43280.mp4
+video483: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_4904_4939.mp4
+video484: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_533_5330.mp4
+video485: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_5354_53539.mp4
+video486: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_5795_57950.mp4
+video487: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_194830254_segment_6432_64319.mp4
+video488: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_1142_11419.mp4
+video489: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_1664_16640.mp4
+video490: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_2275_22750.mp4
+video491: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_2599_25989.mp4
+video492: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_3123_31230.mp4
+video493: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_3862_38619.mp4
+video494: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_4476_44759.mp4
+video495: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_5055_50549.mp4
+video496: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_5668_56679.mp4
+video497: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_6057_60570.mp4
+video498: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_6645_66450.mp4
+video499: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195052721_segment_7229_72290.mp4
+video500: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_1380_13800.mp4
+video501: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_1931_19309.mp4
+video502: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_2634_26339.mp4
+video503: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_2979_29789.mp4
+video504: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_3399_33990.mp4
+video505: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_3930_39299.mp4
+video506: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_4396_43960.mp4
+video507: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_4757_47570.mp4
+video508: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_5242_52420.mp4
+video509: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_5775_57750.mp4
+video510: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_6330_63299.mp4
+video511: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195320182_segment_663_6629.mp4
+video512: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_1028_10279.mp4
+video513: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_1609_1689.mp4
+video514: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_2321_23210.mp4
+video515: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_2737_27370.mp4
+video516: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_3133_31329.mp4
+video517: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_3849_38490.mp4
+video518: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_4387_43869.mp4
+video519: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_4798_47979.mp4
+video520: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_5328_53280.mp4
+video521: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_5769_57689.mp4
+video522: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_579_5790.mp4
+video523: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195622313_segment_6151_61509.mp4
+video524: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_1254_12539.mp4
+video525: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_1752_17519.mp4
+video526: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_2276_22760.mp4
+video527: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_2851_28510.mp4
+video528: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_3397_33969.mp4
+video529: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_3800_380.mp4
+video530: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_4214_42140.mp4
+video531: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_4645_46450.mp4
+video532: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_5134_51340.mp4
+video533: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_5639_56390.mp4
+video534: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_5975_59750.mp4
+video535: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_195810591_segment_744_7440.mp4
+video536: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_1429_14289.mp4
+video537: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_2072_20719.mp4
+video538: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_2742_27420.mp4
+video539: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_3456_34560.mp4
+video540: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_4628_46280.mp4
+video541: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_5073_50729.mp4
+video542: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_5637_56369.mp4
+video543: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_6254_62539.mp4
+video544: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_6971_69709.mp4
+video545: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_759_7589.mp4
+video546: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_7610_7699.mp4
+video547: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200456494_segment_8450_84500.mp4
+video548: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_1170_11699.mp4
+video549: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_1755_17550.mp4
+video550: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_2605_2650.mp4
+video551: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_3194_31940.mp4
+video552: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_3836_38359.mp4
+video553: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_4530_45299.mp4
+video554: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_5222_52219.mp4
+video555: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_5813_58130.mp4
+video556: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_6307_6370.mp4
+video557: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_6853_68530.mp4
+video558: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_7409_7490.mp4
+video559: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_200914564_segment_8061_80609.mp4
+video560: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_1086_10859.mp4
+video561: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_1742_17420.mp4
+video562: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_2434_24339.mp4
+video563: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_3016_30160.mp4
+video564: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_3582_35820.mp4
+video565: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_4118_41179.mp4
+video566: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_4588_45880.mp4
+video567: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_4968_49679.mp4
+video568: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_5442_54420.mp4
+video569: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_5787_57869.mp4
+video570: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201206791_segment_640_6400.mp4
+video571: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_1239_12390.mp4
+video572: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_2036_20359.mp4
+video573: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_2594_25940.mp4
+video574: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_3051_30510.mp4
+video575: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_3580_35799.mp4
+video576: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_4155_41549.mp4
+video577: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_4815_48149.mp4
+video578: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_5346_53460.mp4
+video579: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_5854_58539.mp4
+video580: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_6215_62149.mp4
+video581: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_6540_65400.mp4
+video582: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201355224_segment_799_7990.mp4
+video583: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_1342_13419.mp4
+video584: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_1975_19750.mp4
+video585: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_2832_28320.mp4
+video586: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_3492_34920.mp4
+video587: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_3990_39899.mp4
+video588: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_4701_479.mp4
+video589: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_5460_54600.mp4
+video590: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_6095_60950.mp4
+video591: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_6626_66260.mp4
+video592: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_7180_71799.mp4
+video593: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_7711_77109.mp4
+video594: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_871_8710.mp4
+video595: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201550938_segment_8868_88680.mp4
+video596: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_1036_10359.mp4
+video597: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_1574_15740.mp4
+video598: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_2234_22339.mp4
+video599: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_2730_27300.mp4
+video600: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_3176_31760.mp4
+video601: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_3841_38409.mp4
+video602: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_430_4299.mp4
+video603: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_4437_44369.mp4
+video604: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_5013_50130.mp4
+video605: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_5497_54969.mp4
+video606: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_5964_59640.mp4
+video607: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_6380_63799.mp4
+video608: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_201805461_segment_6885_68849.mp4
+video609: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_1065_10650.mp4
+video610: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_1593_15929.mp4
+video611: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_1984_19839.mp4
+video612: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_2461_24609.mp4
+video613: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_2860_28600.mp4
+video614: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_3467_34670.mp4
+video615: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_3878_38780.mp4
+video616: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_4553_45530.mp4
+video617: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_5057_50570.mp4
+video618: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_5324_53240.mp4
+video619: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_5690_56899.mp4
+video620: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202240605_segment_642_6419.mp4
+video621: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_1281_12810.mp4
+video622: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_1889_18890.mp4
+video623: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_2215_22149.mp4
+video624: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_2578_25780.mp4
+video625: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_3106_3159.mp4
+video626: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_3569_35689.mp4
+video627: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_3982_39820.mp4
+video628: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_4674_46740.mp4
+video629: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_4940_49399.mp4
+video630: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_5484_54840.mp4
+video631: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_5897_58969.mp4
+video632: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_6610_6699.mp4
+video633: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_7068_70680.mp4
+video634: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_202446286_segment_775_7750.mp4
+video635: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_1379_13789.mp4
+video636: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_1937_19370.mp4
+video637: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_2625_26250.mp4
+video638: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_3127_31269.mp4
+video639: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_3755_37549.mp4
+video640: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_4559_45590.mp4
+video641: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_5397_53969.mp4
+video642: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_6180_61799.mp4
+video643: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_6850_68500.mp4
+video644: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_7448_74480.mp4
+video645: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_7916_79159.mp4
+video646: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203416746_segment_936_9359.mp4
+video647: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_1275_12750.mp4
+video648: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_1773_17730.mp4
+video649: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_2304_2339.mp4
+video650: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_2842_28420.mp4
+video651: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_3394_33939.mp4
+video652: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_3634_36340.mp4
+video653: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_4026_40259.mp4
+video654: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_4439_44390.mp4
+video655: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_5022_50219.mp4
+video656: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_5482_54820.mp4
+video657: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_5888_58880.mp4
+video658: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_203840893_segment_859_8589.mp4
+video659: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_1413_14130.mp4
+video660: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_1914_19140.mp4
+video661: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_2367_23670.mp4
+video662: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_2804_2839.mp4
+video663: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_3482_34820.mp4
+video664: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_4035_40350.mp4
+video665: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_4602_4620.mp4
+video666: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_5043_50429.mp4
+video667: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_5443_54429.mp4
+video668: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_5856_58560.mp4
+video669: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_6210_62100.mp4
+video670: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204127054_segment_6697_66969.mp4
+video671: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_1326_13259.mp4
+video672: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_1991_19910.mp4
+video673: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_2710_27100.mp4
+video674: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_3429_34289.mp4
+video675: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_4091_40909.mp4
+video676: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_4655_46549.mp4
+video677: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_5280_52799.mp4
+video678: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_5816_58159.mp4
+video679: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_6383_63829.mp4
+video680: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_7026_70260.mp4
+video681: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_769_7690.mp4
+video682: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204347006_segment_7798_77980.mp4
+video683: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_1050_10500.mp4
+video684: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_1607_1670.mp4
+video685: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_2145_21449.mp4
+video686: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_2776_27760.mp4
+video687: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_3224_32240.mp4
+video688: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_3749_37490.mp4
+video689: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_4383_43829.mp4
+video690: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_4970_49700.mp4
+video691: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_5543_55429.mp4
+video692: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_6148_61479.mp4
+video693: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_6530_65299.mp4
+video694: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204645893_segment_6858_68579.mp4
+video695: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_1918_19179.mp4
+video696: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_2414_24140.mp4
+video697: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_3070_30699.mp4
+video698: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_3605_3649.mp4
+video699: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_3978_39780.mp4
+video700: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_4575_45750.mp4
+video701: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_5004_5039.mp4
+video702: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_5786_57859.mp4
+video703: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_6269_62689.mp4
+video704: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_6870_68700.mp4
+video705: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_7381_73810.mp4
+video706: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_204952507_segment_7949_79489.mp4
+video707: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_1613_16129.mp4
+video708: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_2125_21250.mp4
+video709: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_2620_26199.mp4
+video710: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_3079_30789.mp4
+video711: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_3435_34350.mp4
+video712: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_3927_39270.mp4
+video713: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_4373_43729.mp4
+video714: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_4854_48539.mp4
+video715: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_5268_52679.mp4
+video716: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_5598_55979.mp4
+video717: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_5953_59530.mp4
+video718: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240524_205239817_segment_6450_64500.mp4
+video719: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_2036_20359.mp4
+video720: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_2729_27289.mp4
+video721: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_3188_31879.mp4
+video722: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_3670_36700.mp4
+video723: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_4231_42310.mp4
+video724: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_4897_48969.mp4
+video725: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_5313_53130.mp4
+video726: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_5892_58920.mp4
+video727: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_6401_6410.mp4
+video728: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_6840_68400.mp4
+video729: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_7322_73219.mp4
+video730: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_7995_79950.mp4
+video731: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191208929_segment_8426_84260.mp4
+video732: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_1461_14609.mp4
+video733: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_1872_18719.mp4
+video734: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_2322_23219.mp4
+video735: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_2780_27800.mp4
+video736: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_3246_32460.mp4
+video737: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_3753_37530.mp4
+video738: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_4228_42280.mp4
+video739: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_4789_47890.mp4
+video740: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_5332_53320.mp4
+video741: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_5776_57759.mp4
+video742: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_597_5969.mp4
+video743: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191542362_segment_985_9849.mp4
+video744: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_1605_1650.mp4
+video745: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_2017_20170.mp4
+video746: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_2656_26559.mp4
+video747: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_3727_37270.mp4
+video748: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_4392_43920.mp4
+video749: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_5080_50799.mp4
+video750: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_5752_57520.mp4
+video751: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_6809_6890.mp4
+video752: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_7336_73359.mp4
+video753: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_7900_790.mp4
+video754: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_8492_84920.mp4
+video755: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_191800665_segment_8931_89310.mp4
+video756: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_1664_16640.mp4
+video757: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_2157_21570.mp4
+video758: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_2784_27839.mp4
+video759: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_3487_34869.mp4
+video760: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_4945_49450.mp4
+video761: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_5532_55320.mp4
+video762: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_5935_59350.mp4
+video763: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_6356_63560.mp4
+video764: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_6764_67640.mp4
+video765: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_7264_72640.mp4
+video766: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_7937_79370.mp4
+video767: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192037494_segment_8403_8430.mp4
+video768: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_1442_14419.mp4
+video769: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_1898_18980.mp4
+video770: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_2669_26690.mp4
+video771: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_3163_31629.mp4
+video772: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_3896_38960.mp4
+video773: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_4536_45359.mp4
+video774: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_4969_49689.mp4
+video775: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_5325_53250.mp4
+video776: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_5735_57350.mp4
+video777: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_6674_66739.mp4
+video778: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_7083_70829.mp4
+video779: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192316324_segment_971_9710.mp4
+video780: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_1163_11630.mp4
+video781: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_1531_15310.mp4
+video782: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_2017_20170.mp4
+video783: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_2434_24339.mp4
+video784: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_2860_28600.mp4
+video785: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_3448_34479.mp4
+video786: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_3941_39409.mp4
+video787: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_4916_49159.mp4
+video788: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_5422_54219.mp4
+video789: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_5801_589.mp4
+video790: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_6223_62229.mp4
+video791: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192530044_segment_6661_66609.mp4
+video792: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_1020_10199.mp4
+video793: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_1422_14220.mp4
+video794: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_1771_17710.mp4
+video795: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_2172_21719.mp4
+video796: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_2696_26960.mp4
+video797: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_3513_35130.mp4
+video798: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_3914_39140.mp4
+video799: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_4272_42719.mp4
+video800: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_4899_48990.mp4
+video801: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_5301_539.mp4
+video802: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_6077_60770.mp4
+video803: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_192747549_segment_6518_65180.mp4
+video804: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_2058_20579.mp4
+video805: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_2600_260.mp4
+video806: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_3757_37570.mp4
+video807: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_4392_43920.mp4
+video808: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_4968_49679.mp4
+video809: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_5576_55759.mp4
+video810: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_6143_61429.mp4
+video811: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_6882_68819.mp4
+video812: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_7531_75310.mp4
+video813: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_8225_82250.mp4
+video814: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_8797_87969.mp4
+video815: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_194833200_segment_9892_98920.mp4
+video816: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_1356_13560.mp4
+video817: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_1773_17730.mp4
+video818: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_2297_22969.mp4
+video819: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_2911_29109.mp4
+video820: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_3488_34880.mp4
+video821: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_3901_399.mp4
+video822: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_4279_42789.mp4
+video823: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_4635_46350.mp4
+video824: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_4995_49950.mp4
+video825: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_5331_53310.mp4
+video826: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_5611_56109.mp4
+video827: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195121813_segment_905_950.mp4
+video828: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_1013_10130.mp4
+video829: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_1396_13960.mp4
+video830: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_1857_18570.mp4
+video831: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_2411_24109.mp4
+video832: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_3582_35820.mp4
+video833: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_4239_42390.mp4
+video834: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_4999_49990.mp4
+video835: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_5851_58509.mp4
+video836: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_592_5919.mp4
+video837: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_7422_74219.mp4
+video838: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195429294_segment_7950_79500.mp4
+video839: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_1016_10160.mp4
+video840: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_1569_15689.mp4
+video841: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_2068_20679.mp4
+video842: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_2548_25480.mp4
+video843: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_3046_30460.mp4
+video844: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_3577_35770.mp4
+video845: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_4043_40429.mp4
+video846: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_4446_44460.mp4
+video847: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_4799_47990.mp4
+video848: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_5238_52380.mp4
+video849: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_5624_56240.mp4
+video850: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195735228_segment_584_5839.mp4
+video851: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_1471_14710.mp4
+video852: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_1884_18839.mp4
+video853: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_2438_24379.mp4
+video854: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_2854_28539.mp4
+video855: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_3250_32500.mp4
+video856: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_3805_3849.mp4
+video857: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_4325_43250.mp4
+video858: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_4758_47579.mp4
+video859: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_5169_51689.mp4
+video860: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_5592_55920.mp4
+video861: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_600_60.mp4
+video862: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_195931576_segment_963_9630.mp4
+video863: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_1161_11609.mp4
+video864: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_1602_1619.mp4
+video865: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_2031_20309.mp4
+video866: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_3066_30660.mp4
+video867: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_3622_36219.mp4
+video868: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_4179_41789.mp4
+video869: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_4822_48219.mp4
+video870: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_5372_53719.mp4
+video871: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_5857_58570.mp4
+video872: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_6203_6230.mp4
+video873: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_6503_6530.mp4
+video874: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200150965_segment_834_8339.mp4
+video875: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_1056_10560.mp4
+video876: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_1715_17149.mp4
+video877: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_2381_23809.mp4
+video878: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_2927_29269.mp4
+video879: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_3127_31269.mp4
+video880: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_3611_36109.mp4
+video881: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_4159_41590.mp4
+video882: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_4879_48789.mp4
+video883: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_5524_55240.mp4
+video884: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_558_5580.mp4
+video885: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_5927_59270.mp4
+video886: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_200358193_segment_6289_62890.mp4
+video887: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_1103_1129.mp4
+video888: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_1572_15720.mp4
+video889: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_1966_19660.mp4
+video890: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_2476_24760.mp4
+video891: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_3010_30100.mp4
+video892: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_4209_4290.mp4
+video893: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_4695_46950.mp4
+video894: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_5199_51990.mp4
+video895: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_5987_59869.mp4
+video896: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_648_6480.mp4
+video897: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_6508_6579.mp4
+video898: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_6960_69599.mp4
+video899: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_201847508_segment_7387_73870.mp4
+video900: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_1785_17850.mp4
+video901: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_2331_23309.mp4
+video902: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_3014_30140.mp4
+video903: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_3499_34990.mp4
+video904: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_3816_38159.mp4
+video905: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_4179_41789.mp4
+video906: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_4559_45590.mp4
+video907: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_4972_49719.mp4
+video908: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_5419_54189.mp4
+video909: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_5804_5839.mp4
+video910: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_6183_61829.mp4
+video911: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_6888_68879.mp4
+video912: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202051471_segment_7252_72519.mp4
+video913: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_1556_15560.mp4
+video914: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_1909_1989.mp4
+video915: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_2344_23440.mp4
+video916: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_2823_28230.mp4
+video917: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_3263_32630.mp4
+video918: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_3613_36130.mp4
+video919: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_4042_40420.mp4
+video920: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_4454_44539.mp4
+video921: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_5457_54570.mp4
+video922: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_5980_59799.mp4
+video923: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_8329_83290.mp4
+video924: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_849_8490.mp4
+video925: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_8639_86390.mp4
+video926: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_9035_90349.mp4
+video927: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_9341_93409.mp4
+video928: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202307027_segment_9686_96859.mp4
+video929: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_1062_10619.mp4
+video930: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_3127_31269.mp4
+video931: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_3658_36579.mp4
+video932: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_4140_41399.mp4
+video933: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_6378_63780.mp4
+video934: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_6810_6899.mp4
+video935: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_7361_73609.mp4
+video936: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_7915_79150.mp4
+video937: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_8482_84819.mp4
+video938: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_8994_89939.mp4
+video939: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_9409_9490.mp4
+video940: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_202634188_segment_9883_98829.mp4
+video941: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_1012_10119.mp4
+video942: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_1493_14929.mp4
+video943: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_2024_20239.mp4
+video944: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_2536_25359.mp4
+video945: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_3009_3089.mp4
+video946: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_3467_34670.mp4
+video947: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_4024_40240.mp4
+video948: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_4441_44409.mp4
+video949: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_4955_49549.mp4
+video950: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_5526_55259.mp4
+video951: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_5959_59590.mp4
+video952: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203142961_segment_597_5969.mp4
+video953: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_1376_13759.mp4
+video954: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_2001_2010.mp4
+video955: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_2453_24530.mp4
+video956: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_3089_30890.mp4
+video957: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_3590_35899.mp4
+video958: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_4094_40939.mp4
+video959: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_433_4330.mp4
+video960: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_4554_45539.mp4
+video961: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_4904_4939.mp4
+video962: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_5389_53890.mp4
+video963: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_5878_58780.mp4
+video964: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203413710_segment_948_9480.mp4
+video965: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_1153_11529.mp4
+video966: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_2058_20579.mp4
+video967: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_2608_2679.mp4
+video968: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_3146_31460.mp4
+video969: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_3712_37119.mp4
+video970: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_4176_41759.mp4
+video971: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_4643_46429.mp4
+video972: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_576_5759.mp4
+video973: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_5834_58340.mp4
+video974: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_6294_62939.mp4
+video975: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_6746_67459.mp4
+video976: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_7214_72140.mp4
+video977: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_7792_77920.mp4
+video978: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_8268_82680.mp4
+video979: 
+  - C:\Users\Kilosort\Documents\Bruno\TesisXaviPoseEstimation(CamaraLateral)-BrunoBustos-2024-09-02\videos\40298451__40298451__20240528_203628128_segment_8955_89549.mp4
