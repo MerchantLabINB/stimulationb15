@@ -147,6 +147,13 @@ metricas_preferidas = [m for m in metricas_preferidas if m in df.columns]
 if not metricas_preferidas:
     raise ValueError("❌ No se encontraron columnas de métricas preferidas en aggregated_df_enriched.csv")
 
+# === Filtrar solo las 6 articulaciones principales ===
+# Solo se incluyen las seis articulaciones principales; se excluyen nudillo y dedo.
+#valid_body_parts = ['Frente', 'Hombro', 'Bicep', 'Braquiradial', 'Codo', 'Muneca']
+valid_body_parts = ['Codo', 'Hombro', 'Muneca']
+if 'body_part' in df.columns:
+    df = df[df['body_part'].isin(valid_body_parts)].copy()
+
 # --- AGRUPACIÓN POR ENSAYO PARA REPRESENTAR CONDICIONES ANALIZADAS ---
 if "Ensayo_Key" in df.columns:
     group_cols_ensayo = ["Ensayo_Key", "body_part", "Coordenada_x", "Coordenada_y", "Forma_del_Pulso", "Duracion_ms"]
@@ -155,11 +162,12 @@ else:
     df_ensayo = df.copy()
 
 # --- FILTROS CONSISTENTES CON 'resumenes_finales.py' ---
-# Solo modelo Gaussian-based y body parts de interés
-parts_of_interest = ['Hombro', 'Codo', 'Muneca']
-df = df[df['MovementType'].astype(str).str.lower() == 'gaussian-based']
-if 'body_part' in df.columns:
-    df = df[df['body_part'].isin(parts_of_interest)]
+# (El filtrado por articulaciones principales ya fue aplicado arriba)
+# Solo modelo Gaussian-based y body parts de interés (seis articulaciones principales)
+# parts_of_interest = ['Frente', 'Hombro', 'Bíceps', 'Braquiorradial', 'Codo', 'Muñeca']
+# df = df[df['MovementType'].astype(str).str.lower() == 'gaussian-based']
+# if 'body_part' in df.columns:
+#     df = df[df['body_part'].isin(parts_of_interest)]
 
 # Filtrar formas de pulso válidas y duraciones estándar
 valid_forms = ['rectangular', 'rombo', 'triple rombo', 'triple_rombo', 'rampa ascendente', 'rampa_ascendente']
@@ -255,11 +263,11 @@ def unifica_coordenada(df):
     return df
 
 def renombra_columnas_formales(df):
-    """Renombra métricas a nombres formales en español."""
+    """Renombra métricas a nombres formales en español, usando px/s para la velocidad."""
     rename_map = {
         "lat_inicio_ms_mean±sd": "Latencia al inicio (ms)",
         "lat_pico_mayor_ms_mean±sd": "Latencia al pico mayor (ms)",
-        "valor_pico_max_mean±sd": "Amplitud del pico mayor de velocidad (cm/s)",
+        "valor_pico_max_mean±sd": "Amplitud del pico mayor de velocidad (px/s)",
         "dur_total_ms_mean±sd": "Duración total del movimiento (ms)",
         "delta_t_pico_mean±sd": "Diferencia primer–pico mayor (ms)",
         "num_movs_mean±sd": "Número de submovimientos",
@@ -456,7 +464,7 @@ cols_export_ext += [c for c in ["Forma del estímulo", "Duración (ms)"] if c in
 cols_export_ext += [
     "Latencia al inicio (ms)",
     "Latencia al pico mayor (ms)",
-    "Amplitud del pico mayor de velocidad (cm/s)",
+    "Amplitud del pico mayor de velocidad (px/s)",
     "Duración total del movimiento (ms)",
     "Diferencia primer–pico mayor (ms)",
     "Número de submovimientos",
@@ -550,7 +558,7 @@ cols_orden = [
     "Duración (ms)",
     "Latencia al inicio (ms)",
     "Latencia al pico mayor (ms)",
-    "Amplitud del pico mayor de velocidad (cm/s)",
+    "Amplitud del pico mayor de velocidad (px/s)",
     "Duración total del movimiento (ms)",
     "Diferencia primer–pico mayor (ms)",
     "Número de submovimientos",
@@ -624,7 +632,7 @@ cols_export_bp += [c for c in ["Forma del estímulo", "Duración (ms)"] if c in 
 cols_export_bp += [
     "Latencia al inicio (ms)",
     "Latencia al pico mayor (ms)",
-    "Amplitud del pico mayor de velocidad (cm/s)",
+    "Amplitud del pico mayor de velocidad (px/s)",
     "Duración total del movimiento (ms)",
     "Diferencia primer–pico mayor (ms)",
     "Número de submovimientos",
